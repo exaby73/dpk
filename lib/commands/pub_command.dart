@@ -13,8 +13,6 @@ final class PubCommand extends Command {
   String get description => 'Manage dependencies';
 
   PubCommand() {
-    argParser.addOption('test');
-
     addSubcommand(PubGetCommand());
     addSubcommand(PubAddCommand());
     addSubcommand(PubUpgradeCommand());

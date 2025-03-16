@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:dpm/utils/string_extensions.dart';
 
@@ -9,25 +11,10 @@ void addGlobalArgs(ArgParser parser) {
     hide: true,
   );
 
-  parser.addFlag(
-    'verbose',
-    abbr: 'v',
-    help: 'Enable verbose output',
-    negatable: false,
-  );
-
   parser.addOption(
     'directory',
     abbr: 'C',
     help: 'Directory to run the subcommand in',
-  );
-
-  parser.addFlag(
-    'color',
-    help:
-        'Use colors in terminal output\n'
-        'Defaults to color when connected to a terminal, and no-color otherwise.',
-    defaultsTo: null,
   );
 
   parser.addOption(
@@ -38,41 +25,39 @@ void addGlobalArgs(ArgParser parser) {
   );
 }
 
-List<String> buildGlobalArgs(PubOptions options) {
-  return [
-    if (options.verbose) '--verbose',
-    if (options.directory?.isNotEmpty == true) ...['-C', options.directory!],
-    if (options.color != null) options.color! ? '--color' : '--no-color',
-  ];
-}
-
-base class PubOptions {
+base class GlobalOptions {
   final bool debug;
-  final bool verbose;
   final String? directory;
-  final bool? color;
-  final String cacheDir;
+  late final String cacheDir;
 
-  PubOptions({
+  GlobalOptions({
     required this.debug,
-    required this.verbose,
     required this.directory,
-    required this.color,
-    required this.cacheDir,
-  });
+    required String cacheDir,
+  }) {
+    if (cacheDir.startsWith('/')) {
+      this.cacheDir = cacheDir;
+      return;
+    }
+
+    late String currentDirPath;
+    if (directory != null) {
+      currentDirPath = Directory(directory!).absolute.path;
+    } else {
+      currentDirPath = Directory.current.absolute.path;
+    }
+
+    this.cacheDir = '$currentDirPath/$cacheDir';
+  }
 
   @override
   String toString() {
     return '''
-    PubOptions(
+    GlobalOptions(
       debug: $debug,
-      verbose: $verbose,
       directory: $directory,
-      color: $color,
       cacheDir: $cacheDir,
     )
     '''.trimIndents();
   }
-
-  bool get isVerbose => debug || verbose;
 }

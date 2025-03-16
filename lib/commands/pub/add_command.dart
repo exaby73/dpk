@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpm/utils/global_args.dart';
+import 'package:dpm/utils/global_pub_args.dart';
 import 'package:dpm/utils/string_extensions.dart';
 
 final class PubAddCommand extends Command {
@@ -50,7 +50,7 @@ For example:
 '''.trimIndents();
 
   PubAddCommand() {
-    addGlobalArgs(argParser);
+    addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
       help: 'Use cached packages instead of accessing the network',
@@ -110,10 +110,10 @@ final class _PubGetOptions extends PubOptions {
 
   _PubGetOptions({
     required super.debug,
-    required super.verbose,
     required super.directory,
-    required super.color,
     required super.cacheDir,
+    required super.verbose,
+    required super.color,
 
     required this.offline,
     required this.dryRun,
@@ -123,10 +123,10 @@ final class _PubGetOptions extends PubOptions {
   factory _PubGetOptions.fromArgResults(ArgResults results) {
     return _PubGetOptions(
       debug: results.flag('debug'),
-      verbose: results.flag('verbose'),
       directory: results.option('directory'),
-      color: results['color'] as bool?,
       cacheDir: results.option('cache-dir')!,
+      verbose: results.flag('verbose'),
+      color: results['color'] as bool?,
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
       precompile: results.flag('precompile'),
@@ -138,10 +138,10 @@ final class _PubGetOptions extends PubOptions {
     return '''
     PubGetOptions(
       debug: $debug,
-      verbose: $verbose,
       directory: $directory,
-      color: $color,
       cacheDir: $cacheDir,
+      verbose: $verbose,
+      color: $color,
       offline: $offline,
       dryRun: $dryRun,
       precompile: $precompile,
