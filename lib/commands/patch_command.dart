@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:dpm/commands/patch/generate_command.dart';
 import 'package:dpm/commands/patch/init_command.dart';
 
 final class PatchCommand extends Command {
@@ -10,5 +11,6 @@ final class PatchCommand extends Command {
 
   PatchCommand() {
     addSubcommand(PatchInitCommand());
+    addSubcommand(PatchGenerateCommand());
   }
 }

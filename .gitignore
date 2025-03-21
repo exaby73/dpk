@@ -3,3 +3,5 @@
 .dart_tool/
 pub_packages
 pubspec.lock
+
+patches/

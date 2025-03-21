@@ -6,7 +6,11 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
-  luthor: ^0.6.0
+  luthor:
+    git:
+      url: https://github.com/exaby73/luthor.git
+      ref: main
+      path: ./packages/luthor
 
 dev_dependencies:
   dpm:

@@ -103,6 +103,7 @@ final class _PubUpgradeOptions extends PubOptions {
     required super.debug,
     required super.directory,
     required super.cacheDir,
+    required super.patchDir,
     required super.verbose,
     required super.color,
 
@@ -119,6 +120,7 @@ final class _PubUpgradeOptions extends PubOptions {
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
+      patchDir: results.option('patch-dir')!,
       verbose: results.flag('verbose'),
       color: results['color'] as bool?,
 
@@ -138,6 +140,7 @@ final class _PubUpgradeOptions extends PubOptions {
       debug: $debug,
       directory: $directory,
       cacheDir: $cacheDir,
+      patchDir: $patchDir,
       verbose: $verbose,
       color: $color,
       offline: $offline,

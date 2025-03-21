@@ -63,6 +63,13 @@ final class PatchInitCommand extends Command {
     }
 
     await Process.run('git', ['init'], workingDirectory: options.cacheDir);
+    await Process.run('git', ['add', '.'], workingDirectory: options.cacheDir);
+    await Process.run('git', [
+      'commit',
+      '-m',
+      '"Patch initialized"',
+    ], workingDirectory: options.cacheDir);
+
     stdout.writeln('Patch initialized');
 
     exit(0);
@@ -76,6 +83,7 @@ final class _PatchOptions extends GlobalOptions {
     required super.debug,
     required super.directory,
     required super.cacheDir,
+    required super.patchDir,
 
     required this.force,
   });
@@ -85,6 +93,7 @@ final class _PatchOptions extends GlobalOptions {
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
+      patchDir: results.option('patch-dir')!,
       force: results.flag('force'),
     );
   }
@@ -96,6 +105,7 @@ final class _PatchOptions extends GlobalOptions {
       debug: $debug,
       directory: $directory,
       cacheDir: $cacheDir,
+      patchDir: $patchDir,
       force: $force,
     )
     '''.trimIndents();

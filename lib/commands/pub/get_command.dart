@@ -87,6 +87,7 @@ final class _PubGetOptions extends PubOptions {
     required super.debug,
     required super.directory,
     required super.cacheDir,
+    required super.patchDir,
     required super.verbose,
     required super.color,
 
@@ -101,6 +102,7 @@ final class _PubGetOptions extends PubOptions {
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
+      patchDir: results.option('patch-dir')!,
       verbose: results.flag('verbose'),
       color: results['color'] as bool?,
       offline: results.flag('offline'),
@@ -117,6 +119,7 @@ final class _PubGetOptions extends PubOptions {
       debug: $debug,
       directory: $directory,
       cacheDir: $cacheDir,
+      patchDir: $patchDir,
       verbose: $verbose,
       color: $color,
       offline: $offline,

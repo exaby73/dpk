@@ -37,6 +37,8 @@ base class PubOptions extends GlobalOptions {
     required super.debug,
     required super.directory,
     required super.cacheDir,
+    required super.patchDir,
+
     required this.verbose,
     required this.color,
   });
@@ -48,6 +50,7 @@ base class PubOptions extends GlobalOptions {
       debug: $debug,
       directory: $directory,
       cacheDir: $cacheDir,
+      patchDir: $patchDir,
       verbose: $verbose,
       color: $color,
     )

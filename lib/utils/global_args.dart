@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dpm/utils/string_extensions.dart';
+import 'package:path/path.dart';
 
 void addGlobalArgs(ArgParser parser) {
   parser.addFlag(
@@ -23,18 +24,27 @@ void addGlobalArgs(ArgParser parser) {
     defaultsTo: 'pub_packages',
     help: 'Directory to store dependencies',
   );
+
+  parser.addOption('patch-dir', abbr: 'p', defaultsTo: 'patches');
 }
 
 base class GlobalOptions {
   final bool debug;
   final String? directory;
   late final String cacheDir;
+  late final String patchDir;
 
   GlobalOptions({
     required this.debug,
     required this.directory,
     required String cacheDir,
+    required String patchDir,
   }) {
+    _initializeCacheDir(cacheDir);
+    _initializePatchDir(patchDir);
+  }
+
+  void _initializeCacheDir(String cacheDir) {
     if (cacheDir.startsWith('/')) {
       this.cacheDir = cacheDir;
       return;
@@ -47,7 +57,23 @@ base class GlobalOptions {
       currentDirPath = Directory.current.absolute.path;
     }
 
-    this.cacheDir = '$currentDirPath/$cacheDir';
+    this.cacheDir = join(currentDirPath, cacheDir);
+  }
+
+  void _initializePatchDir(String patchDir) {
+    if (patchDir.startsWith('/')) {
+      this.patchDir = patchDir;
+      return;
+    }
+
+    late String currentDirPath;
+    if (directory != null) {
+      currentDirPath = Directory(directory!).absolute.path;
+    } else {
+      currentDirPath = Directory.current.absolute.path;
+    }
+
+    this.patchDir = join(currentDirPath, patchDir);
   }
 
   @override
