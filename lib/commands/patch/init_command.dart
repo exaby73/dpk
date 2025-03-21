@@ -59,6 +59,11 @@ final class PatchInitCommand extends Command {
     }
 
     if (dotGitExists && options.force) {
+      await Process.run('git', [
+        'checkout',
+        '.',
+      ], workingDirectory: options.cacheDir);
+
       await dotGitDir.delete(recursive: true);
     }
 
