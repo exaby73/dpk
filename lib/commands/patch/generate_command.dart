@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:collection/collection.dart';
 import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/utils/constants.dart';
 import 'package:dpm/utils/global_args.dart';
@@ -189,12 +188,7 @@ final class PatchGenerateCommand extends Command {
         await patchFile.create(recursive: true);
       }
 
-      await patchFile.writeAsString(
-        diffStdout
-            .split('\n')
-            .whereNot((line) => line.startsWith('index'))
-            .join('\n'),
-      );
+      await patchFile.writeAsString(diffStdout);
     }
 
     if (untrackedFiles.isNotEmpty) {
