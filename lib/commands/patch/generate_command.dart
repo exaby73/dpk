@@ -60,12 +60,8 @@ final class PatchGenerateCommand extends Command {
       exit(0);
     }
 
-    final patchFiles = patchDir.listSync(recursive: true);
-    for (final file in patchFiles) {
-      if (file.path.endsWith('.patch')) {
-        await file.delete();
-      }
-    }
+    patchDir.deleteSync(recursive: true);
+    patchDir.createSync(recursive: true);
 
     final ProcessResult(
       stdout: statusStdout as String,

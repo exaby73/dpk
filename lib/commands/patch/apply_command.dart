@@ -40,19 +40,10 @@ final class PatchApplyCommand extends Command {
 
     final patchDir = Directory(options.patchDir);
     if (!patchDir.existsSync()) {
-      stderr.writeln('Patch directory does not exist');
+      stderr.writeln(
+        'Patch directory does not exist. Did you run `$executableName patch generate`?',
+      );
       exit(1);
-    }
-
-    final hostedPatchesDir = Directory(join(patchDir.path, 'hosted'));
-    final gitPatchesDir = Directory(join(patchDir.path, 'git'));
-
-    final hostedPatches = hostedPatchesDir.listSync().whereType<File>();
-    final gitPatches = gitPatchesDir.listSync().whereType<File>();
-
-    if (hostedPatches.isEmpty && gitPatches.isEmpty) {
-      stderr.writeln('No patches to apply');
-      exit(0);
     }
 
     final checkoutResult = await Process.run('git', [
@@ -65,6 +56,41 @@ final class PatchApplyCommand extends Command {
         'Failed to apply. Did you run `$executableName patch init`?',
       );
       exit(1);
+    }
+
+    for (final gitDep in Directory(join(options.cacheDir, 'git')).listSync()) {
+      if (basename(gitDep.path) == 'cache') {
+        continue;
+      }
+
+      final result = await Process.run('git', [
+        'checkout',
+        '.',
+      ], workingDirectory: gitDep.path);
+
+      if (result.exitCode != 0) {
+        stderr.writeln(
+          'Failed to apply git dependency ${basename(gitDep.path)}:\n${result.stderr}',
+        );
+        exit(1);
+      }
+    }
+
+    final hostedPatchesDir = Directory(join(patchDir.path, 'hosted'));
+    final gitPatchesDir = Directory(join(patchDir.path, 'git'));
+
+    final hostedPatches =
+        hostedPatchesDir.existsSync()
+            ? hostedPatchesDir.listSync().whereType<File>()
+            : <File>[];
+    final gitPatches =
+        gitPatchesDir.existsSync()
+            ? gitPatchesDir.listSync().whereType<File>()
+            : <File>[] as Iterable<File>;
+
+    if (hostedPatches.isEmpty && gitPatches.isEmpty) {
+      stderr.writeln('No patches to apply');
+      exit(0);
     }
 
     for (final patch in hostedPatches) {
