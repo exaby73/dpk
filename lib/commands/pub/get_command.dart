@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/global_pub_args.dart';
-import 'package:dpm/utils/string_extensions.dart';
+import 'package:dart_mappable/dart_mappable.dart';
+
+part 'get_command.mapper.dart';
 
 final class PubGetCommand extends Command {
   @override
@@ -41,7 +43,7 @@ final class PubGetCommand extends Command {
 
   @override
   Future<void> run() async {
-    final options = _PubGetOptions.fromArgResults(argResults!);
+    final options = PubGetOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options),
@@ -77,13 +79,14 @@ final class PubGetCommand extends Command {
   }
 }
 
-final class _PubGetOptions extends PubOptions {
+@MappableClass()
+final class PubGetOptions extends PubOptions with PubGetOptionsMappable {
   final bool offline;
   final bool dryRun;
   final bool enforceLockfile;
   final bool precompile;
 
-  _PubGetOptions({
+  PubGetOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -97,8 +100,8 @@ final class _PubGetOptions extends PubOptions {
     required this.precompile,
   });
 
-  factory _PubGetOptions.fromArgResults(ArgResults results) {
-    return _PubGetOptions(
+  factory PubGetOptions.fromArgResults(ArgResults results) {
+    return PubGetOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
@@ -110,23 +113,5 @@ final class _PubGetOptions extends PubOptions {
       enforceLockfile: results.flag('enforce-lockfile'),
       precompile: results.flag('precompile'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    PubGetOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      verbose: $verbose,
-      color: $color,
-      offline: $offline,
-      dryRun: $dryRun,
-      enforceLockfile: $enforceLockfile,
-      precompile: $precompile,
-    )
-    '''.trimIndents();
   }
 }

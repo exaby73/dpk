@@ -1,6 +1,9 @@
 import 'package:args/args.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:dpm/utils/global_args.dart' show GlobalOptions, addGlobalArgs;
 import 'package:dpm/utils/string_extensions.dart';
+
+part 'global_pub_args.mapper.dart';
 
 void addGlobalPubArgs(ArgParser parser) {
   addGlobalArgs(parser);
@@ -29,7 +32,8 @@ List<String> buildGlobalArgs(PubOptions options) {
   ];
 }
 
-base class PubOptions extends GlobalOptions {
+@MappableClass()
+base class PubOptions extends GlobalOptions with PubOptionsMappable {
   final bool verbose;
   final bool? color;
 

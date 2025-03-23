@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/global_pub_args.dart';
-import 'package:dpm/utils/string_extensions.dart';
+import 'package:dart_mappable/dart_mappable.dart';
+
+part 'upgrade_command.mapper.dart';
 
 final class PubUpgradeCommand extends Command {
   @override
@@ -53,7 +55,7 @@ final class PubUpgradeCommand extends Command {
 
   @override
   Future<void> run() async {
-    final options = _PubUpgradeOptions.fromArgResults(argResults!);
+    final options = PubUpgradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options),
@@ -91,7 +93,9 @@ final class PubUpgradeCommand extends Command {
   }
 }
 
-final class _PubUpgradeOptions extends PubOptions {
+@MappableClass()
+final class PubUpgradeOptions extends PubOptions
+    with PubUpgradeOptionsMappable {
   final bool offline;
   final bool dryRun;
   final bool precompile;
@@ -99,7 +103,7 @@ final class _PubUpgradeOptions extends PubOptions {
   final bool unlockTransitive;
   final bool majorVersions;
 
-  _PubUpgradeOptions({
+  PubUpgradeOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -115,8 +119,8 @@ final class _PubUpgradeOptions extends PubOptions {
     required this.majorVersions,
   });
 
-  factory _PubUpgradeOptions.fromArgResults(ArgResults results) {
-    return _PubUpgradeOptions(
+  factory PubUpgradeOptions.fromArgResults(ArgResults results) {
+    return PubUpgradeOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
@@ -131,25 +135,5 @@ final class _PubUpgradeOptions extends PubOptions {
       unlockTransitive: results.flag('unlock-transitive'),
       majorVersions: results.flag('major-versions'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    PubUpgradeOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      verbose: $verbose,
-      color: $color,
-      offline: $offline,
-      dryRun: $dryRun,
-      precompile: $precompile,
-      tighten: $tighten,
-      unlockTransitive: $unlockTransitive,
-      majorVersions: $majorVersions,
-    )
-    '''.trimIndents();
   }
 }

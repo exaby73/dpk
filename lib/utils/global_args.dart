@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dpm/utils/string_extensions.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
+
+part 'global_args.mapper.dart';
 
 void addGlobalArgs(ArgParser parser) {
   parser.addFlag(
@@ -28,7 +30,8 @@ void addGlobalArgs(ArgParser parser) {
   parser.addOption('patch-dir', abbr: 'p', defaultsTo: 'patches');
 }
 
-base class GlobalOptions {
+@MappableClass()
+base class GlobalOptions with GlobalOptionsMappable {
   final bool debug;
   final String? directory;
   late final String cacheDir;
@@ -74,16 +77,5 @@ base class GlobalOptions {
     }
 
     this.patchDir = join(currentDirPath, patchDir);
-  }
-
-  @override
-  String toString() {
-    return '''
-    GlobalOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-    )
-    '''.trimIndents();
   }
 }

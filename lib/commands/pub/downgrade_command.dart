@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:dpm/utils/global_pub_args.dart';
-import 'package:dpm/utils/string_extensions.dart';
+
+part 'downgrade_command.mapper.dart';
 
 final class PubDowngradeCommand extends Command {
   @override
@@ -35,7 +37,7 @@ final class PubDowngradeCommand extends Command {
 
   @override
   Future<void> run() async {
-    final options = _PubGetOptions.fromArgResults(argResults!);
+    final options = PubDowngradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options),
@@ -70,12 +72,14 @@ final class PubDowngradeCommand extends Command {
   }
 }
 
-final class _PubGetOptions extends PubOptions {
+@MappableClass()
+final class PubDowngradeOptions extends PubOptions
+    with PubDowngradeOptionsMappable {
   final bool offline;
   final bool dryRun;
   final bool tighten;
 
-  _PubGetOptions({
+  PubDowngradeOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -88,8 +92,8 @@ final class _PubGetOptions extends PubOptions {
     required this.tighten,
   });
 
-  factory _PubGetOptions.fromArgResults(ArgResults results) {
-    return _PubGetOptions(
+  factory PubDowngradeOptions.fromArgResults(ArgResults results) {
+    return PubDowngradeOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
@@ -100,22 +104,5 @@ final class _PubGetOptions extends PubOptions {
       dryRun: results.flag('dry-run'),
       tighten: results.flag('tighten'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    PubGetOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      verbose: $verbose,
-      color: $color,
-      offline: $offline,
-      dryRun: $dryRun,
-      tighten: $tighten,
-    )
-    '''.trimIndents();
   }
 }

@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:dpm/utils/command_checker.dart';
-import 'package:dpm/utils/constants.dart';
+import 'package:dpm/core/constants.dart';
 import 'package:dpm/utils/global_args.dart';
-import 'package:dpm/utils/string_extensions.dart';
 import 'package:path/path.dart';
 import 'package:prompts/prompts.dart' as prompts;
+
+part 'generate_command.mapper.dart';
 
 final class PatchGenerateCommand extends Command {
   @override
@@ -28,7 +30,7 @@ final class PatchGenerateCommand extends Command {
 
   @override
   Future<void> run() async {
-    final options = _GenerateOptions.fromArgResults(argResults!);
+    final options = GenerateOptions.fromArgResults(argResults!);
     final cacheDir = Directory(options.cacheDir);
     final patchDir = Directory(options.patchDir);
 
@@ -206,10 +208,11 @@ final class PatchGenerateCommand extends Command {
   }
 }
 
-final class _GenerateOptions extends GlobalOptions {
+@MappableClass()
+final class GenerateOptions extends GlobalOptions with GenerateOptionsMappable {
   final bool force;
 
-  _GenerateOptions({
+  GenerateOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -218,26 +221,13 @@ final class _GenerateOptions extends GlobalOptions {
     required this.force,
   });
 
-  factory _GenerateOptions.fromArgResults(ArgResults results) {
-    return _GenerateOptions(
+  factory GenerateOptions.fromArgResults(ArgResults results) {
+    return GenerateOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
       patchDir: results.option('patch-dir')!,
       force: results.flag('force'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    _PatchOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      force: $force,
-    )
-    '''.trimIndents();
   }
 }

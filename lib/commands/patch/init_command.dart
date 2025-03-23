@@ -4,10 +4,12 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dpm/utils/command_checker.dart';
-import 'package:dpm/utils/constants.dart';
+import 'package:dpm/core/constants.dart';
 import 'package:dpm/utils/global_args.dart';
-import 'package:dpm/utils/string_extensions.dart';
 import 'package:path/path.dart';
+import 'package:dart_mappable/dart_mappable.dart';
+
+part 'init_command.mapper.dart';
 
 final class PatchInitCommand extends Command {
   @override
@@ -28,7 +30,7 @@ final class PatchInitCommand extends Command {
 
   @override
   Future<void> run() async {
-    final options = _PatchOptions.fromArgResults(argResults!);
+    final options = PatchOptions.fromArgResults(argResults!);
     final cacheDir = Directory(options.cacheDir);
 
     if (!cacheDir.existsSync()) {
@@ -81,10 +83,11 @@ final class PatchInitCommand extends Command {
   }
 }
 
-final class _PatchOptions extends GlobalOptions {
+@MappableClass()
+final class PatchOptions extends GlobalOptions with PatchOptionsMappable {
   final bool force;
 
-  _PatchOptions({
+  PatchOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -93,26 +96,13 @@ final class _PatchOptions extends GlobalOptions {
     required this.force,
   });
 
-  factory _PatchOptions.fromArgResults(ArgResults results) {
-    return _PatchOptions(
+  factory PatchOptions.fromArgResults(ArgResults results) {
+    return PatchOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
       patchDir: results.option('patch-dir')!,
       force: results.flag('force'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    _PatchOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      force: $force,
-    )
-    '''.trimIndents();
   }
 }

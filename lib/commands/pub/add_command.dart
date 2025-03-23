@@ -4,7 +4,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/global_pub_args.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:dpm/utils/string_extensions.dart';
+
+part 'add_command.mapper.dart';
 
 final class PubAddCommand extends Command {
   @override
@@ -68,7 +71,7 @@ For example:
 
   @override
   Future<void> run() async {
-    final options = _PubGetOptions.fromArgResults(argResults!);
+    final options = PubAddOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options),
@@ -103,12 +106,13 @@ For example:
   }
 }
 
-final class _PubGetOptions extends PubOptions {
+@MappableClass()
+final class PubAddOptions extends PubOptions with PubAddOptionsMappable {
   final bool offline;
   final bool dryRun;
   final bool precompile;
 
-  _PubGetOptions({
+  PubAddOptions({
     required super.debug,
     required super.directory,
     required super.cacheDir,
@@ -121,8 +125,8 @@ final class _PubGetOptions extends PubOptions {
     required this.precompile,
   });
 
-  factory _PubGetOptions.fromArgResults(ArgResults results) {
-    return _PubGetOptions(
+  factory PubAddOptions.fromArgResults(ArgResults results) {
+    return PubAddOptions(
       debug: results.flag('debug'),
       directory: results.option('directory'),
       cacheDir: results.option('cache-dir')!,
@@ -133,22 +137,5 @@ final class _PubGetOptions extends PubOptions {
       dryRun: results.flag('dry-run'),
       precompile: results.flag('precompile'),
     );
-  }
-
-  @override
-  String toString() {
-    return '''
-    PubGetOptions(
-      debug: $debug,
-      directory: $directory,
-      cacheDir: $cacheDir,
-      patchDir: $patchDir,
-      verbose: $verbose,
-      color: $color,
-      offline: $offline,
-      dryRun: $dryRun,
-      precompile: $precompile,
-    )
-    '''.trimIndents();
   }
 }
