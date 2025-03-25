@@ -8,7 +8,10 @@ scripts:
     echo Postget script
     echo --------------------------------
 
+  clean: dpm run build_runner clean
+
   prebuild: dpm run clean
   build: dpm run build_runner -- build -d
-  clean: dpm run build_runner clean
-  watch: dpm run clean && dpm run build_runner -- watch -d
+
+  watch: dpm run build_runner -- watch -d
+  watch:clean: dpm run clean && dpm run watch

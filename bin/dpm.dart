@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
-import 'package:dpm/commands/patch_command.dart';
-import 'package:dpm/commands/pub_command.dart';
+import 'package:dpm/commands/parent_commands/patch_command.dart';
+import 'package:dpm/commands/parent_commands/pub_command.dart';
 import 'package:dpm/commands/run_command.dart';
 
 Future<void> main(List<String> arguments) async {
