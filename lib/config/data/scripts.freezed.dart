@@ -155,7 +155,7 @@ as Map<String, Script>,
 /// @nodoc
 mixin _$Script {
 
- String get name; String? get description; String get command; HookType get hookType;
+ String get name; String? get description; String get command; HookType get hookType; String? get runHooksFrom;
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -168,16 +168,16 @@ $ScriptCopyWith<Script> get copyWith => _$ScriptCopyWithImpl<Script>(this as Scr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Script&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.command, command) || other.command == command)&&(identical(other.hookType, hookType) || other.hookType == hookType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Script&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.command, command) || other.command == command)&&(identical(other.hookType, hookType) || other.hookType == hookType)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,description,command,hookType);
+int get hashCode => Object.hash(runtimeType,name,description,command,hookType,runHooksFrom);
 
 @override
 String toString() {
-  return 'Script(name: $name, description: $description, command: $command, hookType: $hookType)';
+  return 'Script(name: $name, description: $description, command: $command, hookType: $hookType, runHooksFrom: $runHooksFrom)';
 }
 
 
@@ -188,7 +188,7 @@ abstract mixin class $ScriptCopyWith<$Res>  {
   factory $ScriptCopyWith(Script value, $Res Function(Script) _then) = _$ScriptCopyWithImpl;
 @useResult
 $Res call({
- String name, String? description, String command, HookType hookType
+ String name, String? description, String command, HookType hookType, String? runHooksFrom
 });
 
 
@@ -205,13 +205,14 @@ class _$ScriptCopyWithImpl<$Res>
 
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? description = freezed,Object? command = null,Object? hookType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? description = freezed,Object? command = null,Object? hookType = null,Object? runHooksFrom = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,command: null == command ? _self.command : command // ignore: cast_nullable_to_non_nullable
 as String,hookType: null == hookType ? _self.hookType : hookType // ignore: cast_nullable_to_non_nullable
-as HookType,
+as HookType,runHooksFrom: freezed == runHooksFrom ? _self.runHooksFrom : runHooksFrom // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -222,13 +223,14 @@ as HookType,
 @JsonSerializable()
 
 class _Script implements Script {
-  const _Script({required this.name, required this.description, required this.command, required this.hookType});
+  const _Script({required this.name, required this.description, required this.command, required this.hookType, required this.runHooksFrom});
   factory _Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
 
 @override final  String name;
 @override final  String? description;
 @override final  String command;
 @override final  HookType hookType;
+@override final  String? runHooksFrom;
 
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
@@ -243,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Script&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.command, command) || other.command == command)&&(identical(other.hookType, hookType) || other.hookType == hookType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Script&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.command, command) || other.command == command)&&(identical(other.hookType, hookType) || other.hookType == hookType)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,description,command,hookType);
+int get hashCode => Object.hash(runtimeType,name,description,command,hookType,runHooksFrom);
 
 @override
 String toString() {
-  return 'Script._(name: $name, description: $description, command: $command, hookType: $hookType)';
+  return 'Script._(name: $name, description: $description, command: $command, hookType: $hookType, runHooksFrom: $runHooksFrom)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$ScriptCopyWith<$Res> implements $ScriptCopyWith<$Res> {
   factory _$ScriptCopyWith(_Script value, $Res Function(_Script) _then) = __$ScriptCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String? description, String command, HookType hookType
+ String name, String? description, String command, HookType hookType, String? runHooksFrom
 });
 
 
@@ -280,13 +282,14 @@ class __$ScriptCopyWithImpl<$Res>
 
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? description = freezed,Object? command = null,Object? hookType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? description = freezed,Object? command = null,Object? hookType = null,Object? runHooksFrom = freezed,}) {
   return _then(_Script(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,command: null == command ? _self.command : command // ignore: cast_nullable_to_non_nullable
 as String,hookType: null == hookType ? _self.hookType : hookType // ignore: cast_nullable_to_non_nullable
-as HookType,
+as HookType,runHooksFrom: freezed == runHooksFrom ? _self.runHooksFrom : runHooksFrom // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

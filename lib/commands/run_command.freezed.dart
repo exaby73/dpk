@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RunOptions {
 
- GlobalOptions get globalOptions; String get script;
+ GlobalOptions get globalOptions; set globalOptions(GlobalOptions value); String? get script; set script(String? value);
 /// Create a copy of RunOptions
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -24,14 +24,7 @@ $RunOptionsCopyWith<RunOptions> get copyWith => _$RunOptionsCopyWithImpl<RunOpti
 
 
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RunOptions&&(identical(other.globalOptions, globalOptions) || other.globalOptions == globalOptions)&&(identical(other.script, script) || other.script == script));
-}
 
-
-@override
-int get hashCode => Object.hash(runtimeType,globalOptions,script);
 
 @override
 String toString() {
@@ -46,7 +39,7 @@ abstract mixin class $RunOptionsCopyWith<$Res>  {
   factory $RunOptionsCopyWith(RunOptions value, $Res Function(RunOptions) _then) = _$RunOptionsCopyWithImpl;
 @useResult
 $Res call({
- GlobalOptions globalOptions, String script
+ GlobalOptions globalOptions, String? script
 });
 
 
@@ -63,11 +56,11 @@ class _$RunOptionsCopyWithImpl<$Res>
 
 /// Create a copy of RunOptions
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? globalOptions = null,Object? script = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? globalOptions = null,Object? script = freezed,}) {
   return _then(_self.copyWith(
 globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,script: null == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
-as String,
+as GlobalOptions,script: freezed == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 /// Create a copy of RunOptions
@@ -87,11 +80,11 @@ $GlobalOptionsCopyWith<$Res> get globalOptions {
 
 
 class _RunOptions implements RunOptions {
-  const _RunOptions({required this.globalOptions, required this.script});
+   _RunOptions({required this.globalOptions, required this.script});
   
 
-@override final  GlobalOptions globalOptions;
-@override final  String script;
+@override  GlobalOptions globalOptions;
+@override  String? script;
 
 /// Create a copy of RunOptions
 /// with the given fields replaced by the non-null parameter values.
@@ -101,14 +94,7 @@ _$RunOptionsCopyWith<_RunOptions> get copyWith => __$RunOptionsCopyWithImpl<_Run
 
 
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RunOptions&&(identical(other.globalOptions, globalOptions) || other.globalOptions == globalOptions)&&(identical(other.script, script) || other.script == script));
-}
 
-
-@override
-int get hashCode => Object.hash(runtimeType,globalOptions,script);
 
 @override
 String toString() {
@@ -123,7 +109,7 @@ abstract mixin class _$RunOptionsCopyWith<$Res> implements $RunOptionsCopyWith<$
   factory _$RunOptionsCopyWith(_RunOptions value, $Res Function(_RunOptions) _then) = __$RunOptionsCopyWithImpl;
 @override @useResult
 $Res call({
- GlobalOptions globalOptions, String script
+ GlobalOptions globalOptions, String? script
 });
 
 
@@ -140,11 +126,11 @@ class __$RunOptionsCopyWithImpl<$Res>
 
 /// Create a copy of RunOptions
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? globalOptions = null,Object? script = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? globalOptions = null,Object? script = freezed,}) {
   return _then(_RunOptions(
 globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,script: null == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
-as String,
+as GlobalOptions,script: freezed == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

@@ -30,12 +30,14 @@ abstract class Script with _$Script {
     required String? description,
     required String command,
     required HookType hookType,
+    required String? runHooksFrom,
   }) = _Script;
 
   factory Script({
     required String name,
     required String? description,
     required String command,
+    required String? runHooksFrom,
   }) {
     final type = HookType.values.firstWhere(
       (type) => type.name == name,
@@ -47,12 +49,18 @@ abstract class Script with _$Script {
       description: description,
       command: command,
       hookType: type,
+      runHooksFrom: runHooksFrom,
     );
   }
 
   factory Script.fromYaml(String name, dynamic yaml) {
     if (yaml is String) {
-      return Script(name: name, description: null, command: yaml);
+      return Script(
+        name: name,
+        description: null,
+        command: yaml,
+        runHooksFrom: null,
+      );
     }
 
     if (yaml is! YamlMap) {
@@ -61,8 +69,14 @@ abstract class Script with _$Script {
 
     final description = yaml['description'] as String?;
     final command = yaml['command'] as String;
+    final runHooksFrom = yaml['runHooksFrom'] as String?;
 
-    return Script(name: name, description: description, command: command);
+    return Script(
+      name: name,
+      description: description,
+      command: command,
+      runHooksFrom: runHooksFrom,
+    );
   }
 
   factory Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);

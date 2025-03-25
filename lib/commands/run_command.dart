@@ -10,6 +10,7 @@ import 'package:dpm/core/shell.dart';
 import 'package:dpm/core/types.dart';
 import 'package:dpm/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
 
@@ -29,33 +30,47 @@ final class RunCommand extends Command {
   @override
   Future<void> run() async {
     final options = RunOptions.fromArgResults(argResults!);
+    options.script ??= _promptForScript();
 
     final runner = DpmScriptRunner(
       config: config,
       options: options,
       arguments: argResults!.rest,
     );
+
     final exitCode = await runner.run();
 
     exit(exitCode);
   }
-}
 
-@freezed
-abstract class RunOptions with _$RunOptions {
-  const factory RunOptions({
-    required GlobalOptions globalOptions,
-    required String script,
-  }) = _RunOptions;
+  String _promptForScript() {
+    final scriptNames = config.scripts.scripts.keys.toList();
+    final scriptName = prompts.choose(
+      'Which script do you want to run?',
+      scriptNames,
+      chevron: false,
+      interactive: false,
+    );
 
-  factory RunOptions.fromArgResults(ArgResults results) {
-    if (results.rest.isEmpty) {
+    if (scriptName == null) {
       throw StateError('Script name is required');
     }
 
+    return scriptName;
+  }
+}
+
+@unfreezed
+abstract class RunOptions with _$RunOptions {
+  factory RunOptions({
+    required GlobalOptions globalOptions,
+    required String? script,
+  }) = _RunOptions;
+
+  factory RunOptions.fromArgResults(ArgResults results) {
     return RunOptions(
       globalOptions: GlobalOptions.fromArgResults(results),
-      script: results.rest.first,
+      script: results.rest.firstOrNull,
     );
   }
 }
@@ -75,6 +90,8 @@ final class DpmScriptRunner {
     /// If true, the script will be skipped if it is not found in the config.
     bool skipIfMissing = false,
   }) async {
+    assert(options.script != null, 'Script name is required');
+
     IntCallback? preHook;
     IntCallback? postHook;
 
@@ -135,6 +152,7 @@ final class DpmScriptRunner {
         ['-c', finalScript.join(' ')],
         runInShell: true,
         workingDirectory: options.globalOptions.directory,
+        mode: ProcessStartMode.inheritStdio,
       );
 
       process.stdout.transform(utf8.decoder).listen((data) {
@@ -172,7 +190,8 @@ final class DpmScriptRunner {
     required RunOptions options,
     required List<String> arguments,
   }) {
-    final hooks = commandToHookMapper[options.script];
+    final script = config.scripts.scripts[options.script];
+    final hooks = commandToHookMapper[script?.runHooksFrom ?? options.script];
     if (hooks == null) {
       return (null, null);
     }

@@ -21,6 +21,7 @@ _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
   description: json['description'] as String?,
   command: json['command'] as String,
   hookType: $enumDecode(_$HookTypeEnumMap, json['hookType']),
+  runHooksFrom: json['runHooksFrom'] as String?,
 );
 
 Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
@@ -28,6 +29,7 @@ Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
   'description': instance.description,
   'command': instance.command,
   'hookType': _$HookTypeEnumMap[instance.hookType]!,
+  'runHooksFrom': instance.runHooksFrom,
 };
 
 const _$HookTypeEnumMap = {
