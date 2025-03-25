@@ -62,7 +62,7 @@ final class PubGetCommand extends Command {
     final config = loadConfig(
       getProjectRoot(options.globalPubOptions.globalOptions.directory),
     );
-    final preHookRunner = DpmCommandRunner(
+    final preHookRunner = DpmScriptRunner(
       config: config,
       arguments: [],
       options: RunOptions(
@@ -100,7 +100,7 @@ final class PubGetCommand extends Command {
       exit(exitCode);
     }
 
-    final postHookRunner = DpmCommandRunner(
+    final postHookRunner = DpmScriptRunner(
       config: config,
       arguments: [],
       options: RunOptions(

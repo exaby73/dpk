@@ -30,7 +30,7 @@ final class RunCommand extends Command {
     final options = RunOptions.fromArgResults(argResults!);
 
     final config = loadConfig(getProjectRoot(options.globalOptions.directory));
-    final runner = DpmCommandRunner(
+    final runner = DpmScriptRunner(
       config: config,
       options: options,
       arguments: argResults!.rest,
@@ -60,12 +60,12 @@ abstract class RunOptions with _$RunOptions {
   }
 }
 
-final class DpmCommandRunner {
+final class DpmScriptRunner {
   final ConfigData config;
   final RunOptions options;
   final List<String> arguments;
 
-  DpmCommandRunner({
+  DpmScriptRunner({
     required this.config,
     required this.options,
     required this.arguments,
