@@ -3,10 +3,14 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpm/utils/global_pub_args.dart';
-import 'package:dart_mappable/dart_mappable.dart';
+import 'package:dpm/commands/run_command.dart';
+import 'package:dpm/config/config.dart';
+import 'package:dpm/config/data/scripts.dart';
+import 'package:dpm/utils/fs.dart';
+import 'package:dpm/utils/globals/global_pub_args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'get_command.mapper.dart';
+part 'get_command.freezed.dart';
 
 final class PubGetCommand extends Command {
   @override
@@ -46,7 +50,7 @@ final class PubGetCommand extends Command {
     final options = PubGetOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
-      ...buildGlobalArgs(options),
+      ...buildGlobalArgs(options.globalPubOptions),
       'get',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
@@ -55,14 +59,31 @@ final class PubGetCommand extends Command {
       ...argResults!.rest,
     ];
 
-    if (options.isVerbose) {
+    final config = loadConfig(
+      getProjectRoot(options.globalPubOptions.globalOptions.directory),
+    );
+    final preHookRunner = DpmCommandRunner(
+      config: config,
+      arguments: [],
+      options: RunOptions(
+        globalOptions: options.globalPubOptions.globalOptions,
+        script: HookType.preget.name,
+      ),
+    );
+
+    final preHookExitCode = await preHookRunner.run(skipIfMissing: true);
+    if (preHookExitCode != 0) {
+      exit(preHookExitCode);
+    }
+
+    if (options.globalPubOptions.globalOptions.verbose) {
       print('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
       'dart',
       arguments,
-      environment: {'PUB_CACHE': options.cacheDir},
+      environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
     pubProcess.stdout.transform(utf8.decoder).listen((data) {
@@ -75,39 +96,37 @@ final class PubGetCommand extends Command {
 
     final exitCode = await pubProcess.exitCode;
 
-    exit(exitCode);
+    if (exitCode != 0) {
+      exit(exitCode);
+    }
+
+    final postHookRunner = DpmCommandRunner(
+      config: config,
+      arguments: [],
+      options: RunOptions(
+        globalOptions: options.globalPubOptions.globalOptions,
+        script: HookType.postget.name,
+      ),
+    );
+
+    final postHookExitCode = await postHookRunner.run(skipIfMissing: true);
+    exit(postHookExitCode);
   }
 }
 
-@MappableClass()
-final class PubGetOptions extends PubOptions with PubGetOptionsMappable {
-  final bool offline;
-  final bool dryRun;
-  final bool enforceLockfile;
-  final bool precompile;
-
-  PubGetOptions({
-    required super.debug,
-    required super.directory,
-    required super.cacheDir,
-    required super.patchDir,
-    required super.verbose,
-    required super.color,
-
-    required this.offline,
-    required this.dryRun,
-    required this.enforceLockfile,
-    required this.precompile,
-  });
+@freezed
+abstract class PubGetOptions with _$PubGetOptions {
+  const factory PubGetOptions({
+    required GlobalPubOptions globalPubOptions,
+    required bool offline,
+    required bool dryRun,
+    required bool enforceLockfile,
+    required bool precompile,
+  }) = _PubGetOptions;
 
   factory PubGetOptions.fromArgResults(ArgResults results) {
     return PubGetOptions(
-      debug: results.flag('debug'),
-      directory: results.option('directory'),
-      cacheDir: results.option('cache-dir')!,
-      patchDir: results.option('patch-dir')!,
-      verbose: results.flag('verbose'),
-      color: results['color'] as bool?,
+      globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
       enforceLockfile: results.flag('enforce-lockfile'),

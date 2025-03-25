@@ -1,0 +1,14 @@
+scripts:
+  preget: |
+    echo --------------------------------
+    echo Preget script
+    echo --------------------------------
+  postget: |
+    echo --------------------------------
+    echo Postget script
+    echo --------------------------------
+
+  prebuild: dpm run clean
+  build: dpm run build_runner -- build -d
+  clean: dpm run build_runner clean
+  watch: dpm run clean && dpm run build_runner -- watch -d

@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_mappable/dart_mappable.dart';
 import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/core/constants.dart';
-import 'package:dpm/utils/global_args.dart';
+import 'package:dpm/utils/globals/global_patch_args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart';
 
-part 'apply_command.mapper.dart';
+part 'apply_command.freezed.dart';
 
 final class PatchApplyCommand extends Command {
   @override
@@ -18,7 +18,7 @@ final class PatchApplyCommand extends Command {
   String get description => 'Apply patches';
 
   PatchApplyCommand() {
-    addGlobalArgs(argParser);
+    addGlobalPatchArgs(argParser);
 
     argParser.addFlag('force', help: 'Force apply patches', negatable: false);
   }
@@ -26,11 +26,11 @@ final class PatchApplyCommand extends Command {
   @override
   Future<void> run() async {
     final options = ApplyOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.cacheDir);
+    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.cacheDir} does not exist. Did you run `$executableName pub get`?',
+        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
       exit(1);
     }
@@ -40,10 +40,10 @@ final class PatchApplyCommand extends Command {
       exit(1);
     }
 
-    final patchDir = Directory(options.patchDir);
+    final patchDir = Directory(options.globalPatchOptions.patchDir);
     if (!patchDir.existsSync()) {
       stderr.writeln(
-        'Patch directory does not exist. Did you run `$executableName patch generate`?',
+        'Patch directory does not exist. Did you run `$kExecutableName patch generate`?',
       );
       exit(1);
     }
@@ -51,16 +51,19 @@ final class PatchApplyCommand extends Command {
     final checkoutResult = await Process.run('git', [
       'checkout',
       '.',
-    ], workingDirectory: options.cacheDir);
+    ], workingDirectory: options.globalPatchOptions.cacheDir);
 
     if (checkoutResult.exitCode != 0) {
       stderr.writeln(
-        'Failed to apply. Did you run `$executableName patch init`?',
+        'Failed to apply. Did you run `$kExecutableName patch init`?',
       );
       exit(1);
     }
 
-    for (final gitDep in Directory(join(options.cacheDir, 'git')).listSync()) {
+    for (final gitDep
+        in Directory(
+          join(options.globalPatchOptions.cacheDir, 'git'),
+        ).listSync()) {
       if (basename(gitDep.path) == 'cache') {
         continue;
       }
@@ -99,7 +102,7 @@ final class PatchApplyCommand extends Command {
       final result = await Process.run('git', [
         'apply',
         patch.path,
-      ], workingDirectory: options.cacheDir);
+      ], workingDirectory: options.globalPatchOptions.cacheDir);
 
       if (result.exitCode != 0) {
         stderr.writeln(
@@ -111,7 +114,7 @@ final class PatchApplyCommand extends Command {
 
     for (final patch in gitPatches) {
       final workingDir = join(
-        options.cacheDir,
+        options.globalPatchOptions.cacheDir,
         'git',
         basenameWithoutExtension(patch.path),
       );
@@ -145,25 +148,16 @@ final class PatchApplyCommand extends Command {
   }
 }
 
-@MappableClass()
-final class ApplyOptions extends GlobalOptions with ApplyOptionsMappable {
-  final bool force;
-
-  ApplyOptions({
-    required super.debug,
-    required super.directory,
-    required super.cacheDir,
-    required super.patchDir,
-
-    required this.force,
-  });
+@freezed
+abstract class ApplyOptions with _$ApplyOptions {
+  const factory ApplyOptions({
+    required GlobalPatchOptions globalPatchOptions,
+    required bool force,
+  }) = _ApplyOptions;
 
   factory ApplyOptions.fromArgResults(ArgResults results) {
     return ApplyOptions(
-      debug: results.flag('debug'),
-      directory: results.option('directory'),
-      cacheDir: results.option('cache-dir')!,
-      patchDir: results.option('patch-dir')!,
+      globalPatchOptions: GlobalPatchOptions.fromArgResults(results),
       force: results.flag('force'),
     );
   }

@@ -5,11 +5,11 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/core/constants.dart';
-import 'package:dpm/utils/global_args.dart';
+import 'package:dpm/utils/globals/global_patch_args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart';
-import 'package:dart_mappable/dart_mappable.dart';
 
-part 'init_command.mapper.dart';
+part 'init_command.freezed.dart';
 
 final class PatchInitCommand extends Command {
   @override
@@ -19,7 +19,7 @@ final class PatchInitCommand extends Command {
   String get description => 'Initialize patch';
 
   PatchInitCommand() {
-    addGlobalArgs(argParser);
+    addGlobalPatchArgs(argParser);
 
     argParser.addFlag(
       'force',
@@ -31,11 +31,11 @@ final class PatchInitCommand extends Command {
   @override
   Future<void> run() async {
     final options = PatchOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.cacheDir);
+    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.cacheDir} does not exist. Did you run `$executableName pub get`?',
+        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
       exit(1);
     }
@@ -46,7 +46,9 @@ final class PatchInitCommand extends Command {
     }
 
     // dart format off
-    final dotGitDir = Directory(options.cacheDir)
+    final dotGitDir = Directory(
+      options.globalPatchOptions.cacheDir,
+    )
       .listSync()
       .firstWhereOrNull((entity) => basename(entity.path) == '.git')
       as Directory?;
@@ -64,18 +66,23 @@ final class PatchInitCommand extends Command {
       await Process.run('git', [
         'checkout',
         '.',
-      ], workingDirectory: options.cacheDir);
+      ], workingDirectory: options.globalPatchOptions.cacheDir);
 
       await dotGitDir.delete(recursive: true);
     }
 
-    await Process.run('git', ['init'], workingDirectory: options.cacheDir);
-    await Process.run('git', ['add', '.'], workingDirectory: options.cacheDir);
+    await Process.run('git', [
+      'init',
+    ], workingDirectory: options.globalPatchOptions.cacheDir);
+    await Process.run('git', [
+      'add',
+      '.',
+    ], workingDirectory: options.globalPatchOptions.cacheDir);
     await Process.run('git', [
       'commit',
       '-m',
       '"Patch initialized"',
-    ], workingDirectory: options.cacheDir);
+    ], workingDirectory: options.globalPatchOptions.cacheDir);
 
     stdout.writeln('Patch initialized');
 
@@ -83,25 +90,16 @@ final class PatchInitCommand extends Command {
   }
 }
 
-@MappableClass()
-final class PatchOptions extends GlobalOptions with PatchOptionsMappable {
-  final bool force;
-
-  PatchOptions({
-    required super.debug,
-    required super.directory,
-    required super.cacheDir,
-    required super.patchDir,
-
-    required this.force,
-  });
+@freezed
+abstract class PatchOptions with _$PatchOptions {
+  const factory PatchOptions({
+    required GlobalPatchOptions globalPatchOptions,
+    required bool force,
+  }) = _PatchOptions;
 
   factory PatchOptions.fromArgResults(ArgResults results) {
     return PatchOptions(
-      debug: results.flag('debug'),
-      directory: results.option('directory'),
-      cacheDir: results.option('cache-dir')!,
-      patchDir: results.option('patch-dir')!,
+      globalPatchOptions: GlobalPatchOptions.fromArgResults(results),
       force: results.flag('force'),
     );
   }

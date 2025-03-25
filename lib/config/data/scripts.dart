@@ -1,0 +1,71 @@
+import 'package:yaml/yaml.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'scripts.freezed.dart';
+part 'scripts.g.dart';
+
+@freezed
+abstract class Scripts with _$Scripts {
+  const factory Scripts({required Map<String, Script> scripts}) = _Scripts;
+
+  factory Scripts.fromYaml(YamlMap yaml) {
+    final scripts = <String, Script>{};
+
+    for (final MapEntry(:key, :value) in yaml.entries) {
+      final script = Script.fromYaml(key, value);
+      scripts[key] = script;
+    }
+
+    return Scripts(scripts: scripts);
+  }
+
+  factory Scripts.fromJson(Map<String, dynamic> json) =>
+      _$ScriptsFromJson(json);
+}
+
+@freezed
+abstract class Script with _$Script {
+  const factory Script._({
+    required String name,
+    required String? description,
+    required String command,
+    required HookType hookType,
+  }) = _Script;
+
+  factory Script({
+    required String name,
+    required String? description,
+    required String command,
+  }) {
+    final type = HookType.values.firstWhere(
+      (type) => type.name == name,
+      orElse: () => HookType.none,
+    );
+
+    return Script._(
+      name: name,
+      description: description,
+      command: command,
+      hookType: type,
+    );
+  }
+
+  factory Script.fromYaml(String name, dynamic yaml) {
+    if (yaml is String) {
+      return Script(name: name, description: null, command: yaml);
+    }
+
+    if (yaml is! YamlMap) {
+      throw StateError('Invalid script: $yaml');
+    }
+
+    final description = yaml['description'] as String?;
+    final command = yaml['command'] as String;
+
+    return Script(name: name, description: description, command: command);
+  }
+
+  factory Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
+}
+
+enum HookType { none, preget, postget, prebuild, postbuild }

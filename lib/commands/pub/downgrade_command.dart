@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_mappable/dart_mappable.dart';
-import 'package:dpm/utils/global_pub_args.dart';
+import 'package:dpm/utils/globals/global_pub_args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'downgrade_command.mapper.dart';
+part 'downgrade_command.freezed.dart';
 
 final class PubDowngradeCommand extends Command {
   @override
@@ -40,7 +40,7 @@ final class PubDowngradeCommand extends Command {
     final options = PubDowngradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
-      ...buildGlobalArgs(options),
+      ...buildGlobalArgs(options.globalPubOptions),
       'downgrade',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
@@ -48,14 +48,14 @@ final class PubDowngradeCommand extends Command {
       ...argResults!.rest,
     ];
 
-    if (options.isVerbose) {
+    if (options.globalPubOptions.globalOptions.verbose) {
       print('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
       'dart',
       arguments,
-      environment: {'PUB_CACHE': options.cacheDir},
+      environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
     pubProcess.stdout.transform(utf8.decoder).listen((data) {
@@ -72,34 +72,18 @@ final class PubDowngradeCommand extends Command {
   }
 }
 
-@MappableClass()
-final class PubDowngradeOptions extends PubOptions
-    with PubDowngradeOptionsMappable {
-  final bool offline;
-  final bool dryRun;
-  final bool tighten;
-
-  PubDowngradeOptions({
-    required super.debug,
-    required super.directory,
-    required super.cacheDir,
-    required super.patchDir,
-    required super.verbose,
-    required super.color,
-
-    required this.offline,
-    required this.dryRun,
-    required this.tighten,
-  });
+@freezed
+abstract class PubDowngradeOptions with _$PubDowngradeOptions {
+  const factory PubDowngradeOptions({
+    required GlobalPubOptions globalPubOptions,
+    required bool offline,
+    required bool dryRun,
+    required bool tighten,
+  }) = _PubDowngradeOptions;
 
   factory PubDowngradeOptions.fromArgResults(ArgResults results) {
     return PubDowngradeOptions(
-      debug: results.flag('debug'),
-      directory: results.option('directory'),
-      cacheDir: results.option('cache-dir')!,
-      patchDir: results.option('patch-dir')!,
-      verbose: results.flag('verbose'),
-      color: results['color'] as bool?,
+      globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
       tighten: results.flag('tighten'),

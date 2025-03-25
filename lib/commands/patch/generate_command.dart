@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_mappable/dart_mappable.dart';
-import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/core/constants.dart';
-import 'package:dpm/utils/global_args.dart';
+import 'package:dpm/utils/command_checker.dart';
+import 'package:dpm/utils/globals/global_patch_args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart';
 import 'package:prompts/prompts.dart' as prompts;
 
-part 'generate_command.mapper.dart';
+part 'generate_command.freezed.dart';
 
 final class PatchGenerateCommand extends Command {
   @override
@@ -19,7 +19,7 @@ final class PatchGenerateCommand extends Command {
   String get description => 'Generate patch files';
 
   PatchGenerateCommand() {
-    addGlobalArgs(argParser);
+    addGlobalPatchArgs(argParser);
 
     argParser.addFlag(
       'force',
@@ -31,12 +31,12 @@ final class PatchGenerateCommand extends Command {
   @override
   Future<void> run() async {
     final options = GenerateOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.cacheDir);
-    final patchDir = Directory(options.patchDir);
+    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
+    final patchDir = Directory(options.globalPatchOptions.patchDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.cacheDir} does not exist. Did you run `$executableName pub get`?',
+        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
       exit(1);
     }
@@ -71,7 +71,7 @@ final class PatchGenerateCommand extends Command {
     ) = await Process.run('git', [
       'status',
       '-s',
-    ], workingDirectory: options.cacheDir);
+    ], workingDirectory: options.globalPatchOptions.cacheDir);
 
     if (statusExitCode != 0) {
       stderr.writeln('Failed to generate patch files:\n$statusStderr');
@@ -120,7 +120,11 @@ final class PatchGenerateCommand extends Command {
         continue;
       }
 
-      final gitDir = join(options.cacheDir, 'git', packageName);
+      final gitDir = join(
+        options.globalPatchOptions.cacheDir,
+        'git',
+        packageName,
+      );
       final ProcessResult(
         stdout: statusStdout as String,
         stderr: statusStderr as String,
@@ -157,9 +161,13 @@ final class PatchGenerateCommand extends Command {
       final (:packageName, :isGit) = key;
       late final String workingDir;
       if (isGit) {
-        workingDir = join(options.cacheDir, 'git', packageName);
+        workingDir = join(
+          options.globalPatchOptions.cacheDir,
+          'git',
+          packageName,
+        );
       } else {
-        workingDir = options.cacheDir;
+        workingDir = options.globalPatchOptions.cacheDir;
       }
 
       final ProcessResult(
@@ -200,7 +208,7 @@ final class PatchGenerateCommand extends Command {
       }
 
       stderr.writeln(
-        '\nIf this is expected, try running `$executableName init --force` to add them to the cache.',
+        '\nIf this is expected, try running `$kExecutableName init --force` to add them to the cache.',
       );
     }
 
@@ -208,25 +216,16 @@ final class PatchGenerateCommand extends Command {
   }
 }
 
-@MappableClass()
-final class GenerateOptions extends GlobalOptions with GenerateOptionsMappable {
-  final bool force;
-
-  GenerateOptions({
-    required super.debug,
-    required super.directory,
-    required super.cacheDir,
-    required super.patchDir,
-
-    required this.force,
-  });
+@freezed
+abstract class GenerateOptions with _$GenerateOptions {
+  const factory GenerateOptions({
+    required GlobalPatchOptions globalPatchOptions,
+    required bool force,
+  }) = _GenerateOptions;
 
   factory GenerateOptions.fromArgResults(ArgResults results) {
     return GenerateOptions(
-      debug: results.flag('debug'),
-      directory: results.option('directory'),
-      cacheDir: results.option('cache-dir')!,
-      patchDir: results.option('patch-dir')!,
+      globalPatchOptions: GlobalPatchOptions.fromArgResults(results),
       force: results.flag('force'),
     );
   }
