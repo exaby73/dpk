@@ -8,7 +8,6 @@ import 'package:dpm/config/config.dart';
 import 'package:dpm/config/data/config_data.dart';
 import 'package:dpm/core/shell.dart';
 import 'package:dpm/core/types.dart';
-import 'package:dpm/utils/fs.dart';
 import 'package:dpm/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -21,7 +20,9 @@ final class RunCommand extends Command {
   @override
   String get description => 'Run a script';
 
-  RunCommand() {
+  final ConfigData config;
+
+  RunCommand(this.config) {
     addGlobalArgs(argParser);
   }
 
@@ -29,7 +30,6 @@ final class RunCommand extends Command {
   Future<void> run() async {
     final options = RunOptions.fromArgResults(argResults!);
 
-    final config = loadConfig(getProjectRoot(options.globalOptions.directory));
     final runner = DpmScriptRunner(
       config: config,
       options: options,

@@ -4,9 +4,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/commands/run_command.dart';
-import 'package:dpm/config/config.dart';
+import 'package:dpm/config/data/config_data.dart';
 import 'package:dpm/config/data/scripts.dart';
-import 'package:dpm/utils/fs.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -19,7 +18,9 @@ final class PubGetCommand extends Command {
   @override
   String get description => 'Get dependencies';
 
-  PubGetCommand() {
+  final ConfigData config;
+
+  PubGetCommand(this.config) {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -59,9 +60,6 @@ final class PubGetCommand extends Command {
       ...argResults!.rest,
     ];
 
-    final config = loadConfig(
-      getProjectRoot(options.globalPubOptions.globalOptions.directory),
-    );
     final preHookRunner = DpmScriptRunner(
       config: config,
       arguments: [],
