@@ -5,7 +5,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/config/config.dart';
 import 'package:dpm/config/data/config_data.dart';
-import 'package:dpm/core/config_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/core/shell.dart';
 import 'package:dpm/core/types.dart';
 import 'package:dpm/utils/globals/global_args.dart';

@@ -1,3 +1,5 @@
+mode: project
+
 scripts:
   activate: dart pub global activate --source path . --overwrite
 

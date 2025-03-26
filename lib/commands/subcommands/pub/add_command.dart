@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dpm/core/mixins/cache_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/utils/extensions/string_extensions.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -9,7 +11,7 @@ import 'package:logging/logging.dart';
 
 part 'add_command.freezed.dart';
 
-final class PubAddCommand extends Command {
+final class PubAddCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'add';
 
@@ -91,7 +93,7 @@ For example:
     final pubProcess = await Process.start(
       'dart',
       arguments,
-      environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
+      environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
     stdout.addStream(pubProcess.stdout);

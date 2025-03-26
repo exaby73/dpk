@@ -4,14 +4,15 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/commands/run_command.dart';
 import 'package:dpm/config/data/scripts.dart';
-import 'package:dpm/core/config_mixin.dart';
+import 'package:dpm/core/mixins/cache_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 
 part 'get_command.freezed.dart';
 
-final class PubGetCommand extends Command with ConfigMixin {
+final class PubGetCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'get';
 
@@ -81,7 +82,7 @@ final class PubGetCommand extends Command with ConfigMixin {
     final pubProcess = await Process.start(
       'dart',
       arguments,
-      environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
+      environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
     stdout.addStream(pubProcess.stdout);

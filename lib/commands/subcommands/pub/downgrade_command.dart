@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dpm/core/mixins/cache_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
+
 part 'downgrade_command.freezed.dart';
 
-final class PubDowngradeCommand extends Command {
+final class PubDowngradeCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'downgrade';
 
@@ -56,7 +59,7 @@ final class PubDowngradeCommand extends Command {
     final pubProcess = await Process.start(
       'dart',
       arguments,
-      environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
+      environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
     stdout.addStream(pubProcess.stdout);

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/core/constants.dart';
+import 'package:dpm/core/mixins/cache_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/utils/globals/global_patch_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -11,7 +13,7 @@ import 'package:prompts/prompts.dart' as prompts;
 
 part 'generate_command.freezed.dart';
 
-final class PatchGenerateCommand extends Command {
+final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'generate';
 
@@ -30,6 +32,11 @@ final class PatchGenerateCommand extends Command {
 
   @override
   Future<void> run() async {
+    if (!isProjectCache) {
+      stderr.writeln('Project cache is not supported for global mode');
+      exit(1);
+    }
+
     final options = GenerateOptions.fromArgResults(argResults!);
     final cacheDir = Directory(options.globalPatchOptions.cacheDir);
     final patchDir = Directory(options.globalPatchOptions.patchDir);

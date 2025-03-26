@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/core/constants.dart';
+import 'package:dpm/core/mixins/cache_mixin.dart';
+import 'package:dpm/core/mixins/config_mixin.dart';
 import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/utils/globals/global_patch_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -10,7 +12,7 @@ import 'package:path/path.dart';
 
 part 'apply_command.freezed.dart';
 
-final class PatchApplyCommand extends Command {
+final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'apply';
 
@@ -25,6 +27,11 @@ final class PatchApplyCommand extends Command {
 
   @override
   Future<void> run() async {
+    if (!isProjectCache) {
+      stderr.writeln('Project cache is not supported for global mode');
+      exit(1);
+    }
+
     final options = ApplyOptions.fromArgResults(argResults!);
     final cacheDir = Directory(options.globalPatchOptions.cacheDir);
 
