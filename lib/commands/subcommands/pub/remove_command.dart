@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'package:logging/logging.dart';
 part 'remove_command.freezed.dart';
 
 final class PubRemoveCommand extends Command {
@@ -14,6 +13,8 @@ final class PubRemoveCommand extends Command {
 
   @override
   String get description => 'Remove dependencies from `pubspec.yaml`';
+
+  final logger = Logger('pub.remove');
 
   PubRemoveCommand() {
     addGlobalPubArgs(argParser);
@@ -24,7 +25,7 @@ final class PubRemoveCommand extends Command {
     argParser.addFlag(
       'dry-run',
       abbr: 'n',
-      help: 'Report what dependencies would change but don\'t change any',
+      help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
       'precompile',
@@ -46,7 +47,7 @@ final class PubRemoveCommand extends Command {
     ];
 
     if (options.globalPubOptions.globalOptions.verbose) {
-      print('Running: dart ${arguments.join(' ')}');
+      logger.info('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
@@ -55,13 +56,8 @@ final class PubRemoveCommand extends Command {
       environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
-    pubProcess.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    pubProcess.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(pubProcess.stdout);
+    stderr.addStream(pubProcess.stderr);
 
     final exitCode = await pubProcess.exitCode;
 

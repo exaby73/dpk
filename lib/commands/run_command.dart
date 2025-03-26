@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/config/config.dart';
 import 'package:dpm/config/data/config_data.dart';
+import 'package:dpm/core/config_mixin.dart';
 import 'package:dpm/core/shell.dart';
 import 'package:dpm/core/types.dart';
 import 'package:dpm/utils/globals/global_args.dart';
@@ -14,16 +14,14 @@ import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
 
-final class RunCommand extends Command {
+final class RunCommand extends Command with ConfigMixin {
   @override
   String get name => 'run';
 
   @override
   String get description => 'Run a script';
 
-  final ConfigData config;
-
-  RunCommand(this.config) {
+  RunCommand() {
     addGlobalArgs(argParser);
   }
 
@@ -152,21 +150,13 @@ final class DpmScriptRunner {
         ['-c', finalScript.join(' ')],
         runInShell: true,
         workingDirectory: options.globalOptions.directory,
-        mode: ProcessStartMode.inheritStdio,
       );
 
-      process.stdout.transform(utf8.decoder).listen((data) {
-        stdout.write(data);
-      });
-
-      process.stderr.transform(utf8.decoder).listen((data) {
-        stderr.write(data);
-      });
+      stdout.addStream(process.stdout);
+      stderr.addStream(process.stderr);
 
       return process.exitCode;
     }
-
-    print('Command: ${arguments.join(' ')}');
 
     final process = await Process.start(
       'dart',
@@ -174,13 +164,8 @@ final class DpmScriptRunner {
       runInShell: true,
       workingDirectory: options.globalOptions.directory,
     );
-    process.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    process.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(process.stdout);
+    stderr.addStream(process.stderr);
 
     return process.exitCode;
   }

@@ -23,23 +23,43 @@ void addGlobalArgs(ArgParser parser) {
     help: 'Enable verbose output',
     negatable: false,
   );
+
+  parser.addFlag(
+    'debug',
+    help: 'Enable debug output',
+    negatable: false,
+    hide: true,
+  );
 }
 
 @freezed
 abstract class GlobalOptions with _$GlobalOptions {
-  const factory GlobalOptions._internal({
-    required bool verbose,
+  factory GlobalOptions({
     required String? directory,
-  }) = _GlobalOptions;
-
-  factory GlobalOptions({required String? directory, required bool verbose}) {
-    return GlobalOptions._internal(directory: directory, verbose: verbose);
+    required bool verbose,
+    required bool debug,
+  }) {
+    return GlobalOptions._internal(
+      directory: directory,
+      verbose: verbose,
+      debug: debug,
+    );
   }
+  const factory GlobalOptions._internal({
+    required String? directory,
+    required bool verbose,
+    required bool debug,
+  }) = _GlobalOptions;
 
   factory GlobalOptions.fromArgResults(ArgResults results) {
     return GlobalOptions(
       directory: results.option('directory'),
       verbose: results.flag('verbose'),
+      debug: results.flag('debug'),
     );
   }
+
+  const GlobalOptions._();
+
+  bool get isVerbose => verbose || debug;
 }

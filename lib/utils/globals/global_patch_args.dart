@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dpm/utils/cache_directory.dart';
 import 'package:dpm/utils/globals/global_args.dart';
-import 'package:path/path.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:path/path.dart';
 
 part 'global_patch_args.freezed.dart';
 
@@ -15,12 +15,6 @@ void addGlobalPatchArgs(ArgParser parser) {
 
 @freezed
 abstract class GlobalPatchOptions with _$GlobalPatchOptions {
-  const factory GlobalPatchOptions._internal({
-    required GlobalOptions globalOptions,
-    required String cacheDir,
-    required String patchDir,
-  }) = _GlobalPatchOptions;
-
   factory GlobalPatchOptions({
     required GlobalOptions globalOptions,
     required String cacheDir,
@@ -32,6 +26,11 @@ abstract class GlobalPatchOptions with _$GlobalPatchOptions {
       patchDir: _initializePatchDir(patchDir, globalOptions.directory),
     );
   }
+  const factory GlobalPatchOptions._internal({
+    required GlobalOptions globalOptions,
+    required String cacheDir,
+    required String patchDir,
+  }) = _GlobalPatchOptions;
 
   factory GlobalPatchOptions.fromArgResults(ArgResults results) {
     return GlobalPatchOptions(

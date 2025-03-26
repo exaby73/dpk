@@ -7,7 +7,6 @@ part 'global_pub_args.freezed.dart';
 
 void addGlobalPubArgs(ArgParser parser) {
   addGlobalArgs(parser);
-
   parser.addFlag(
     'color',
     help:
@@ -30,12 +29,6 @@ List<String> buildGlobalArgs(GlobalPubOptions options) {
 
 @freezed
 abstract class GlobalPubOptions with _$GlobalPubOptions {
-  const factory GlobalPubOptions._internal({
-    required GlobalOptions globalOptions,
-    required String cacheDir,
-    required bool? color,
-  }) = _GlobalPubOptions;
-
   factory GlobalPubOptions({
     required GlobalOptions globalOptions,
     required String cacheDir,
@@ -47,6 +40,11 @@ abstract class GlobalPubOptions with _$GlobalPubOptions {
       color: color,
     );
   }
+  const factory GlobalPubOptions._internal({
+    required GlobalOptions globalOptions,
+    required String cacheDir,
+    required bool? color,
+  }) = _GlobalPubOptions;
 
   factory GlobalPubOptions.fromArgResults(ArgResults results) {
     return GlobalPubOptions(
@@ -57,6 +55,4 @@ abstract class GlobalPubOptions with _$GlobalPubOptions {
   }
 
   const GlobalPubOptions._();
-
-  bool get isVerbose => globalOptions.verbose;
 }

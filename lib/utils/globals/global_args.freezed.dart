@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlobalOptions {
 
- bool get verbose; String? get directory;
+ String? get directory; bool get verbose; bool get debug;
 /// Create a copy of GlobalOptions
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $GlobalOptionsCopyWith<GlobalOptions> get copyWith => _$GlobalOptionsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalOptions&&(identical(other.verbose, verbose) || other.verbose == verbose)&&(identical(other.directory, directory) || other.directory == directory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalOptions&&(identical(other.directory, directory) || other.directory == directory)&&(identical(other.verbose, verbose) || other.verbose == verbose)&&(identical(other.debug, debug) || other.debug == debug));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,verbose,directory);
+int get hashCode => Object.hash(runtimeType,directory,verbose,debug);
 
 @override
 String toString() {
-  return 'GlobalOptions(verbose: $verbose, directory: $directory)';
+  return 'GlobalOptions(directory: $directory, verbose: $verbose, debug: $debug)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $GlobalOptionsCopyWith<$Res>  {
   factory $GlobalOptionsCopyWith(GlobalOptions value, $Res Function(GlobalOptions) _then) = _$GlobalOptionsCopyWithImpl;
 @useResult
 $Res call({
- bool verbose, String? directory
+ String? directory, bool verbose, bool debug
 });
 
 
@@ -63,11 +63,12 @@ class _$GlobalOptionsCopyWithImpl<$Res>
 
 /// Create a copy of GlobalOptions
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? verbose = null,Object? directory = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? directory = freezed,Object? verbose = null,Object? debug = null,}) {
   return _then(_self.copyWith(
-verbose: null == verbose ? _self.verbose : verbose // ignore: cast_nullable_to_non_nullable
-as bool,directory: freezed == directory ? _self.directory : directory // ignore: cast_nullable_to_non_nullable
-as String?,
+directory: freezed == directory ? _self.directory : directory // ignore: cast_nullable_to_non_nullable
+as String?,verbose: null == verbose ? _self.verbose : verbose // ignore: cast_nullable_to_non_nullable
+as bool,debug: null == debug ? _self.debug : debug // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -77,12 +78,13 @@ as String?,
 /// @nodoc
 
 
-class _GlobalOptions implements GlobalOptions {
-  const _GlobalOptions({required this.verbose, required this.directory});
+class _GlobalOptions extends GlobalOptions {
+  const _GlobalOptions({required this.directory, required this.verbose, required this.debug}): super._();
   
 
-@override final  bool verbose;
 @override final  String? directory;
+@override final  bool verbose;
+@override final  bool debug;
 
 /// Create a copy of GlobalOptions
 /// with the given fields replaced by the non-null parameter values.
@@ -94,16 +96,16 @@ _$GlobalOptionsCopyWith<_GlobalOptions> get copyWith => __$GlobalOptionsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalOptions&&(identical(other.verbose, verbose) || other.verbose == verbose)&&(identical(other.directory, directory) || other.directory == directory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalOptions&&(identical(other.directory, directory) || other.directory == directory)&&(identical(other.verbose, verbose) || other.verbose == verbose)&&(identical(other.debug, debug) || other.debug == debug));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,verbose,directory);
+int get hashCode => Object.hash(runtimeType,directory,verbose,debug);
 
 @override
 String toString() {
-  return 'GlobalOptions._internal(verbose: $verbose, directory: $directory)';
+  return 'GlobalOptions._internal(directory: $directory, verbose: $verbose, debug: $debug)';
 }
 
 
@@ -114,7 +116,7 @@ abstract mixin class _$GlobalOptionsCopyWith<$Res> implements $GlobalOptionsCopy
   factory _$GlobalOptionsCopyWith(_GlobalOptions value, $Res Function(_GlobalOptions) _then) = __$GlobalOptionsCopyWithImpl;
 @override @useResult
 $Res call({
- bool verbose, String? directory
+ String? directory, bool verbose, bool debug
 });
 
 
@@ -131,11 +133,12 @@ class __$GlobalOptionsCopyWithImpl<$Res>
 
 /// Create a copy of GlobalOptions
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? verbose = null,Object? directory = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? directory = freezed,Object? verbose = null,Object? debug = null,}) {
   return _then(_GlobalOptions(
-verbose: null == verbose ? _self.verbose : verbose // ignore: cast_nullable_to_non_nullable
-as bool,directory: freezed == directory ? _self.directory : directory // ignore: cast_nullable_to_non_nullable
-as String?,
+directory: freezed == directory ? _self.directory : directory // ignore: cast_nullable_to_non_nullable
+as String?,verbose: null == verbose ? _self.verbose : verbose // ignore: cast_nullable_to_non_nullable
+as bool,debug: null == debug ? _self.debug : debug // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

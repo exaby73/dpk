@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'package:logging/logging.dart';
 part 'upgrade_command.freezed.dart';
 
 final class PubUpgradeCommand extends Command {
@@ -18,6 +17,8 @@ final class PubUpgradeCommand extends Command {
   @override
   String get description => 'Upgrade dependencies';
 
+  final logger = Logger('pub.upgrade');
+
   PubUpgradeCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
@@ -27,7 +28,7 @@ final class PubUpgradeCommand extends Command {
     argParser.addFlag(
       'dry-run',
       abbr: 'n',
-      help: 'Report what dependencies would change but don\'t change any',
+      help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
       'precompile',
@@ -70,7 +71,7 @@ final class PubUpgradeCommand extends Command {
     ];
 
     if (options.globalPubOptions.globalOptions.verbose) {
-      print('Running: dart ${arguments.join(' ')}');
+      logger.info('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
@@ -79,13 +80,8 @@ final class PubUpgradeCommand extends Command {
       environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
-    pubProcess.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    pubProcess.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(pubProcess.stdout);
+    stderr.addStream(pubProcess.stderr);
 
     final exitCode = await pubProcess.exitCode;
 

@@ -1,4 +1,6 @@
 scripts:
+  activate: dart pub global activate --source path . --overwrite
+
   preget: |
     echo --------------------------------
     echo Preget script

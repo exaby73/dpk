@@ -1,5 +1,5 @@
-import 'package:yaml/yaml.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:yaml/yaml.dart';
 
 part 'scripts.freezed.dart';
 part 'scripts.g.dart';
@@ -12,7 +12,7 @@ abstract class Scripts with _$Scripts {
     final scripts = <String, Script>{};
 
     for (final MapEntry(:key, :value) in yaml.entries) {
-      final script = Script.fromYaml(key, value);
+      final script = Script.fromYaml(key as String, value);
       scripts[key] = script;
     }
 
@@ -25,13 +25,6 @@ abstract class Scripts with _$Scripts {
 
 @freezed
 abstract class Script with _$Script {
-  const factory Script._({
-    required String name,
-    required String? description,
-    required String command,
-    required HookType hookType,
-    required String? runHooksFrom,
-  }) = _Script;
 
   factory Script({
     required String name,
@@ -52,6 +45,13 @@ abstract class Script with _$Script {
       runHooksFrom: runHooksFrom,
     );
   }
+  const factory Script._({
+    required String name,
+    required String? description,
+    required String command,
+    required HookType hookType,
+    required String? runHooksFrom,
+  }) = _Script;
 
   factory Script.fromYaml(String name, dynamic yaml) {
     if (yaml is String) {

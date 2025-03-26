@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dpm/utils/extensions/string_extensions.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:dpm/utils/extensions/string_extensions.dart';
+import 'package:logging/logging.dart';
 
 part 'add_command.freezed.dart';
 
@@ -52,6 +52,8 @@ For example:
       'foo:{"git":{"url":"../foo.git","ref":"<branch>","path":"<subdir>"}}'`
 '''.trimIndents();
 
+  final logger = Logger('pub.add');
+
   PubAddCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
@@ -61,7 +63,7 @@ For example:
     argParser.addFlag(
       'dry-run',
       abbr: 'n',
-      help: 'Report what dependencies would change but don\'t change any',
+      help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
       'precompile',
@@ -82,8 +84,8 @@ For example:
       ...argResults!.rest,
     ];
 
-    if (options.globalPubOptions.isVerbose) {
-      print('Running: dart ${arguments.join(' ')}');
+    if (options.globalPubOptions.globalOptions.isVerbose) {
+      logger.info('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
@@ -92,13 +94,8 @@ For example:
       environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
-    pubProcess.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    pubProcess.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(pubProcess.stdout);
+    stderr.addStream(pubProcess.stderr);
 
     final exitCode = await pubProcess.exitCode;
 

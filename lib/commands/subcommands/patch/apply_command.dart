@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/core/constants.dart';
+import 'package:dpm/utils/command_checker.dart';
 import 'package:dpm/utils/globals/global_patch_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart';

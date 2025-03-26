@@ -1,27 +1,20 @@
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/config/config.dart';
 import 'package:dpm/config/data/config_data.dart';
+import 'package:dpm/utils/globals/global_args.dart';
 
 final class DpmCommandRunner extends CommandRunner {
   late final ConfigData config;
-  late final List<String> args;
-
-  @override
-  final ArgParser argParser =
-      ArgParser()..addOption(
-        'directory',
-        abbr: 'C',
-        help: 'The directory to run the command in',
-      );
+  final List<String> args;
 
   DpmCommandRunner(
     super.executableName,
     super.description, {
     required this.args,
   }) {
+    addGlobalArgs(argParser);
     final argResults = parse(args);
     final directory =
         argResults['directory'] as String? ?? Directory.current.path;
@@ -29,7 +22,7 @@ final class DpmCommandRunner extends CommandRunner {
     config = loadConfig(Directory(directory));
   }
 
-  Future<void> runDpm() async {
+  Future<void> runDpm() {
     return super.run(args);
   }
 }

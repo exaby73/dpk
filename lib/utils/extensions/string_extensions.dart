@@ -6,7 +6,7 @@ extension StringExtensions on String {
         lines.where((line) => line.trim().isNotEmpty).toList();
     if (nonEmptyLines.isEmpty) return '';
 
-    int minIndent = nonEmptyLines.fold(double.maxFinite.toInt(), (min, line) {
+    final int minIndent = nonEmptyLines.fold(double.maxFinite.toInt(), (min, line) {
       final leadingSpaces = line.length - line.trimLeft().length;
       return leadingSpaces < min ? leadingSpaces : min;
     });

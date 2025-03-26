@@ -12,20 +12,16 @@ part of 'config_data.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$ConfigData {
 
-// TODO: Remove JsonKey after testing
-@JsonKey(includeFromJson: false, includeToJson: false) Pubspec? get pubspec; Scripts get scripts;
+ Pubspec? get pubspec; Scripts get scripts;
 /// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $ConfigDataCopyWith<ConfigData> get copyWith => _$ConfigDataCopyWithImpl<ConfigData>(this as ConfigData, _$identity);
 
-  /// Serializes this ConfigData to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -33,7 +29,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.scripts, scripts) || other.scripts == scripts));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,pubspec,scripts);
 
@@ -50,7 +46,7 @@ abstract mixin class $ConfigDataCopyWith<$Res>  {
   factory $ConfigDataCopyWith(ConfigData value, $Res Function(ConfigData) _then) = _$ConfigDataCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(includeFromJson: false, includeToJson: false) Pubspec? pubspec, Scripts scripts
+ Pubspec? pubspec, Scripts scripts
 });
 
 
@@ -88,14 +84,13 @@ $ScriptsCopyWith<$Res> get scripts {
 
 
 /// @nodoc
-@JsonSerializable()
+
 
 class _ConfigData implements ConfigData {
-  const _ConfigData({@JsonKey(includeFromJson: false, includeToJson: false) this.pubspec, required this.scripts});
-  factory _ConfigData.fromJson(Map<String, dynamic> json) => _$ConfigDataFromJson(json);
+  const _ConfigData({this.pubspec, required this.scripts});
+  
 
-// TODO: Remove JsonKey after testing
-@override@JsonKey(includeFromJson: false, includeToJson: false) final  Pubspec? pubspec;
+@override final  Pubspec? pubspec;
 @override final  Scripts scripts;
 
 /// Create a copy of ConfigData
@@ -104,17 +99,14 @@ class _ConfigData implements ConfigData {
 @pragma('vm:prefer-inline')
 _$ConfigDataCopyWith<_ConfigData> get copyWith => __$ConfigDataCopyWithImpl<_ConfigData>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$ConfigDataToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.scripts, scripts) || other.scripts == scripts));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,pubspec,scripts);
 
@@ -131,7 +123,7 @@ abstract mixin class _$ConfigDataCopyWith<$Res> implements $ConfigDataCopyWith<$
   factory _$ConfigDataCopyWith(_ConfigData value, $Res Function(_ConfigData) _then) = __$ConfigDataCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(includeFromJson: false, includeToJson: false) Pubspec? pubspec, Scripts scripts
+ Pubspec? pubspec, Scripts scripts
 });
 
 

@@ -1,11 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
+import 'package:logging/logging.dart';
 part 'downgrade_command.freezed.dart';
 
 final class PubDowngradeCommand extends Command {
@@ -14,7 +13,9 @@ final class PubDowngradeCommand extends Command {
 
   @override
   String get description =>
-      'Downgrade the current package\'s dependencies to oldest versions';
+      "Downgrade the current package's dependencies to oldest versions";
+
+  final logger = Logger('pub.downgrade');
 
   PubDowngradeCommand() {
     addGlobalPubArgs(argParser);
@@ -25,7 +26,7 @@ final class PubDowngradeCommand extends Command {
     argParser.addFlag(
       'dry-run',
       abbr: 'n',
-      help: 'Report what dependencies would change but don\'t change any',
+      help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
       'tighten',
@@ -49,7 +50,7 @@ final class PubDowngradeCommand extends Command {
     ];
 
     if (options.globalPubOptions.globalOptions.verbose) {
-      print('Running: dart ${arguments.join(' ')}');
+      logger.info('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
@@ -58,13 +59,8 @@ final class PubDowngradeCommand extends Command {
       environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
-    pubProcess.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    pubProcess.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(pubProcess.stdout);
+    stderr.addStream(pubProcess.stderr);
 
     final exitCode = await pubProcess.exitCode;
 

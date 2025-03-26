@@ -1,26 +1,26 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpm/commands/run_command.dart';
-import 'package:dpm/config/data/config_data.dart';
 import 'package:dpm/config/data/scripts.dart';
+import 'package:dpm/core/config_mixin.dart';
 import 'package:dpm/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:logging/logging.dart';
 
 part 'get_command.freezed.dart';
 
-final class PubGetCommand extends Command {
+final class PubGetCommand extends Command with ConfigMixin {
   @override
   String name = 'get';
 
   @override
   String get description => 'Get dependencies';
 
-  final ConfigData config;
+  final logger = Logger('pub.get');
 
-  PubGetCommand(this.config) {
+  PubGetCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -29,7 +29,7 @@ final class PubGetCommand extends Command {
     argParser.addFlag(
       'dry-run',
       abbr: 'n',
-      help: 'Report what dependencies would change but don\'t change any',
+      help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
       'enforce-lockfile',
@@ -74,8 +74,8 @@ final class PubGetCommand extends Command {
       exit(preHookExitCode);
     }
 
-    if (options.globalPubOptions.globalOptions.verbose) {
-      print('Running: dart ${arguments.join(' ')}');
+    if (options.globalPubOptions.globalOptions.isVerbose) {
+      logger.info('Running: dart ${arguments.join(' ')}');
     }
 
     final pubProcess = await Process.start(
@@ -84,13 +84,8 @@ final class PubGetCommand extends Command {
       environment: {'PUB_CACHE': options.globalPubOptions.cacheDir},
     );
 
-    pubProcess.stdout.transform(utf8.decoder).listen((data) {
-      stdout.write(data);
-    });
-
-    pubProcess.stderr.transform(utf8.decoder).listen((data) {
-      stderr.write(data);
-    });
+    stdout.addStream(pubProcess.stdout);
+    stderr.addStream(pubProcess.stderr);
 
     final exitCode = await pubProcess.exitCode;
 
