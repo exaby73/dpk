@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
-import 'package:dpm/commands/subcommands/pub/add_command.dart';
-import 'package:dpm/commands/subcommands/pub/downgrade_command.dart';
-import 'package:dpm/commands/subcommands/pub/get_command.dart';
-import 'package:dpm/commands/subcommands/pub/remove_command.dart';
-import 'package:dpm/commands/subcommands/pub/upgrade_command.dart';
+import 'package:dpk/commands/subcommands/pub/add_command.dart';
+import 'package:dpk/commands/subcommands/pub/downgrade_command.dart';
+import 'package:dpk/commands/subcommands/pub/get_command.dart';
+import 'package:dpk/commands/subcommands/pub/remove_command.dart';
+import 'package:dpk/commands/subcommands/pub/upgrade_command.dart';
 
 final class PubCommand extends Command {
   @override

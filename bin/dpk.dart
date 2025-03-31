@@ -1,12 +1,11 @@
-
 import 'package:cli_launcher/cli_launcher.dart';
-import 'package:dpm/commands/parent_commands/patch_command.dart';
-import 'package:dpm/commands/parent_commands/pub_command.dart';
-import 'package:dpm/commands/run_command.dart';
-import 'package:dpm/config/data/config_data.dart';
-import 'package:dpm/core/command_runner.dart';
-import 'package:dpm/core/constants.dart';
-import 'package:dpm/core/injection_container.dart';
+import 'package:dpk/commands/parent_commands/patch_command.dart';
+import 'package:dpk/commands/parent_commands/pub_command.dart';
+import 'package:dpk/commands/run_command.dart';
+import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/core/command_runner.dart';
+import 'package:dpk/core/constants.dart';
+import 'package:dpk/core/injection_container.dart';
 import 'package:logging/logging.dart';
 
 Future<void> main(List<String> arguments) async {
@@ -23,7 +22,7 @@ Future<void> _init(List<String> arguments, LaunchContext context) async {
   });
 
   final runner = DpmCommandRunner(
-    'dpm',
+    'dpk',
     'An alternative package manager for Dart',
     args: arguments,
   );

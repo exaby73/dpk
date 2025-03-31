@@ -1,7 +1,7 @@
-name: dpm
+name: dpk
 description: An alternative package manager for Dart
 version: 0.1.0-dev.1
-repository: https://github.com/exaby73/dpm
+repository: https://github.com/exaby73/dpk
 
 environment:
   sdk: ^3.7.0
@@ -28,4 +28,4 @@ dev_dependencies:
   test: ^1.25.15
 
 executables:
-  dpm:
+  dpk:

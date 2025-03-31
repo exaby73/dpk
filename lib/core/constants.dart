@@ -1,2 +1,2 @@
-const String kExecutableName = 'dpm';
-const String kConfigFileName = 'dpm.yaml';
+const String kExecutableName = 'dpk';
+const String kConfigFileName = 'dpk.yaml';

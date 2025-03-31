@@ -12,11 +12,11 @@ scripts:
     echo Postget script
     echo --------------------------------
 
-  clean: dpm run build_runner clean
+  clean: dpk run build_runner clean
 
-  prebuild: dpm run clean
-  build: dpm run build_runner -- build -d
+  prebuild: dpk run clean
+  build: dpk run build_runner -- build -d
 
   watch:
     runHooksFrom: build
-    command: dpm run build_runner -- watch -d
+    command: dpk run build_runner -- watch -d

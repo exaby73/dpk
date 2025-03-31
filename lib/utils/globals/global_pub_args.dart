@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
-import 'package:dpm/utils/cache_directory.dart';
-import 'package:dpm/utils/globals/global_args.dart';
+import 'package:dpk/utils/cache_directory.dart';
+import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'global_pub_args.freezed.dart';

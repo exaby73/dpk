@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:dpm/config/data/dpm_config.dart';
-import 'package:dpm/core/mixins/config_mixin.dart';
+import 'package:dpk/config/data/dpk_config.dart';
+import 'package:dpk/core/mixins/config_mixin.dart';
 
 base mixin CacheMixin on ConfigMixin {
-  bool get isProjectCache => config.dpmConfig.mode == DpmMode.project;
+  bool get isProjectCache => config.dpkConfig.mode == DpkMode.project;
 
   Map<String, String> getCacheEnv(String cacheDir) {
     return {

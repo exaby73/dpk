@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpm/core/mixins/cache_mixin.dart';
-import 'package:dpm/core/mixins/config_mixin.dart';
-import 'package:dpm/utils/extensions/string_extensions.dart';
-import 'package:dpm/utils/globals/global_pub_args.dart';
+import 'package:dpk/core/mixins/cache_mixin.dart';
+import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/utils/extensions/string_extensions.dart';
+import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 

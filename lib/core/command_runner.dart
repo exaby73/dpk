@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:dpm/config/config.dart';
-import 'package:dpm/config/data/config_data.dart';
-import 'package:dpm/utils/globals/global_args.dart';
+import 'package:dpk/config/config.dart';
+import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/utils/globals/global_args.dart';
 
 final class DpmCommandRunner extends CommandRunner {
   late final ConfigData config;

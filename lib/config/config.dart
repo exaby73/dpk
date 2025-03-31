@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dpm/config/data/config_data.dart';
-import 'package:dpm/config/data/scripts.dart';
-import 'package:dpm/core/constants.dart';
-import 'package:dpm/utils/collection.dart';
+import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/config/data/scripts.dart';
+import 'package:dpk/core/constants.dart';
+import 'package:dpk/utils/collection.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 

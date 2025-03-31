@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ConfigData {
 
- Pubspec? get pubspec; DpmConfig get dpmConfig; Scripts get scripts;
+ Pubspec? get pubspec; DpkConfig get dpkConfig; Scripts get scripts;
 /// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $ConfigDataCopyWith<ConfigData> get copyWith => _$ConfigDataCopyWithImpl<ConfigD
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.dpmConfig, dpmConfig) || other.dpmConfig == dpmConfig)&&(identical(other.scripts, scripts) || other.scripts == scripts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.dpkConfig, dpkConfig) || other.dpkConfig == dpkConfig)&&(identical(other.scripts, scripts) || other.scripts == scripts));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pubspec,dpmConfig,scripts);
+int get hashCode => Object.hash(runtimeType,pubspec,dpkConfig,scripts);
 
 @override
 String toString() {
-  return 'ConfigData(pubspec: $pubspec, dpmConfig: $dpmConfig, scripts: $scripts)';
+  return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts)';
 }
 
 
@@ -46,11 +46,11 @@ abstract mixin class $ConfigDataCopyWith<$Res>  {
   factory $ConfigDataCopyWith(ConfigData value, $Res Function(ConfigData) _then) = _$ConfigDataCopyWithImpl;
 @useResult
 $Res call({
- Pubspec? pubspec, DpmConfig dpmConfig, Scripts scripts
+ Pubspec? pubspec, DpkConfig dpkConfig, Scripts scripts
 });
 
 
-$DpmConfigCopyWith<$Res> get dpmConfig;$ScriptsCopyWith<$Res> get scripts;
+$DpkConfigCopyWith<$Res> get dpkConfig;$ScriptsCopyWith<$Res> get scripts;
 
 }
 /// @nodoc
@@ -63,11 +63,11 @@ class _$ConfigDataCopyWithImpl<$Res>
 
 /// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pubspec = freezed,Object? dpmConfig = null,Object? scripts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pubspec = freezed,Object? dpkConfig = null,Object? scripts = null,}) {
   return _then(_self.copyWith(
 pubspec: freezed == pubspec ? _self.pubspec : pubspec // ignore: cast_nullable_to_non_nullable
-as Pubspec?,dpmConfig: null == dpmConfig ? _self.dpmConfig : dpmConfig // ignore: cast_nullable_to_non_nullable
-as DpmConfig,scripts: null == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
+as Pubspec?,dpkConfig: null == dpkConfig ? _self.dpkConfig : dpkConfig // ignore: cast_nullable_to_non_nullable
+as DpkConfig,scripts: null == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
 as Scripts,
   ));
 }
@@ -75,10 +75,10 @@ as Scripts,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DpmConfigCopyWith<$Res> get dpmConfig {
+$DpkConfigCopyWith<$Res> get dpkConfig {
   
-  return $DpmConfigCopyWith<$Res>(_self.dpmConfig, (value) {
-    return _then(_self.copyWith(dpmConfig: value));
+  return $DpkConfigCopyWith<$Res>(_self.dpkConfig, (value) {
+    return _then(_self.copyWith(dpkConfig: value));
   });
 }/// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.
@@ -97,11 +97,11 @@ $ScriptsCopyWith<$Res> get scripts {
 
 
 class _ConfigData implements ConfigData {
-  const _ConfigData({this.pubspec = null, required this.dpmConfig, required this.scripts});
+  const _ConfigData({this.pubspec, required this.dpkConfig, required this.scripts});
   
 
-@override@JsonKey() final  Pubspec? pubspec;
-@override final  DpmConfig dpmConfig;
+@override final  Pubspec? pubspec;
+@override final  DpkConfig dpkConfig;
 @override final  Scripts scripts;
 
 /// Create a copy of ConfigData
@@ -114,16 +114,16 @@ _$ConfigDataCopyWith<_ConfigData> get copyWith => __$ConfigDataCopyWithImpl<_Con
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.dpmConfig, dpmConfig) || other.dpmConfig == dpmConfig)&&(identical(other.scripts, scripts) || other.scripts == scripts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfigData&&(identical(other.pubspec, pubspec) || other.pubspec == pubspec)&&(identical(other.dpkConfig, dpkConfig) || other.dpkConfig == dpkConfig)&&(identical(other.scripts, scripts) || other.scripts == scripts));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pubspec,dpmConfig,scripts);
+int get hashCode => Object.hash(runtimeType,pubspec,dpkConfig,scripts);
 
 @override
 String toString() {
-  return 'ConfigData(pubspec: $pubspec, dpmConfig: $dpmConfig, scripts: $scripts)';
+  return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts)';
 }
 
 
@@ -134,11 +134,11 @@ abstract mixin class _$ConfigDataCopyWith<$Res> implements $ConfigDataCopyWith<$
   factory _$ConfigDataCopyWith(_ConfigData value, $Res Function(_ConfigData) _then) = __$ConfigDataCopyWithImpl;
 @override @useResult
 $Res call({
- Pubspec? pubspec, DpmConfig dpmConfig, Scripts scripts
+ Pubspec? pubspec, DpkConfig dpkConfig, Scripts scripts
 });
 
 
-@override $DpmConfigCopyWith<$Res> get dpmConfig;@override $ScriptsCopyWith<$Res> get scripts;
+@override $DpkConfigCopyWith<$Res> get dpkConfig;@override $ScriptsCopyWith<$Res> get scripts;
 
 }
 /// @nodoc
@@ -151,11 +151,11 @@ class __$ConfigDataCopyWithImpl<$Res>
 
 /// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pubspec = freezed,Object? dpmConfig = null,Object? scripts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pubspec = freezed,Object? dpkConfig = null,Object? scripts = null,}) {
   return _then(_ConfigData(
 pubspec: freezed == pubspec ? _self.pubspec : pubspec // ignore: cast_nullable_to_non_nullable
-as Pubspec?,dpmConfig: null == dpmConfig ? _self.dpmConfig : dpmConfig // ignore: cast_nullable_to_non_nullable
-as DpmConfig,scripts: null == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
+as Pubspec?,dpkConfig: null == dpkConfig ? _self.dpkConfig : dpkConfig // ignore: cast_nullable_to_non_nullable
+as DpkConfig,scripts: null == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
 as Scripts,
   ));
 }
@@ -164,10 +164,10 @@ as Scripts,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DpmConfigCopyWith<$Res> get dpmConfig {
+$DpkConfigCopyWith<$Res> get dpkConfig {
   
-  return $DpmConfigCopyWith<$Res>(_self.dpmConfig, (value) {
-    return _then(_self.copyWith(dpmConfig: value));
+  return $DpkConfigCopyWith<$Res>(_self.dpkConfig, (value) {
+    return _then(_self.copyWith(dpkConfig: value));
   });
 }/// Create a copy of ConfigData
 /// with the given fields replaced by the non-null parameter values.

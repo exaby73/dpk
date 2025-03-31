@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpm/config/config.dart';
-import 'package:dpm/config/data/config_data.dart';
-import 'package:dpm/core/mixins/config_mixin.dart';
-import 'package:dpm/core/shell.dart';
-import 'package:dpm/core/types.dart';
-import 'package:dpm/utils/globals/global_args.dart';
+import 'package:dpk/config/config.dart';
+import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/shell.dart';
+import 'package:dpk/core/types.dart';
+import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:prompts/prompts.dart' as prompts;
 
@@ -164,6 +164,7 @@ final class DpmScriptRunner {
       runInShell: true,
       workingDirectory: options.globalOptions.directory,
     );
+
     stdout.addStream(process.stdout);
     stderr.addStream(process.stderr);
 

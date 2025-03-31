@@ -4,7 +4,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'dpm_config.dart';
+part of 'dpk_config.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -13,20 +13,20 @@ part of 'dpm_config.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$DpmConfig {
+mixin _$DpkConfig {
 
- DpmMode get mode;
-/// Create a copy of DpmConfig
+ DpkMode get mode;
+/// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$DpmConfigCopyWith<DpmConfig> get copyWith => _$DpmConfigCopyWithImpl<DpmConfig>(this as DpmConfig, _$identity);
+$DpkConfigCopyWith<DpkConfig> get copyWith => _$DpkConfigCopyWithImpl<DpkConfig>(this as DpkConfig, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DpmConfig&&(identical(other.mode, mode) || other.mode == mode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DpkConfig&&(identical(other.mode, mode) || other.mode == mode));
 }
 
 
@@ -35,18 +35,18 @@ int get hashCode => Object.hash(runtimeType,mode);
 
 @override
 String toString() {
-  return 'DpmConfig(mode: $mode)';
+  return 'DpkConfig(mode: $mode)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $DpmConfigCopyWith<$Res>  {
-  factory $DpmConfigCopyWith(DpmConfig value, $Res Function(DpmConfig) _then) = _$DpmConfigCopyWithImpl;
+abstract mixin class $DpkConfigCopyWith<$Res>  {
+  factory $DpkConfigCopyWith(DpkConfig value, $Res Function(DpkConfig) _then) = _$DpkConfigCopyWithImpl;
 @useResult
 $Res call({
- DpmMode mode
+ DpkMode mode
 });
 
 
@@ -54,19 +54,19 @@ $Res call({
 
 }
 /// @nodoc
-class _$DpmConfigCopyWithImpl<$Res>
-    implements $DpmConfigCopyWith<$Res> {
-  _$DpmConfigCopyWithImpl(this._self, this._then);
+class _$DpkConfigCopyWithImpl<$Res>
+    implements $DpkConfigCopyWith<$Res> {
+  _$DpkConfigCopyWithImpl(this._self, this._then);
 
-  final DpmConfig _self;
-  final $Res Function(DpmConfig) _then;
+  final DpkConfig _self;
+  final $Res Function(DpkConfig) _then;
 
-/// Create a copy of DpmConfig
+/// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? mode = null,}) {
   return _then(_self.copyWith(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
-as DpmMode,
+as DpkMode,
   ));
 }
 
@@ -76,23 +76,23 @@ as DpmMode,
 /// @nodoc
 
 
-class _DpmConfig implements DpmConfig {
-  const _DpmConfig({this.mode = DpmMode.global});
+class _DpkConfig implements DpkConfig {
+  const _DpkConfig({this.mode = DpkMode.global});
   
 
-@override@JsonKey() final  DpmMode mode;
+@override@JsonKey() final  DpkMode mode;
 
-/// Create a copy of DpmConfig
+/// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$DpmConfigCopyWith<_DpmConfig> get copyWith => __$DpmConfigCopyWithImpl<_DpmConfig>(this, _$identity);
+_$DpkConfigCopyWith<_DpkConfig> get copyWith => __$DpkConfigCopyWithImpl<_DpkConfig>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DpmConfig&&(identical(other.mode, mode) || other.mode == mode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DpkConfig&&(identical(other.mode, mode) || other.mode == mode));
 }
 
 
@@ -101,18 +101,18 @@ int get hashCode => Object.hash(runtimeType,mode);
 
 @override
 String toString() {
-  return 'DpmConfig(mode: $mode)';
+  return 'DpkConfig(mode: $mode)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$DpmConfigCopyWith<$Res> implements $DpmConfigCopyWith<$Res> {
-  factory _$DpmConfigCopyWith(_DpmConfig value, $Res Function(_DpmConfig) _then) = __$DpmConfigCopyWithImpl;
+abstract mixin class _$DpkConfigCopyWith<$Res> implements $DpkConfigCopyWith<$Res> {
+  factory _$DpkConfigCopyWith(_DpkConfig value, $Res Function(_DpkConfig) _then) = __$DpkConfigCopyWithImpl;
 @override @useResult
 $Res call({
- DpmMode mode
+ DpkMode mode
 });
 
 
@@ -120,19 +120,19 @@ $Res call({
 
 }
 /// @nodoc
-class __$DpmConfigCopyWithImpl<$Res>
-    implements _$DpmConfigCopyWith<$Res> {
-  __$DpmConfigCopyWithImpl(this._self, this._then);
+class __$DpkConfigCopyWithImpl<$Res>
+    implements _$DpkConfigCopyWith<$Res> {
+  __$DpkConfigCopyWithImpl(this._self, this._then);
 
-  final _DpmConfig _self;
-  final $Res Function(_DpmConfig) _then;
+  final _DpkConfig _self;
+  final $Res Function(_DpkConfig) _then;
 
-/// Create a copy of DpmConfig
+/// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? mode = null,}) {
-  return _then(_DpmConfig(
+  return _then(_DpkConfig(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
-as DpmMode,
+as DpkMode,
   ));
 }
 
