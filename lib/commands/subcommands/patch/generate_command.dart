@@ -13,7 +13,8 @@ import 'package:prompts/prompts.dart' as prompts;
 
 part 'generate_command.freezed.dart';
 
-final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
+final class PatchGenerateCommand extends Command<int>
+    with ConfigMixin, CacheMixin {
   @override
   String name = 'generate';
 
@@ -31,10 +32,10 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     if (!isProjectCache) {
       stderr.writeln('Project cache is not supported for global mode');
-      exit(1);
+      return 1;
     }
 
     final options = GenerateOptions.fromArgResults(argResults!);
@@ -45,7 +46,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
-      exit(1);
+      return 1;
     }
 
     if (!patchDir.existsSync()) {
@@ -54,7 +55,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
 
     if (!(await gitExists())) {
       stderr.writeln('Git is not installed');
-      exit(1);
+      return 1;
     }
 
     // dart format off
@@ -65,7 +66,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
     // dart format on
 
     if (!shouldContinue) {
-      exit(0);
+      return 0;
     }
 
     patchDir.deleteSync(recursive: true);
@@ -82,12 +83,12 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
 
     if (statusExitCode != 0) {
       stderr.writeln('Failed to generate patch files:\n$statusStderr');
-      exit(1);
+      return 1;
     }
 
     if (statusStdout.isEmpty) {
       stderr.writeln('No changes to generate patch files');
-      exit(0);
+      return 0;
     }
 
     final statusLines = statusStdout
@@ -116,7 +117,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
         isGit = true;
       } else {
         stderr.writeln('Unsupported path: $path');
-        exit(1);
+        return 1;
       }
 
       final key = (packageName: packageName, isGit: isGit);
@@ -140,12 +141,12 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
 
       if (statusExitCode != 0) {
         stderr.writeln('Failed to generate patch files:\n$statusStderr');
-        exit(1);
+        return 1;
       }
 
       if (statusStdout.isEmpty) {
         stderr.writeln('No changes to generate patch files');
-        exit(0);
+        return 0;
       }
 
       final statusLines = statusStdout
@@ -190,7 +191,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
 
       if (diffExitCode != 0) {
         stderr.writeln('Failed to generate patch files:\n$diffStderr');
-        exit(1);
+        return 1;
       }
 
       final patchFile = File(
@@ -219,7 +220,7 @@ final class PatchGenerateCommand extends Command with ConfigMixin, CacheMixin {
       );
     }
 
-    exit(0);
+    return 0;
   }
 }
 

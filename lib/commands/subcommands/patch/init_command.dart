@@ -13,7 +13,7 @@ import 'package:path/path.dart';
 
 part 'init_command.freezed.dart';
 
-final class PatchInitCommand extends Command with ConfigMixin, CacheMixin {
+final class PatchInitCommand extends Command<int> with ConfigMixin, CacheMixin {
   @override
   String name = 'init';
 
@@ -31,10 +31,10 @@ final class PatchInitCommand extends Command with ConfigMixin, CacheMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     if (!isProjectCache) {
       stderr.writeln('Project cache is not supported for global mode');
-      exit(1);
+      return 1;
     }
 
     final options = PatchOptions.fromArgResults(argResults!);
@@ -44,12 +44,12 @@ final class PatchInitCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
-      exit(1);
+      return 1;
     }
 
     if (!(await gitExists())) {
       stderr.writeln('Git is not installed');
-      exit(1);
+      return 1;
     }
 
     // dart format off
@@ -66,7 +66,7 @@ final class PatchInitCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         'Patch is already initialized. Run with --force to initialize from scratch',
       );
-      exit(1);
+      return 1;
     }
 
     if (dotGitExists && options.force) {
@@ -93,7 +93,7 @@ final class PatchInitCommand extends Command with ConfigMixin, CacheMixin {
 
     stdout.writeln('Patch initialized');
 
-    exit(0);
+    return 0;
   }
 }
 

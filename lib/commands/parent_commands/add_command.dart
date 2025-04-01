@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 
 part 'add_command.freezed.dart';
 
-final class AddCommand extends Command with ConfigMixin, CacheMixin {
+final class AddCommand extends Command<int> with ConfigMixin, CacheMixin {
   @override
   String name = 'add';
 
@@ -74,7 +74,7 @@ For example:
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     final options = PubAddOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
@@ -99,9 +99,7 @@ For example:
     stdout.addStream(pubProcess.stdout);
     stderr.addStream(pubProcess.stderr);
 
-    final exitCode = await pubProcess.exitCode;
-
-    exit(exitCode);
+    return await pubProcess.exitCode;
   }
 }
 

@@ -12,7 +12,8 @@ import 'package:path/path.dart';
 
 part 'apply_command.freezed.dart';
 
-final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
+final class PatchApplyCommand extends Command<int>
+    with ConfigMixin, CacheMixin {
   @override
   String name = 'apply';
 
@@ -26,10 +27,10 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     if (!isProjectCache) {
       stderr.writeln('Project cache is not supported for global mode');
-      exit(1);
+      return 1;
     }
 
     final options = ApplyOptions.fromArgResults(argResults!);
@@ -39,12 +40,12 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
       );
-      exit(1);
+      return 1;
     }
 
     if (!(await gitExists())) {
       stderr.writeln('Git is not installed');
-      exit(1);
+      return 1;
     }
 
     final patchDir = Directory(options.globalPatchOptions.patchDir);
@@ -52,7 +53,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         'Patch directory does not exist. Did you run `$kExecutableName patch generate`?',
       );
-      exit(1);
+      return 1;
     }
 
     final checkoutResult = await Process.run('git', [
@@ -64,7 +65,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
       stderr.writeln(
         'Failed to apply. Did you run `$kExecutableName patch init`?',
       );
-      exit(1);
+      return 1;
     }
 
     for (final gitDep
@@ -84,7 +85,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
         stderr.writeln(
           'Failed to apply git dependency ${basename(gitDep.path)}:\n${result.stderr}',
         );
-        exit(1);
+        return 1;
       }
     }
 
@@ -102,7 +103,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
 
     if (hostedPatches.isEmpty && gitPatches.isEmpty) {
       stderr.writeln('No patches to apply');
-      exit(0);
+      return 0;
     }
 
     for (final patch in hostedPatches) {
@@ -115,7 +116,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
         stderr.writeln(
           'Failed to apply patch ${patch.path}:\n${result.stderr}',
         );
-        exit(1);
+        return 1;
       }
     }
 
@@ -135,7 +136,7 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
         stderr.writeln(
           'Failed to apply patch ${patch.path}:\n${checkoutResult.stderr}',
         );
-        exit(1);
+        return 1;
       }
 
       final result = await Process.run('git', [
@@ -147,11 +148,11 @@ final class PatchApplyCommand extends Command with ConfigMixin, CacheMixin {
         stderr.writeln(
           'Failed to apply patch ${patch.path}:\n${result.stderr}',
         );
-        exit(1);
+        return 1;
       }
     }
 
-    exit(0);
+    return 0;
   }
 }
 

@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 
 part 'get_command.freezed.dart';
 
-final class GetCommand extends Command with ConfigMixin, CacheMixin {
+final class GetCommand extends Command<int> with ConfigMixin, CacheMixin {
   @override
   String name = 'get';
 
@@ -48,7 +48,7 @@ final class GetCommand extends Command with ConfigMixin, CacheMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     final options = PubGetOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
@@ -72,7 +72,7 @@ final class GetCommand extends Command with ConfigMixin, CacheMixin {
 
     final preHookExitCode = await preHookRunner.run(skipIfMissing: true);
     if (preHookExitCode != 0) {
-      exit(preHookExitCode);
+      return preHookExitCode;
     }
 
     if (options.globalPubOptions.globalOptions.isVerbose) {
@@ -91,7 +91,7 @@ final class GetCommand extends Command with ConfigMixin, CacheMixin {
     final exitCode = await pubProcess.exitCode;
 
     if (exitCode != 0) {
-      exit(exitCode);
+      return exitCode;
     }
 
     final postHookRunner = DpkScriptRunner(
@@ -104,7 +104,7 @@ final class GetCommand extends Command with ConfigMixin, CacheMixin {
     );
 
     final postHookExitCode = await postHookRunner.run(skipIfMissing: true);
-    exit(postHookExitCode);
+    return postHookExitCode;
   }
 }
 

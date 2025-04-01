@@ -14,7 +14,7 @@ import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
 
-final class RunCommand extends Command with ConfigMixin {
+final class RunCommand extends Command<int> with ConfigMixin {
   @override
   String get name => 'run';
 
@@ -26,7 +26,7 @@ final class RunCommand extends Command with ConfigMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     final options = RunOptions.fromArgResults(argResults!);
     options.script ??= _promptForScript();
 
@@ -36,9 +36,7 @@ final class RunCommand extends Command with ConfigMixin {
       arguments: argResults!.rest,
     );
 
-    final exitCode = await runner.run();
-
-    exit(exitCode);
+    return await runner.run();
   }
 
   String _promptForScript() {

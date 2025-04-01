@@ -3,7 +3,7 @@ import 'package:dpk/commands/subcommands/patch/apply_command.dart';
 import 'package:dpk/commands/subcommands/patch/generate_command.dart';
 import 'package:dpk/commands/subcommands/patch/init_command.dart';
 
-final class PatchCommand extends Command {
+final class PatchCommand extends Command<int> {
   @override
   String name = 'patch';
 

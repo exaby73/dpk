@@ -10,7 +10,7 @@ import 'package:logging/logging.dart';
 
 part 'downgrade_command.freezed.dart';
 
-final class DowngradeCommand extends Command with ConfigMixin, CacheMixin {
+final class DowngradeCommand extends Command<int> with ConfigMixin, CacheMixin {
   @override
   String name = 'downgrade';
 
@@ -40,7 +40,7 @@ final class DowngradeCommand extends Command with ConfigMixin, CacheMixin {
   }
 
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     final options = PubDowngradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
@@ -65,9 +65,7 @@ final class DowngradeCommand extends Command with ConfigMixin, CacheMixin {
     stdout.addStream(pubProcess.stdout);
     stderr.addStream(pubProcess.stderr);
 
-    final exitCode = await pubProcess.exitCode;
-
-    exit(exitCode);
+    return await pubProcess.exitCode;
   }
 }
 
