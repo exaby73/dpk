@@ -7,21 +7,20 @@ import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
-part 'upgrade_command.freezed.dart';
 
-final class PubUpgradeCommand extends Command with ConfigMixin, CacheMixin {
-  @override
-  String name = 'upgrade';
+part 'downgrade_command.freezed.dart';
 
+final class DowngradeCommand extends Command with ConfigMixin, CacheMixin {
   @override
-  List<String> aliases = ['update'];
+  String name = 'downgrade';
 
   @override
-  String get description => 'Upgrade dependencies';
+  String get description =>
+      "Downgrade the current package's dependencies to oldest versions";
 
-  final logger = Logger('pub.upgrade');
+  final logger = Logger('pub.downgrade');
 
-  PubUpgradeCommand() {
+  DowngradeCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -33,42 +32,23 @@ final class PubUpgradeCommand extends Command with ConfigMixin, CacheMixin {
       help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
-      'precompile',
-      help: 'Build executables in immediate dependencies',
-    );
-    argParser.addFlag(
       'tighten',
       help:
           'Updates lower bounds in pubspec.yaml to match the resolved version',
-      negatable: false,
-    );
-    argParser.addFlag(
-      'unlock-transitive',
-      help:
-          'Also upgrades the transitive dependencies of the listed dependencies',
-      negatable: false,
-    );
-    argParser.addFlag(
-      'major-versions',
-      help:
-          'Upgrades packages to their latest resolvable versions, and updates pubspec.yaml',
       negatable: false,
     );
   }
 
   @override
   Future<void> run() async {
-    final options = PubUpgradeOptions.fromArgResults(argResults!);
+    final options = PubDowngradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
-      'upgrade',
+      'downgrade',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
-      if (options.precompile) '--precompile',
       if (options.tighten) '--tighten',
-      if (options.unlockTransitive) '--unlock-transitive',
-      if (options.majorVersions) '--major-versions',
       ...argResults!.rest,
     ];
 
@@ -92,26 +72,20 @@ final class PubUpgradeCommand extends Command with ConfigMixin, CacheMixin {
 }
 
 @freezed
-abstract class PubUpgradeOptions with _$PubUpgradeOptions {
-  const factory PubUpgradeOptions({
+abstract class PubDowngradeOptions with _$PubDowngradeOptions {
+  const factory PubDowngradeOptions({
     required GlobalPubOptions globalPubOptions,
     required bool offline,
     required bool dryRun,
-    required bool precompile,
     required bool tighten,
-    required bool unlockTransitive,
-    required bool majorVersions,
-  }) = _PubUpgradeOptions;
+  }) = _PubDowngradeOptions;
 
-  factory PubUpgradeOptions.fromArgResults(ArgResults results) {
-    return PubUpgradeOptions(
+  factory PubDowngradeOptions.fromArgResults(ArgResults results) {
+    return PubDowngradeOptions(
       globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
-      precompile: results.flag('precompile'),
       tighten: results.flag('tighten'),
-      unlockTransitive: results.flag('unlock-transitive'),
-      majorVersions: results.flag('major-versions'),
     );
   }
 }

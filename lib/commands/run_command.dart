@@ -30,7 +30,7 @@ final class RunCommand extends Command with ConfigMixin {
     final options = RunOptions.fromArgResults(argResults!);
     options.script ??= _promptForScript();
 
-    final runner = DpmScriptRunner(
+    final runner = DpkScriptRunner(
       config: config,
       options: options,
       arguments: argResults!.rest,
@@ -73,12 +73,12 @@ abstract class RunOptions with _$RunOptions {
   }
 }
 
-final class DpmScriptRunner {
+final class DpkScriptRunner {
   final ConfigData config;
   final RunOptions options;
   final List<String> arguments;
 
-  DpmScriptRunner({
+  DpkScriptRunner({
     required this.config,
     required this.options,
     required this.arguments,

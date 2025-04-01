@@ -5,11 +5,11 @@ import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 
-final class DpmCommandRunner extends CommandRunner {
+final class DpkCommandRunner extends CommandRunner {
   late final ConfigData config;
   final List<String> args;
 
-  DpmCommandRunner(
+  DpkCommandRunner(
     super.executableName,
     super.description, {
     required this.args,
@@ -22,7 +22,7 @@ final class DpmCommandRunner extends CommandRunner {
     config = loadConfig(Directory(directory));
   }
 
-  Future<void> runDpm() {
+  Future<void> runDpk() {
     return super.run(args);
   }
 }

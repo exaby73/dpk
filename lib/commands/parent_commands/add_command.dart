@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 
 part 'add_command.freezed.dart';
 
-final class PubAddCommand extends Command with ConfigMixin, CacheMixin {
+final class AddCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'add';
 
@@ -56,7 +56,7 @@ For example:
 
   final logger = Logger('pub.add');
 
-  PubAddCommand() {
+  AddCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',

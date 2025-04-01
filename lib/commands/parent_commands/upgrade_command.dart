@@ -7,19 +7,21 @@ import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
+part 'upgrade_command.freezed.dart';
 
-part 'remove_command.freezed.dart';
-
-final class PubRemoveCommand extends Command with ConfigMixin, CacheMixin {
+final class UpgradeCommand extends Command with ConfigMixin, CacheMixin {
   @override
-  String name = 'remove';
+  String name = 'upgrade';
 
   @override
-  String get description => 'Remove dependencies from `pubspec.yaml`';
+  List<String> aliases = ['update'];
 
-  final logger = Logger('pub.remove');
+  @override
+  String get description => 'Upgrade dependencies';
 
-  PubRemoveCommand() {
+  final logger = Logger('pub.upgrade');
+
+  UpgradeCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -34,18 +36,39 @@ final class PubRemoveCommand extends Command with ConfigMixin, CacheMixin {
       'precompile',
       help: 'Build executables in immediate dependencies',
     );
+    argParser.addFlag(
+      'tighten',
+      help:
+          'Updates lower bounds in pubspec.yaml to match the resolved version',
+      negatable: false,
+    );
+    argParser.addFlag(
+      'unlock-transitive',
+      help:
+          'Also upgrades the transitive dependencies of the listed dependencies',
+      negatable: false,
+    );
+    argParser.addFlag(
+      'major-versions',
+      help:
+          'Upgrades packages to their latest resolvable versions, and updates pubspec.yaml',
+      negatable: false,
+    );
   }
 
   @override
   Future<void> run() async {
-    final options = PubRemoveOptions.fromArgResults(argResults!);
+    final options = PubUpgradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
-      'remove',
+      'upgrade',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
       if (options.precompile) '--precompile',
+      if (options.tighten) '--tighten',
+      if (options.unlockTransitive) '--unlock-transitive',
+      if (options.majorVersions) '--major-versions',
       ...argResults!.rest,
     ];
 
@@ -69,20 +92,26 @@ final class PubRemoveCommand extends Command with ConfigMixin, CacheMixin {
 }
 
 @freezed
-abstract class PubRemoveOptions with _$PubRemoveOptions {
-  const factory PubRemoveOptions({
+abstract class PubUpgradeOptions with _$PubUpgradeOptions {
+  const factory PubUpgradeOptions({
     required GlobalPubOptions globalPubOptions,
     required bool offline,
     required bool dryRun,
     required bool precompile,
-  }) = _PubRemoveOptions;
+    required bool tighten,
+    required bool unlockTransitive,
+    required bool majorVersions,
+  }) = _PubUpgradeOptions;
 
-  factory PubRemoveOptions.fromArgResults(ArgResults results) {
-    return PubRemoveOptions(
+  factory PubUpgradeOptions.fromArgResults(ArgResults results) {
+    return PubUpgradeOptions(
       globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
       precompile: results.flag('precompile'),
+      tighten: results.flag('tighten'),
+      unlockTransitive: results.flag('unlock-transitive'),
+      majorVersions: results.flag('major-versions'),
     );
   }
 }

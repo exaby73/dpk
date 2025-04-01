@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 
 part 'get_command.freezed.dart';
 
-final class PubGetCommand extends Command with ConfigMixin, CacheMixin {
+final class GetCommand extends Command with ConfigMixin, CacheMixin {
   @override
   String name = 'get';
 
@@ -21,7 +21,7 @@ final class PubGetCommand extends Command with ConfigMixin, CacheMixin {
 
   final logger = Logger('pub.get');
 
-  PubGetCommand() {
+  GetCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -61,7 +61,7 @@ final class PubGetCommand extends Command with ConfigMixin, CacheMixin {
       ...argResults!.rest,
     ];
 
-    final preHookRunner = DpmScriptRunner(
+    final preHookRunner = DpkScriptRunner(
       config: config,
       arguments: [],
       options: RunOptions(
@@ -94,7 +94,7 @@ final class PubGetCommand extends Command with ConfigMixin, CacheMixin {
       exit(exitCode);
     }
 
-    final postHookRunner = DpmScriptRunner(
+    final postHookRunner = DpkScriptRunner(
       config: config,
       arguments: [],
       options: RunOptions(
