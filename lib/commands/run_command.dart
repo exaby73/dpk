@@ -42,7 +42,7 @@ final class RunCommand extends Command with ConfigMixin {
   }
 
   String _promptForScript() {
-    final scriptNames = config.scripts.scripts.keys.toList();
+    final scriptNames = config.scripts.scriptsMap.keys.toList();
     final scriptName = prompts.choose(
       'Which script do you want to run?',
       scriptNames,
@@ -93,7 +93,7 @@ final class DpmScriptRunner {
     IntCallback? preHook;
     IntCallback? postHook;
 
-    if (config.scripts.scripts.containsKey(options.script)) {
+    if (config.scripts.scriptsMap.containsKey(options.script)) {
       (preHook, postHook) = _getHooks(
         config: config,
         options: options,
@@ -126,7 +126,7 @@ final class DpmScriptRunner {
     required List<String> arguments,
     bool skipIfMissing = false,
   }) async {
-    final script = config.scripts.scripts[options.script];
+    final script = config.scripts.scriptsMap[options.script];
     final scriptExists = script != null;
 
     if (!scriptExists && skipIfMissing) {
@@ -176,7 +176,7 @@ final class DpmScriptRunner {
     required RunOptions options,
     required List<String> arguments,
   }) {
-    final script = config.scripts.scripts[options.script];
+    final script = config.scripts.scriptsMap[options.script];
     final hooks = commandToHookMapper[script?.runHooksFrom ?? options.script];
     if (hooks == null) {
       return (null, null);
@@ -187,7 +187,7 @@ final class DpmScriptRunner {
 
     final (preHook, postHook) = hooks;
 
-    if (config.scripts.scripts.containsKey(preHook.name)) {
+    if (config.scripts.scriptsMap.containsKey(preHook.name)) {
       preHookCallback =
           () => _runScript(
             config: config,
@@ -196,7 +196,7 @@ final class DpmScriptRunner {
           );
     }
 
-    if (config.scripts.scripts.containsKey(postHook.name)) {
+    if (config.scripts.scriptsMap.containsKey(postHook.name)) {
       postHookCallback =
           () => _runScript(
             config: config,

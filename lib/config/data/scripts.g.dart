@@ -7,13 +7,13 @@ part of 'scripts.dart';
 // **************************************************************************
 
 _Scripts _$ScriptsFromJson(Map<String, dynamic> json) => _Scripts(
-  scripts: (json['scripts'] as Map<String, dynamic>).map(
+  scriptsMap: (json['scriptsMap'] as Map<String, dynamic>).map(
     (k, e) => MapEntry(k, Script.fromJson(e as Map<String, dynamic>)),
   ),
 );
 
 Map<String, dynamic> _$ScriptsToJson(_Scripts instance) => <String, dynamic>{
-  'scripts': instance.scripts,
+  'scriptsMap': instance.scriptsMap,
 };
 
 _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(

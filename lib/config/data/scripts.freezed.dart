@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Scripts {
 
- Map<String, Script> get scripts;
+ Map<String, Script> get scriptsMap;
 /// Create a copy of Scripts
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $ScriptsCopyWith<Scripts> get copyWith => _$ScriptsCopyWithImpl<Scripts>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scripts&&const DeepCollectionEquality().equals(other.scripts, scripts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scripts&&const DeepCollectionEquality().equals(other.scriptsMap, scriptsMap));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(scripts));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(scriptsMap));
 
 @override
 String toString() {
-  return 'Scripts(scripts: $scripts)';
+  return 'Scripts(scriptsMap: $scriptsMap)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $ScriptsCopyWith<$Res>  {
   factory $ScriptsCopyWith(Scripts value, $Res Function(Scripts) _then) = _$ScriptsCopyWithImpl;
 @useResult
 $Res call({
- Map<String, Script> scripts
+ Map<String, Script> scriptsMap
 });
 
 
@@ -66,9 +66,9 @@ class _$ScriptsCopyWithImpl<$Res>
 
 /// Create a copy of Scripts
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? scripts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? scriptsMap = null,}) {
   return _then(_self.copyWith(
-scripts: null == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
+scriptsMap: null == scriptsMap ? _self.scriptsMap : scriptsMap // ignore: cast_nullable_to_non_nullable
 as Map<String, Script>,
   ));
 }
@@ -80,14 +80,14 @@ as Map<String, Script>,
 @JsonSerializable()
 
 class _Scripts implements Scripts {
-  const _Scripts({required final  Map<String, Script> scripts}): _scripts = scripts;
+  const _Scripts({required final  Map<String, Script> scriptsMap}): _scriptsMap = scriptsMap;
   factory _Scripts.fromJson(Map<String, dynamic> json) => _$ScriptsFromJson(json);
 
- final  Map<String, Script> _scripts;
-@override Map<String, Script> get scripts {
-  if (_scripts is EqualUnmodifiableMapView) return _scripts;
+ final  Map<String, Script> _scriptsMap;
+@override Map<String, Script> get scriptsMap {
+  if (_scriptsMap is EqualUnmodifiableMapView) return _scriptsMap;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_scripts);
+  return EqualUnmodifiableMapView(_scriptsMap);
 }
 
 
@@ -104,16 +104,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scripts&&const DeepCollectionEquality().equals(other._scripts, _scripts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scripts&&const DeepCollectionEquality().equals(other._scriptsMap, _scriptsMap));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_scripts));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_scriptsMap));
 
 @override
 String toString() {
-  return 'Scripts(scripts: $scripts)';
+  return 'Scripts(scriptsMap: $scriptsMap)';
 }
 
 
@@ -124,7 +124,7 @@ abstract mixin class _$ScriptsCopyWith<$Res> implements $ScriptsCopyWith<$Res> {
   factory _$ScriptsCopyWith(_Scripts value, $Res Function(_Scripts) _then) = __$ScriptsCopyWithImpl;
 @override @useResult
 $Res call({
- Map<String, Script> scripts
+ Map<String, Script> scriptsMap
 });
 
 
@@ -141,9 +141,9 @@ class __$ScriptsCopyWithImpl<$Res>
 
 /// Create a copy of Scripts
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? scripts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? scriptsMap = null,}) {
   return _then(_Scripts(
-scripts: null == scripts ? _self._scripts : scripts // ignore: cast_nullable_to_non_nullable
+scriptsMap: null == scriptsMap ? _self._scriptsMap : scriptsMap // ignore: cast_nullable_to_non_nullable
 as Map<String, Script>,
   ));
 }

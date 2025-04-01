@@ -6,7 +6,7 @@ part 'scripts.g.dart';
 
 @freezed
 abstract class Scripts with _$Scripts {
-  const factory Scripts({required Map<String, Script> scripts}) = _Scripts;
+  const factory Scripts({required Map<String, Script> scriptsMap}) = _Scripts;
 
   factory Scripts.fromYaml(YamlMap yaml) {
     final scripts = <String, Script>{};
@@ -16,7 +16,7 @@ abstract class Scripts with _$Scripts {
       scripts[key] = script;
     }
 
-    return Scripts(scripts: scripts);
+    return Scripts(scriptsMap: scripts);
   }
 
   factory Scripts.fromJson(Map<String, dynamic> json) =>
@@ -25,7 +25,6 @@ abstract class Scripts with _$Scripts {
 
 @freezed
 abstract class Script with _$Script {
-
   factory Script({
     required String name,
     required String? description,
