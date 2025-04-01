@@ -11,6 +11,8 @@ base mixin CacheMixin on ConfigMixin {
       if (isProjectCache) 'PUB_CACHE': cacheDir,
       if (Platform.environment.containsKey('PUB_CACHE'))
         'PUB_CACHE': Platform.environment['PUB_CACHE']!,
+      if (Platform.environment.containsKey('PUB_HOSTED_URL'))
+        'PUB_HOSTED_URL': Platform.environment['PUB_HOSTED_URL']!,
     };
   }
 }
