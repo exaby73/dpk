@@ -1,0 +1,23 @@
+name: _
+workspace:
+  - packages/package_1
+  - packages/package_2
+  - packages/package_3
+
+environment:
+  sdk: ^3.7.0
+
+dev_dependencies:
+  # analysis_server:
+  #   git:
+  #     url: https://github.com/dart-lang/sdk
+  #     ref: 3.7.0
+  #     path: pkg/analysis_server
+
+dependency_overrides:
+  meta: 1.5.0
+
+catalog:
+  dependencies:
+    foo:
+    bar: named

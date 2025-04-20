@@ -9,20 +9,25 @@ part 'config_data.freezed.dart';
 @freezed
 abstract class ConfigData with _$ConfigData {
   const factory ConfigData({
-    Pubspec? pubspec,
+    required Pubspec pubspec,
     required DpkConfig dpkConfig,
-    required Scripts scripts,
+    required Scripts? scripts,
   }) = _ConfigData;
 
   factory ConfigData.fromYaml(YamlMap yaml) {
     final pubspec = Pubspec.fromJson(yaml);
     final rawScripts = yaml['scripts'];
-    if (rawScripts is! YamlMap) {
+    if (rawScripts is! YamlMap?) {
       throw StateError('Invalid scripts section');
     }
 
     final dpkConfig = DpkConfig.fromYaml(yaml);
-    final scripts = Scripts.fromYaml(rawScripts);
+    late final Scripts? scripts;
+    if (rawScripts != null) {
+      scripts = Scripts.fromYaml(rawScripts);
+    } else {
+      scripts = null;
+    }
 
     return ConfigData(pubspec: pubspec, dpkConfig: dpkConfig, scripts: scripts);
   }

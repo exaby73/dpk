@@ -12,47 +12,55 @@ part of 'global_patch_args.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$GlobalPatchOptions {
+  GlobalOptions get globalOptions;
+  String get cacheDir;
+  String get patchDir;
 
- GlobalOptions get globalOptions; String get cacheDir; String get patchDir;
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$GlobalPatchOptionsCopyWith<GlobalPatchOptions> get copyWith => _$GlobalPatchOptionsCopyWithImpl<GlobalPatchOptions>(this as GlobalPatchOptions, _$identity);
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $GlobalPatchOptionsCopyWith<GlobalPatchOptions> get copyWith =>
+      _$GlobalPatchOptionsCopyWithImpl<GlobalPatchOptions>(
+          this as GlobalPatchOptions, _$identity);
 
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is GlobalPatchOptions &&
+            (identical(other.globalOptions, globalOptions) ||
+                other.globalOptions == globalOptions) &&
+            (identical(other.cacheDir, cacheDir) ||
+                other.cacheDir == cacheDir) &&
+            (identical(other.patchDir, patchDir) ||
+                other.patchDir == patchDir));
+  }
 
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, globalOptions, cacheDir, patchDir);
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalPatchOptions&&(identical(other.globalOptions, globalOptions) || other.globalOptions == globalOptions)&&(identical(other.cacheDir, cacheDir) || other.cacheDir == cacheDir)&&(identical(other.patchDir, patchDir) || other.patchDir == patchDir));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,globalOptions,cacheDir,patchDir);
-
-@override
-String toString() {
-  return 'GlobalPatchOptions(globalOptions: $globalOptions, cacheDir: $cacheDir, patchDir: $patchDir)';
-}
-
-
+  @override
+  String toString() {
+    return 'GlobalPatchOptions(globalOptions: $globalOptions, cacheDir: $cacheDir, patchDir: $patchDir)';
+  }
 }
 
 /// @nodoc
-abstract mixin class $GlobalPatchOptionsCopyWith<$Res>  {
-  factory $GlobalPatchOptionsCopyWith(GlobalPatchOptions value, $Res Function(GlobalPatchOptions) _then) = _$GlobalPatchOptionsCopyWithImpl;
-@useResult
-$Res call({
- GlobalOptions globalOptions, String cacheDir, String patchDir
-});
+abstract mixin class $GlobalPatchOptionsCopyWith<$Res> {
+  factory $GlobalPatchOptionsCopyWith(
+          GlobalPatchOptions value, $Res Function(GlobalPatchOptions) _then) =
+      _$GlobalPatchOptionsCopyWithImpl;
+  @useResult
+  $Res call({GlobalOptions globalOptions, String cacheDir, String patchDir});
 
-
-$GlobalOptionsCopyWith<$Res> get globalOptions;
-
+  $GlobalOptionsCopyWith<$Res> get globalOptions;
 }
+
 /// @nodoc
 class _$GlobalPatchOptionsCopyWithImpl<$Res>
     implements $GlobalPatchOptionsCopyWith<$Res> {
@@ -61,77 +69,102 @@ class _$GlobalPatchOptionsCopyWithImpl<$Res>
   final GlobalPatchOptions _self;
   final $Res Function(GlobalPatchOptions) _then;
 
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? globalOptions = null,Object? cacheDir = null,Object? patchDir = null,}) {
-  return _then(_self.copyWith(
-globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,cacheDir: null == cacheDir ? _self.cacheDir : cacheDir // ignore: cast_nullable_to_non_nullable
-as String,patchDir: null == patchDir ? _self.patchDir : patchDir // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$GlobalOptionsCopyWith<$Res> get globalOptions {
-  
-  return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
-    return _then(_self.copyWith(globalOptions: value));
-  });
-}
-}
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? globalOptions = null,
+    Object? cacheDir = null,
+    Object? patchDir = null,
+  }) {
+    return _then(_self.copyWith(
+      globalOptions: null == globalOptions
+          ? _self.globalOptions
+          : globalOptions // ignore: cast_nullable_to_non_nullable
+              as GlobalOptions,
+      cacheDir: null == cacheDir
+          ? _self.cacheDir
+          : cacheDir // ignore: cast_nullable_to_non_nullable
+              as String,
+      patchDir: null == patchDir
+          ? _self.patchDir
+          : patchDir // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
 
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GlobalOptionsCopyWith<$Res> get globalOptions {
+    return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
+      return _then(_self.copyWith(globalOptions: value));
+    });
+  }
+}
 
 /// @nodoc
-
 
 class _GlobalPatchOptions implements GlobalPatchOptions {
-  const _GlobalPatchOptions({required this.globalOptions, required this.cacheDir, required this.patchDir});
-  
+  const _GlobalPatchOptions(
+      {required this.globalOptions,
+      required this.cacheDir,
+      required this.patchDir});
 
-@override final  GlobalOptions globalOptions;
-@override final  String cacheDir;
-@override final  String patchDir;
+  @override
+  final GlobalOptions globalOptions;
+  @override
+  final String cacheDir;
+  @override
+  final String patchDir;
 
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$GlobalPatchOptionsCopyWith<_GlobalPatchOptions> get copyWith => __$GlobalPatchOptionsCopyWithImpl<_GlobalPatchOptions>(this, _$identity);
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$GlobalPatchOptionsCopyWith<_GlobalPatchOptions> get copyWith =>
+      __$GlobalPatchOptionsCopyWithImpl<_GlobalPatchOptions>(this, _$identity);
 
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _GlobalPatchOptions &&
+            (identical(other.globalOptions, globalOptions) ||
+                other.globalOptions == globalOptions) &&
+            (identical(other.cacheDir, cacheDir) ||
+                other.cacheDir == cacheDir) &&
+            (identical(other.patchDir, patchDir) ||
+                other.patchDir == patchDir));
+  }
 
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, globalOptions, cacheDir, patchDir);
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalPatchOptions&&(identical(other.globalOptions, globalOptions) || other.globalOptions == globalOptions)&&(identical(other.cacheDir, cacheDir) || other.cacheDir == cacheDir)&&(identical(other.patchDir, patchDir) || other.patchDir == patchDir));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,globalOptions,cacheDir,patchDir);
-
-@override
-String toString() {
-  return 'GlobalPatchOptions._internal(globalOptions: $globalOptions, cacheDir: $cacheDir, patchDir: $patchDir)';
-}
-
-
+  @override
+  String toString() {
+    return 'GlobalPatchOptions._internal(globalOptions: $globalOptions, cacheDir: $cacheDir, patchDir: $patchDir)';
+  }
 }
 
 /// @nodoc
-abstract mixin class _$GlobalPatchOptionsCopyWith<$Res> implements $GlobalPatchOptionsCopyWith<$Res> {
-  factory _$GlobalPatchOptionsCopyWith(_GlobalPatchOptions value, $Res Function(_GlobalPatchOptions) _then) = __$GlobalPatchOptionsCopyWithImpl;
-@override @useResult
-$Res call({
- GlobalOptions globalOptions, String cacheDir, String patchDir
-});
+abstract mixin class _$GlobalPatchOptionsCopyWith<$Res>
+    implements $GlobalPatchOptionsCopyWith<$Res> {
+  factory _$GlobalPatchOptionsCopyWith(
+          _GlobalPatchOptions value, $Res Function(_GlobalPatchOptions) _then) =
+      __$GlobalPatchOptionsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({GlobalOptions globalOptions, String cacheDir, String patchDir});
 
-
-@override $GlobalOptionsCopyWith<$Res> get globalOptions;
-
+  @override
+  $GlobalOptionsCopyWith<$Res> get globalOptions;
 }
+
 /// @nodoc
 class __$GlobalPatchOptionsCopyWithImpl<$Res>
     implements _$GlobalPatchOptionsCopyWith<$Res> {
@@ -140,27 +173,40 @@ class __$GlobalPatchOptionsCopyWithImpl<$Res>
   final _GlobalPatchOptions _self;
   final $Res Function(_GlobalPatchOptions) _then;
 
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? globalOptions = null,Object? cacheDir = null,Object? patchDir = null,}) {
-  return _then(_GlobalPatchOptions(
-globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,cacheDir: null == cacheDir ? _self.cacheDir : cacheDir // ignore: cast_nullable_to_non_nullable
-as String,patchDir: null == patchDir ? _self.patchDir : patchDir // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? globalOptions = null,
+    Object? cacheDir = null,
+    Object? patchDir = null,
+  }) {
+    return _then(_GlobalPatchOptions(
+      globalOptions: null == globalOptions
+          ? _self.globalOptions
+          : globalOptions // ignore: cast_nullable_to_non_nullable
+              as GlobalOptions,
+      cacheDir: null == cacheDir
+          ? _self.cacheDir
+          : cacheDir // ignore: cast_nullable_to_non_nullable
+              as String,
+      patchDir: null == patchDir
+          ? _self.patchDir
+          : patchDir // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
 
-/// Create a copy of GlobalPatchOptions
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$GlobalOptionsCopyWith<$Res> get globalOptions {
-  
-  return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
-    return _then(_self.copyWith(globalOptions: value));
-  });
-}
+  /// Create a copy of GlobalPatchOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GlobalOptionsCopyWith<$Res> get globalOptions {
+    return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
+      return _then(_self.copyWith(globalOptions: value));
+    });
+  }
 }
 
 // dart format on

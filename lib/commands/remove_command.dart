@@ -2,25 +2,26 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/process_handler_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 
-part 'downgrade_command.freezed.dart';
+part 'remove_command.freezed.dart';
 
-final class DowngradeCommand extends Command<int> with ConfigMixin, CacheMixin {
+final class RemoveCommand extends Command<int>
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
   @override
-  String name = 'downgrade';
+  String name = 'remove';
 
   @override
-  String get description =>
-      "Downgrade the current package's dependencies to oldest versions";
+  String get description => 'Remove dependencies from `pubspec.yaml`';
 
-  final logger = Logger('pub.downgrade');
+  final logger = Logger('pub.remove');
 
-  DowngradeCommand() {
+  RemoveCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -32,23 +33,21 @@ final class DowngradeCommand extends Command<int> with ConfigMixin, CacheMixin {
       help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
-      'tighten',
-      help:
-          'Updates lower bounds in pubspec.yaml to match the resolved version',
-      negatable: false,
+      'precompile',
+      help: 'Build executables in immediate dependencies',
     );
   }
 
   @override
   Future<int> run() async {
-    final options = PubDowngradeOptions.fromArgResults(argResults!);
+    final options = PubRemoveOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
-      'downgrade',
+      'remove',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
-      if (options.tighten) '--tighten',
+      if (options.precompile) '--precompile',
       ...argResults!.rest,
     ];
 
@@ -70,20 +69,20 @@ final class DowngradeCommand extends Command<int> with ConfigMixin, CacheMixin {
 }
 
 @freezed
-abstract class PubDowngradeOptions with _$PubDowngradeOptions {
-  const factory PubDowngradeOptions({
+abstract class PubRemoveOptions with _$PubRemoveOptions {
+  const factory PubRemoveOptions({
     required GlobalPubOptions globalPubOptions,
     required bool offline,
     required bool dryRun,
-    required bool tighten,
-  }) = _PubDowngradeOptions;
+    required bool precompile,
+  }) = _PubRemoveOptions;
 
-  factory PubDowngradeOptions.fromArgResults(ArgResults results) {
-    return PubDowngradeOptions(
+  factory PubRemoveOptions.fromArgResults(ArgResults results) {
+    return PubRemoveOptions(
       globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
-      tighten: results.flag('tighten'),
+      precompile: results.flag('precompile'),
     );
   }
 }

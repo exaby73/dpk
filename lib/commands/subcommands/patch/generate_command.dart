@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/core/constants.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/command_checker.dart';
 import 'package:dpk/utils/globals/global_patch_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -14,7 +14,7 @@ import 'package:prompts/prompts.dart' as prompts;
 part 'generate_command.freezed.dart';
 
 final class PatchGenerateCommand extends Command<int>
-    with ConfigMixin, CacheMixin {
+    with ConfigMixin, PubEnvMixin {
   @override
   String name = 'generate';
 
@@ -33,7 +33,7 @@ final class PatchGenerateCommand extends Command<int>
 
   @override
   Future<int> run() async {
-    if (!isProjectCache) {
+    if (!isProjectMode) {
       stderr.writeln('Project cache is not supported for global mode');
       return 1;
     }
@@ -59,10 +59,11 @@ final class PatchGenerateCommand extends Command<int>
     }
 
     // dart format off
-    final shouldContinue = options.force || prompts.getBool(
-      'Generating patch files will delete all existing patch files. Do you want to continue?',
-      defaultsTo: true,
-    );
+    final shouldContinue = options.force ||
+        prompts.getBool(
+          'Generating patch files will delete all existing patch files. Do you want to continue?',
+          defaultsTo: true,
+        );
     // dart format on
 
     if (!shouldContinue) {
@@ -76,10 +77,13 @@ final class PatchGenerateCommand extends Command<int>
       stdout: statusStdout as String,
       stderr: statusStderr as String,
       exitCode: statusExitCode,
-    ) = await Process.run('git', [
-      'status',
-      '-s',
-    ], workingDirectory: options.globalPatchOptions.cacheDir);
+    ) = await Process.run(
+        'git',
+        [
+          'status',
+          '-s',
+        ],
+        workingDirectory: options.globalPatchOptions.cacheDir);
 
     if (statusExitCode != 0) {
       stderr.writeln('Failed to generate patch files:\n$statusStderr');
@@ -91,9 +95,8 @@ final class PatchGenerateCommand extends Command<int>
       return 0;
     }
 
-    final statusLines = statusStdout
-        .split('\n')
-        .where((line) => line.trim().isNotEmpty);
+    final statusLines =
+        statusStdout.split('\n').where((line) => line.trim().isNotEmpty);
     final patches = <({String packageName, bool isGit}), List<String>>{};
     final untrackedFiles = <String>[];
 
@@ -149,9 +152,8 @@ final class PatchGenerateCommand extends Command<int>
         return 0;
       }
 
-      final statusLines = statusStdout
-          .split('\n')
-          .where((line) => line.trim().isNotEmpty);
+      final statusLines =
+          statusStdout.split('\n').where((line) => line.trim().isNotEmpty);
       for (final line in statusLines) {
         final [status, path] = line.trim().split(RegExp(r'\s+'));
         if (status == '??') {
@@ -164,8 +166,8 @@ final class PatchGenerateCommand extends Command<int>
     }
 
     // dart format off
-    for (final MapEntry(:key , value: filePaths) in patches.entries) {
-    // dart format on
+    for (final MapEntry(:key, value: filePaths) in patches.entries) {
+      // dart format on
       final (:packageName, :isGit) = key;
       late final String workingDir;
       if (isGit) {
@@ -182,12 +184,15 @@ final class PatchGenerateCommand extends Command<int>
         stdout: diffStdout as String,
         stderr: diffStderr as String,
         exitCode: diffExitCode,
-      ) = await Process.run('git', [
-        'diff',
-        '--no-ext-diff',
-        '--no-color',
-        ...filePaths,
-      ], workingDirectory: workingDir);
+      ) = await Process.run(
+          'git',
+          [
+            'diff',
+            '--no-ext-diff',
+            '--no-color',
+            ...filePaths,
+          ],
+          workingDirectory: workingDir);
 
       if (diffExitCode != 0) {
         stderr.writeln('Failed to generate patch files:\n$diffStderr');
