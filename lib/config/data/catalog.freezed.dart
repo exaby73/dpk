@@ -4,7 +4,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'catelog.dart';
+part of 'catalog.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,7 +14,7 @@ part of 'catelog.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$Catelog {
+mixin _$Catalog {
   Map<String, VersionConstraint?>? get environment;
   String? get publishTo;
   Uri? get repository;
@@ -26,18 +26,18 @@ mixin _$Catelog {
   Map<String, Dependency>? get devDependencies;
   Map<String, Dependency>? get dependencyOverrides;
 
-  /// Create a copy of Catelog
+  /// Create a copy of Catalog
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $CatelogCopyWith<Catelog> get copyWith =>
-      _$CatelogCopyWithImpl<Catelog>(this as Catelog, _$identity);
+  $CatalogCopyWith<Catalog> get copyWith =>
+      _$CatalogCopyWithImpl<Catalog>(this as Catalog, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is Catelog &&
+            other is Catalog &&
             const DeepCollectionEquality()
                 .equals(other.environment, environment) &&
             (identical(other.publishTo, publishTo) ||
@@ -75,14 +75,14 @@ mixin _$Catelog {
 
   @override
   String toString() {
-    return 'Catelog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies, devDependencies: $devDependencies, dependencyOverrides: $dependencyOverrides)';
+    return 'Catalog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies, devDependencies: $devDependencies, dependencyOverrides: $dependencyOverrides)';
   }
 }
 
 /// @nodoc
-abstract mixin class $CatelogCopyWith<$Res> {
-  factory $CatelogCopyWith(Catelog value, $Res Function(Catelog) _then) =
-      _$CatelogCopyWithImpl;
+abstract mixin class $CatalogCopyWith<$Res> {
+  factory $CatalogCopyWith(Catalog value, $Res Function(Catalog) _then) =
+      _$CatalogCopyWithImpl;
   @useResult
   $Res call(
       {Map<String, VersionConstraint?>? environment,
@@ -98,13 +98,13 @@ abstract mixin class $CatelogCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$CatelogCopyWithImpl<$Res> implements $CatelogCopyWith<$Res> {
-  _$CatelogCopyWithImpl(this._self, this._then);
+class _$CatalogCopyWithImpl<$Res> implements $CatalogCopyWith<$Res> {
+  _$CatalogCopyWithImpl(this._self, this._then);
 
-  final Catelog _self;
-  final $Res Function(Catelog) _then;
+  final Catalog _self;
+  final $Res Function(Catalog) _then;
 
-  /// Create a copy of Catelog
+  /// Create a copy of Catalog
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -167,8 +167,8 @@ class _$CatelogCopyWithImpl<$Res> implements $CatelogCopyWith<$Res> {
 
 /// @nodoc
 
-class _Catelog implements Catelog {
-  const _Catelog(
+class _Catalog implements Catalog {
+  const _Catalog(
       {final Map<String, VersionConstraint?>? environment,
       this.publishTo,
       this.repository,
@@ -246,19 +246,19 @@ class _Catelog implements Catelog {
     return EqualUnmodifiableMapView(value);
   }
 
-  /// Create a copy of Catelog
+  /// Create a copy of Catalog
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  _$CatelogCopyWith<_Catelog> get copyWith =>
-      __$CatelogCopyWithImpl<_Catelog>(this, _$identity);
+  _$CatalogCopyWith<_Catalog> get copyWith =>
+      __$CatalogCopyWithImpl<_Catalog>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _Catelog &&
+            other is _Catalog &&
             const DeepCollectionEquality()
                 .equals(other._environment, _environment) &&
             (identical(other.publishTo, publishTo) ||
@@ -296,14 +296,14 @@ class _Catelog implements Catelog {
 
   @override
   String toString() {
-    return 'Catelog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies, devDependencies: $devDependencies, dependencyOverrides: $dependencyOverrides)';
+    return 'Catalog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies, devDependencies: $devDependencies, dependencyOverrides: $dependencyOverrides)';
   }
 }
 
 /// @nodoc
-abstract mixin class _$CatelogCopyWith<$Res> implements $CatelogCopyWith<$Res> {
-  factory _$CatelogCopyWith(_Catelog value, $Res Function(_Catelog) _then) =
-      __$CatelogCopyWithImpl;
+abstract mixin class _$CatalogCopyWith<$Res> implements $CatalogCopyWith<$Res> {
+  factory _$CatalogCopyWith(_Catalog value, $Res Function(_Catalog) _then) =
+      __$CatalogCopyWithImpl;
   @override
   @useResult
   $Res call(
@@ -320,13 +320,13 @@ abstract mixin class _$CatelogCopyWith<$Res> implements $CatelogCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$CatelogCopyWithImpl<$Res> implements _$CatelogCopyWith<$Res> {
-  __$CatelogCopyWithImpl(this._self, this._then);
+class __$CatalogCopyWithImpl<$Res> implements _$CatalogCopyWith<$Res> {
+  __$CatalogCopyWithImpl(this._self, this._then);
 
-  final _Catelog _self;
-  final $Res Function(_Catelog) _then;
+  final _Catalog _self;
+  final $Res Function(_Catalog) _then;
 
-  /// Create a copy of Catelog
+  /// Create a copy of Catalog
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -342,7 +342,7 @@ class __$CatelogCopyWithImpl<$Res> implements _$CatelogCopyWith<$Res> {
     Object? devDependencies = freezed,
     Object? dependencyOverrides = freezed,
   }) {
-    return _then(_Catelog(
+    return _then(_Catalog(
       environment: freezed == environment
           ? _self._environment
           : environment // ignore: cast_nullable_to_non_nullable

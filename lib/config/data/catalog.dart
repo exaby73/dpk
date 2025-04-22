@@ -3,11 +3,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
-part 'catelog.freezed.dart';
+part 'catalog.freezed.dart';
 
 @freezed
-abstract class Catelog with _$Catelog {
-  const factory Catelog({
+abstract class Catalog with _$Catalog {
+  const factory Catalog({
     Map<String, VersionConstraint?>? environment,
     String? publishTo,
     Uri? repository,
@@ -18,9 +18,9 @@ abstract class Catelog with _$Catelog {
     Map<String, Dependency>? dependencies,
     Map<String, Dependency>? devDependencies,
     Map<String, Dependency>? dependencyOverrides,
-  }) = _Catelog;
+  }) = _Catalog;
 
-  factory Catelog.fromYaml(YamlMap yaml) {
+  factory Catalog.fromYaml(YamlMap yaml) {
     final environment = _extractEnvironment(yaml['environment'] as YamlMap?);
     final dependencies = _extractDependencies(yaml['dependencies'] as YamlMap?);
     final devDependencies =
@@ -30,11 +30,11 @@ abstract class Catelog with _$Catelog {
     final publishTo = yaml['publish_to'] as String?;
     final repository = yaml['repository'] as String?;
     final issueTracker = yaml['issue_tracker'] as String?;
-    final topics = yaml['topics'] as List<String>?;
+    final topics = (yaml['topics'] as YamlList?)?.cast<String>();
     final documentation = yaml['documentation'] as String?;
     final resolution = yaml['resolution'] as String?;
 
-    return Catelog(
+    return Catalog(
       environment: environment,
       dependencies: dependencies,
       devDependencies: devDependencies,

@@ -111,7 +111,7 @@ sealed class Dependency {
   Map<String, dynamic> toJson() {
     return switch (this) {
       SdkDependency() => _$SdkDependencyToJson(this as SdkDependency),
-      GitDependency() => _$GitDependencyToJson(this as GitDependency),
+      GitDependency() => {'git': _$GitDependencyToJson(this as GitDependency)},
       PathDependency() =>
         throw StateError('Never called due to being overriden'),
       HostedDependency() => _$HostedDependencyToJson(this as HostedDependency),
@@ -119,7 +119,7 @@ sealed class Dependency {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class SdkDependency extends Dependency {
   final String sdk;
   @JsonKey(fromJson: _constraintFromString, toJson: _constraintToString)
@@ -139,7 +139,7 @@ class SdkDependency extends Dependency {
   String toString() => 'SdkDependency: $sdk';
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class GitDependency extends Dependency {
   @JsonKey(fromJson: parseGitUri)
   final Uri url;
@@ -238,7 +238,7 @@ class PathDependency extends Dependency {
   String toString() => 'PathDependency: path@$path';
 }
 
-@JsonSerializable(disallowUnrecognizedKeys: true)
+@JsonSerializable(includeIfNull: false)
 class HostedDependency extends Dependency {
   @JsonKey(fromJson: _constraintFromString, toJson: _constraintToString)
   final VersionConstraint version;
@@ -262,7 +262,7 @@ class HostedDependency extends Dependency {
   String toString() => 'HostedDependency: $version';
 }
 
-@JsonSerializable(disallowUnrecognizedKeys: true)
+@JsonSerializable(includeIfNull: false)
 class HostedDetails {
   /// The name of the target dependency as declared in a `hosted` block.
   ///

@@ -28,14 +28,13 @@ GitDependency _$GitDependencyFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$GitDependencyToJson(GitDependency instance) =>
     <String, dynamic>{
       'url': instance.url.toString(),
-      'ref': instance.ref,
-      'path': instance.path,
+      if (instance.ref case final value?) 'ref': value,
+      if (instance.path case final value?) 'path': value,
     };
 
 HostedDependency _$HostedDependencyFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
-    allowedKeys: const ['version', 'hosted'],
     disallowNullValues: const ['hosted'],
   );
   return HostedDependency(
@@ -55,7 +54,6 @@ Map<String, dynamic> _$HostedDependencyToJson(HostedDependency instance) =>
 HostedDetails _$HostedDetailsFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
-    allowedKeys: const ['name', 'url'],
     disallowNullValues: const ['url'],
   );
   return HostedDetails(
@@ -66,6 +64,6 @@ HostedDetails _$HostedDetailsFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$HostedDetailsToJson(HostedDetails instance) =>
     <String, dynamic>{
-      'name': instance.declaredName,
+      if (instance.declaredName case final value?) 'name': value,
       if (instance.url?.toString() case final value?) 'url': value,
     };

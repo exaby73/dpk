@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/config/data/catelog.dart';
+import 'package:dpk/config/data/catalog.dart';
 import 'package:dpk/config/data/dependency.dart';
 import 'package:dpk/config/data/dpk_workspace_environment.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
@@ -16,7 +15,6 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_parse/pubspec_parse.dart'
     hide Dependency, PathDependency;
-import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
 part 'link_command.freezed.dart';
@@ -60,12 +58,62 @@ final class LinkCommand extends Command<int>
       _editPubspecOfWorkspace(workspace, catelog);
     }
 
+    final originalPubspecFile = File('pubspec.yaml');
+    final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
+    final originalPubspec = Pubspec.parse(originalPubspecYamlString);
+    final (:dependencies, :devDependencies, :dependencyOverrides) =
+        _generateDependencies(originalPubspec, catelog);
+
+    final pubspecOverridesYamlEditor = YamlEditor(originalPubspecYamlString);
+
+    if (dependencies.isNotEmpty) {
+      pubspecOverridesYamlEditor.update(
+        ['dependencies'],
+        dependencies.map(
+          (key, value) {
+            return MapEntry(key, value.toJson());
+          },
+        ),
+      );
+    } else if (originalPubspec.dependencies.isNotEmpty) {
+      pubspecOverridesYamlEditor.remove(['dependencies']);
+    }
+
+    if (devDependencies.isNotEmpty) {
+      pubspecOverridesYamlEditor.update(
+        ['dev_dependencies'],
+        devDependencies.map(
+          (key, value) {
+            return MapEntry(key, value.toJson());
+          },
+        ),
+      );
+    } else if (originalPubspec.devDependencies.isNotEmpty) {
+      pubspecOverridesYamlEditor.remove(['dev_dependencies']);
+    }
+
+    if (dependencyOverrides.isNotEmpty) {
+      pubspecOverridesYamlEditor.update(
+        ['dependency_overrides'],
+        dependencyOverrides.map(
+          (key, value) {
+            return MapEntry(key, value.toJson());
+          },
+        ),
+      );
+    } else if (originalPubspec.dependencyOverrides.isNotEmpty) {
+      pubspecOverridesYamlEditor.remove(['dependency_overrides']);
+    }
+
+    final pubspecOverridesYamlString = pubspecOverridesYamlEditor.toString();
+    originalPubspecFile.writeAsStringSync(pubspecOverridesYamlString);
+
     await runDartProcess(arguments: ['pub', 'get']);
 
     return 0;
   }
 
-  void _editPubspecOfWorkspace(String workspace, Catelog catelog) {
+  void _editPubspecOfWorkspace(String workspace, Catalog catelog) {
     final pubspecFile = File(join(workspace, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
       throw StateError('pubspec.yaml not found in $workspace');
@@ -125,6 +173,8 @@ final class LinkCommand extends Command<int>
           }
         }
         editor.update(['topics'], currentTopics);
+      } else {
+        editor.update(['topics'], catelog.topics);
       }
     }
 
@@ -139,10 +189,7 @@ final class LinkCommand extends Command<int>
     pubspecFile.writeAsStringSync(editor.toString());
   }
 
-  DpkWorkspaceEnvironment _createDpkEnv(
-    Pubspec pubspec,
-    String workspacePath,
-  ) {
+  DpkWorkspaceEnvironment _createDpkEnv(Pubspec pubspec, String workspacePath) {
     final packagePath = workspacePath;
     final packageName = pubspec.name;
     final packageVersion = pubspec.version;
@@ -151,6 +198,49 @@ final class LinkCommand extends Command<int>
       dpkPackagePath: packagePath,
       dpkPackageName: packageName,
       dpkPackageVersion: packageVersion?.toString(),
+    );
+  }
+
+  ({
+    Map<String, Dependency> dependencies,
+    Map<String, Dependency> devDependencies,
+    Map<String, Dependency> dependencyOverrides
+  }) _generateDependencies(
+    Pubspec originalPubspec,
+    Catalog catelog,
+  ) {
+    final dependencies = <String, Dependency>{};
+    final devDependencies = <String, Dependency>{};
+    final dependencyOverrides = <String, Dependency>{};
+
+    final Catalog(
+      dependencies: catalogDependencies,
+      devDependencies: catalogDevDependencies,
+      dependencyOverrides: catalogDependencyOverrides
+    ) = catelog;
+
+    if (catalogDependencies != null) {
+      for (final dependency in catalogDependencies.entries) {
+        dependencies[dependency.key] = dependency.value;
+      }
+    }
+
+    if (catalogDevDependencies != null) {
+      for (final dependency in catalogDevDependencies.entries) {
+        devDependencies[dependency.key] = dependency.value;
+      }
+    }
+
+    if (catalogDependencyOverrides != null) {
+      for (final dependency in catalogDependencyOverrides.entries) {
+        dependencyOverrides[dependency.key] = dependency.value;
+      }
+    }
+
+    return (
+      dependencies: dependencies,
+      devDependencies: devDependencies,
+      dependencyOverrides: dependencyOverrides,
     );
   }
 }

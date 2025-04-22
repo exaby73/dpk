@@ -13,4 +13,9 @@ dependencies:
 dev_dependencies:
   lints: ^5.0.0
   test: ^1.24.0
+publish_to: none
+repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_2
+topics:
+  - dpk
+documentation: https://pub.dev/documentation/package_2/1.0.0/
 resolution: workspace
