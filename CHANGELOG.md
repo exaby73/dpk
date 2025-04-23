@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Added catalog support
+
 ## 0.1.1
 
 - Downgrade Dart SDK version to 3.6.0.
