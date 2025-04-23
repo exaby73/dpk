@@ -49,20 +49,20 @@ final class LinkCommand extends Command<int>
       throw StateError('Link command can only be used in a pub workspace');
     }
 
-    final catelog = config.dpkConfig.catelog;
-    if (catelog == null) {
-      throw StateError('Catelog not found in pubspec.yaml');
+    final catalog = config.dpkConfig.catalog;
+    if (catalog == null) {
+      throw StateError('Catalog not found in your configuration');
     }
 
     for (final workspace in config.pubspec.workspace!) {
-      _editPubspecOfWorkspace(workspace, catelog);
+      _editPubspecOfWorkspace(workspace, catalog);
     }
 
     final originalPubspecFile = File('pubspec.yaml');
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
     final originalPubspec = Pubspec.parse(originalPubspecYamlString);
     final (:dependencies, :devDependencies, :dependencyOverrides) =
-        _generateDependencies(originalPubspec, catelog);
+        _generateDependencies(originalPubspec, catalog);
 
     final pubspecOverridesYamlEditor = YamlEditor(originalPubspecYamlString);
 
@@ -113,7 +113,7 @@ final class LinkCommand extends Command<int>
     return 0;
   }
 
-  void _editPubspecOfWorkspace(String workspace, Catalog catelog) {
+  void _editPubspecOfWorkspace(String workspace, Catalog catalog) {
     final pubspecFile = File(join(workspace, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
       throw StateError('pubspec.yaml not found in $workspace');
@@ -131,10 +131,10 @@ final class LinkCommand extends Command<int>
     final env = _createDpkEnv(originalPubspec, workspace);
     final editor = YamlEditor(pubspecFile.readAsStringSync());
 
-    if (catelog.environment != null) {
+    if (catalog.environment != null) {
       editor.update(
         ['environment'],
-        catelog.environment!.map(
+        catalog.environment!.map(
           (key, value) => MapEntry(
             key,
             value?.toString(),
@@ -143,30 +143,30 @@ final class LinkCommand extends Command<int>
       );
     }
 
-    if (catelog.publishTo != null) {
-      editor.update(['publish_to'], catelog.publishTo);
+    if (catalog.publishTo != null) {
+      editor.update(['publish_to'], catalog.publishTo);
     }
 
-    if (catelog.repository != null) {
+    if (catalog.repository != null) {
       editor.update(
         ['repository'],
-        env.replace(catelog.repository!.toString()),
+        env.replace(catalog.repository!.toString()),
       );
     }
 
-    if (catelog.issueTracker != null) {
+    if (catalog.issueTracker != null) {
       editor.update(
         ['issue_tracker'],
         env.replace(
-          catelog.issueTracker!.toString(),
+          catalog.issueTracker!.toString(),
         ),
       );
     }
 
-    if (catelog.topics != null) {
+    if (catalog.topics != null) {
       if (originalPubspec.topics != null) {
         final currentTopics = originalPubspec.topics!;
-        final topicsToEnsureExists = catelog.topics!;
+        final topicsToEnsureExists = catalog.topics!;
         for (final topic in topicsToEnsureExists) {
           if (!currentTopics.contains(topic)) {
             currentTopics.add(topic);
@@ -174,16 +174,16 @@ final class LinkCommand extends Command<int>
         }
         editor.update(['topics'], currentTopics);
       } else {
-        editor.update(['topics'], catelog.topics);
+        editor.update(['topics'], catalog.topics);
       }
     }
 
-    if (catelog.documentation != null) {
-      editor.update(['documentation'], env.replace(catelog.documentation!));
+    if (catalog.documentation != null) {
+      editor.update(['documentation'], env.replace(catalog.documentation!));
     }
 
-    if (catelog.resolution != null) {
-      editor.update(['resolution'], catelog.resolution);
+    if (catalog.resolution != null) {
+      editor.update(['resolution'], catalog.resolution);
     }
 
     pubspecFile.writeAsStringSync(editor.toString());
@@ -207,7 +207,7 @@ final class LinkCommand extends Command<int>
     Map<String, Dependency> dependencyOverrides
   }) _generateDependencies(
     Pubspec originalPubspec,
-    Catalog catelog,
+    Catalog catalog,
   ) {
     final dependencies = <String, Dependency>{};
     final devDependencies = <String, Dependency>{};
@@ -217,7 +217,7 @@ final class LinkCommand extends Command<int>
       dependencies: catalogDependencies,
       devDependencies: catalogDevDependencies,
       dependencyOverrides: catalogDependencyOverrides
-    ) = catelog;
+    ) = catalog;
 
     if (catalogDependencies != null) {
       for (final dependency in catalogDependencies.entries) {

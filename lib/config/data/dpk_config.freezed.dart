@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DpkConfig {
   DpkMode get mode;
-  Catalog? get catelog;
+  Catalog? get catalog;
 
   /// Create a copy of DpkConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -31,15 +31,15 @@ mixin _$DpkConfig {
         (other.runtimeType == runtimeType &&
             other is DpkConfig &&
             (identical(other.mode, mode) || other.mode == mode) &&
-            (identical(other.catelog, catelog) || other.catelog == catelog));
+            (identical(other.catalog, catalog) || other.catalog == catalog));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, mode, catelog);
+  int get hashCode => Object.hash(runtimeType, mode, catalog);
 
   @override
   String toString() {
-    return 'DpkConfig(mode: $mode, catelog: $catelog)';
+    return 'DpkConfig(mode: $mode, catalog: $catalog)';
   }
 }
 
@@ -48,9 +48,9 @@ abstract mixin class $DpkConfigCopyWith<$Res> {
   factory $DpkConfigCopyWith(DpkConfig value, $Res Function(DpkConfig) _then) =
       _$DpkConfigCopyWithImpl;
   @useResult
-  $Res call({DpkMode mode, Catalog? catelog});
+  $Res call({DpkMode mode, Catalog? catalog});
 
-  $CatalogCopyWith<$Res>? get catelog;
+  $CatalogCopyWith<$Res>? get catalog;
 }
 
 /// @nodoc
@@ -66,16 +66,16 @@ class _$DpkConfigCopyWithImpl<$Res> implements $DpkConfigCopyWith<$Res> {
   @override
   $Res call({
     Object? mode = null,
-    Object? catelog = freezed,
+    Object? catalog = freezed,
   }) {
     return _then(_self.copyWith(
       mode: null == mode
           ? _self.mode
           : mode // ignore: cast_nullable_to_non_nullable
               as DpkMode,
-      catelog: freezed == catelog
-          ? _self.catelog
-          : catelog // ignore: cast_nullable_to_non_nullable
+      catalog: freezed == catalog
+          ? _self.catalog
+          : catalog // ignore: cast_nullable_to_non_nullable
               as Catalog?,
     ));
   }
@@ -84,13 +84,13 @@ class _$DpkConfigCopyWithImpl<$Res> implements $DpkConfigCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $CatalogCopyWith<$Res>? get catelog {
-    if (_self.catelog == null) {
+  $CatalogCopyWith<$Res>? get catalog {
+    if (_self.catalog == null) {
       return null;
     }
 
-    return $CatalogCopyWith<$Res>(_self.catelog!, (value) {
-      return _then(_self.copyWith(catelog: value));
+    return $CatalogCopyWith<$Res>(_self.catalog!, (value) {
+      return _then(_self.copyWith(catalog: value));
     });
   }
 }
@@ -98,13 +98,13 @@ class _$DpkConfigCopyWithImpl<$Res> implements $DpkConfigCopyWith<$Res> {
 /// @nodoc
 
 class _DpkConfig implements DpkConfig {
-  const _DpkConfig({this.mode = DpkMode.global, this.catelog});
+  const _DpkConfig({this.mode = DpkMode.global, this.catalog});
 
   @override
   @JsonKey()
   final DpkMode mode;
   @override
-  final Catalog? catelog;
+  final Catalog? catalog;
 
   /// Create a copy of DpkConfig
   /// with the given fields replaced by the non-null parameter values.
@@ -120,15 +120,15 @@ class _DpkConfig implements DpkConfig {
         (other.runtimeType == runtimeType &&
             other is _DpkConfig &&
             (identical(other.mode, mode) || other.mode == mode) &&
-            (identical(other.catelog, catelog) || other.catelog == catelog));
+            (identical(other.catalog, catalog) || other.catalog == catalog));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, mode, catelog);
+  int get hashCode => Object.hash(runtimeType, mode, catalog);
 
   @override
   String toString() {
-    return 'DpkConfig(mode: $mode, catelog: $catelog)';
+    return 'DpkConfig(mode: $mode, catalog: $catalog)';
   }
 }
 
@@ -140,10 +140,10 @@ abstract mixin class _$DpkConfigCopyWith<$Res>
       __$DpkConfigCopyWithImpl;
   @override
   @useResult
-  $Res call({DpkMode mode, Catalog? catelog});
+  $Res call({DpkMode mode, Catalog? catalog});
 
   @override
-  $CatalogCopyWith<$Res>? get catelog;
+  $CatalogCopyWith<$Res>? get catalog;
 }
 
 /// @nodoc
@@ -159,16 +159,16 @@ class __$DpkConfigCopyWithImpl<$Res> implements _$DpkConfigCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? mode = null,
-    Object? catelog = freezed,
+    Object? catalog = freezed,
   }) {
     return _then(_DpkConfig(
       mode: null == mode
           ? _self.mode
           : mode // ignore: cast_nullable_to_non_nullable
               as DpkMode,
-      catelog: freezed == catelog
-          ? _self.catelog
-          : catelog // ignore: cast_nullable_to_non_nullable
+      catalog: freezed == catalog
+          ? _self.catalog
+          : catalog // ignore: cast_nullable_to_non_nullable
               as Catalog?,
     ));
   }
@@ -177,13 +177,13 @@ class __$DpkConfigCopyWithImpl<$Res> implements _$DpkConfigCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $CatalogCopyWith<$Res>? get catelog {
-    if (_self.catelog == null) {
+  $CatalogCopyWith<$Res>? get catalog {
+    if (_self.catalog == null) {
       return null;
     }
 
-    return $CatalogCopyWith<$Res>(_self.catelog!, (value) {
-      return _then(_self.copyWith(catelog: value));
+    return $CatalogCopyWith<$Res>(_self.catalog!, (value) {
+      return _then(_self.copyWith(catalog: value));
     });
   }
 }

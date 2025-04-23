@@ -1,6 +1,6 @@
 mode: project
 
-catelog:
+catalog:
   environment:
     sdk: ^3.6.0
 
