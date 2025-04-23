@@ -20,7 +20,7 @@ ConfigData loadConfig(Directory directory) {
   YamlMap? configYaml;
 
   if (configFile.existsSync()) {
-    configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
+    configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap?;
   }
 
   final mergedYaml = mergeMaps(pubspecYaml as Map, (configYaml as Map?) ?? {});

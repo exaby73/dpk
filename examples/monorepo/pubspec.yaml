@@ -1,0 +1,20 @@
+name: _
+
+environment:
+  sdk: ^3.7.0
+
+workspace:
+  - packages/package_1
+  - packages/package_2
+  - packages/package_3
+
+dev_dependencies:
+  build_runner:
+    version: 2.4.15
+dependency_overrides:
+  meta:
+    version: 1.15.0
+  luthor:
+    git:
+      url: https://github.com/exaby73/luthor.git
+      path: packages/luthor

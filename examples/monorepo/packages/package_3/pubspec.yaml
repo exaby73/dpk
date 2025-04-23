@@ -1,0 +1,21 @@
+name: package_3
+description: A starting point for Dart libraries or applications.
+version: 2.0.0
+
+environment:
+  sdk: ^3.6.0
+
+# Add regular dependencies here.
+dependencies:
+  luthor:
+  meta:
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0
+publish_to: none
+repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_3
+topics:
+  - dpk
+documentation: https://pub.dev/documentation/package_3/2.0.0/
+resolution: workspace

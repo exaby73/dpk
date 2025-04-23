@@ -4,8 +4,8 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:dpk/core/constants.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/command_checker.dart';
 import 'package:dpk/utils/globals/global_patch_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -13,7 +13,8 @@ import 'package:path/path.dart';
 
 part 'init_command.freezed.dart';
 
-final class PatchInitCommand extends Command<int> with ConfigMixin, CacheMixin {
+final class PatchInitCommand extends Command<int>
+    with ConfigMixin, PubEnvMixin {
   @override
   String name = 'init';
 
@@ -32,7 +33,7 @@ final class PatchInitCommand extends Command<int> with ConfigMixin, CacheMixin {
 
   @override
   Future<int> run() async {
-    if (!isProjectCache) {
+    if (!isProjectMode) {
       stderr.writeln('Project cache is not supported for global mode');
       return 1;
     }
@@ -55,10 +56,8 @@ final class PatchInitCommand extends Command<int> with ConfigMixin, CacheMixin {
     // dart format off
     final dotGitDir = Directory(
       options.globalPatchOptions.cacheDir,
-    )
-      .listSync()
-      .firstWhereOrNull((entity) => basename(entity.path) == '.git')
-      as Directory?;
+    ).listSync().firstWhereOrNull((entity) => basename(entity.path) == '.git')
+        as Directory?;
     // dart format on
     final dotGitExists = dotGitDir != null;
 
@@ -70,26 +69,38 @@ final class PatchInitCommand extends Command<int> with ConfigMixin, CacheMixin {
     }
 
     if (dotGitExists && options.force) {
-      await Process.run('git', [
-        'checkout',
-        '.',
-      ], workingDirectory: options.globalPatchOptions.cacheDir);
+      await Process.run(
+          'git',
+          [
+            'checkout',
+            '.',
+          ],
+          workingDirectory: options.globalPatchOptions.cacheDir);
 
       await dotGitDir.delete(recursive: true);
     }
 
-    await Process.run('git', [
-      'init',
-    ], workingDirectory: options.globalPatchOptions.cacheDir);
-    await Process.run('git', [
-      'add',
-      '.',
-    ], workingDirectory: options.globalPatchOptions.cacheDir);
-    await Process.run('git', [
-      'commit',
-      '-m',
-      '"Patch initialized"',
-    ], workingDirectory: options.globalPatchOptions.cacheDir);
+    await Process.run(
+        'git',
+        [
+          'init',
+        ],
+        workingDirectory: options.globalPatchOptions.cacheDir);
+    await Process.run(
+        'git',
+        [
+          'add',
+          '.',
+        ],
+        workingDirectory: options.globalPatchOptions.cacheDir);
+    await Process.run(
+        'git',
+        [
+          'commit',
+          '-m',
+          '"Patch initialized"',
+        ],
+        workingDirectory: options.globalPatchOptions.cacheDir);
 
     stdout.writeln('Patch initialized');
 

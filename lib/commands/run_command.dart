@@ -40,7 +40,11 @@ final class RunCommand extends Command<int> with ConfigMixin {
   }
 
   String _promptForScript() {
-    final scriptNames = config.scripts.scriptsMap.keys.toList();
+    final scriptNames = config.scripts?.scriptsMap.keys.toList();
+    if (scriptNames == null) {
+      throw StateError('No scripts found');
+    }
+
     final scriptName = prompts.choose(
       'Which script do you want to run?',
       scriptNames,
@@ -91,7 +95,7 @@ final class DpkScriptRunner {
     IntCallback? preHook;
     IntCallback? postHook;
 
-    if (config.scripts.scriptsMap.containsKey(options.script)) {
+    if (config.scripts?.scriptsMap.containsKey(options.script) == true) {
       (preHook, postHook) = _getHooks(
         config: config,
         options: options,
@@ -124,7 +128,7 @@ final class DpkScriptRunner {
     required List<String> arguments,
     bool skipIfMissing = false,
   }) async {
-    final script = config.scripts.scriptsMap[options.script];
+    final script = config.scripts?.scriptsMap[options.script];
     final scriptExists = script != null;
 
     if (!scriptExists && skipIfMissing) {
@@ -174,7 +178,7 @@ final class DpkScriptRunner {
     required RunOptions options,
     required List<String> arguments,
   }) {
-    final script = config.scripts.scriptsMap[options.script];
+    final script = config.scripts?.scriptsMap[options.script];
     final hooks = commandToHookMapper[script?.runHooksFrom ?? options.script];
     if (hooks == null) {
       return (null, null);
@@ -185,18 +189,16 @@ final class DpkScriptRunner {
 
     final (preHook, postHook) = hooks;
 
-    if (config.scripts.scriptsMap.containsKey(preHook.name)) {
-      preHookCallback =
-          () => _runScript(
+    if (config.scripts?.scriptsMap.containsKey(preHook.name) == true) {
+      preHookCallback = () => _runScript(
             config: config,
             options: options.copyWith(script: preHook.name),
             arguments: [],
           );
     }
 
-    if (config.scripts.scriptsMap.containsKey(postHook.name)) {
-      postHookCallback =
-          () => _runScript(
+    if (config.scripts?.scriptsMap.containsKey(postHook.name) == true) {
+      postHookCallback = () => _runScript(
             config: config,
             options: options.copyWith(script: postHook.name),
             arguments: [],

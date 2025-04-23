@@ -1,25 +1,26 @@
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/process_handler_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 
-part 'remove_command.freezed.dart';
+part 'downgrade_command.freezed.dart';
 
-final class RemoveCommand extends Command<int> with ConfigMixin, CacheMixin {
+final class DowngradeCommand extends Command<int>
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
   @override
-  String name = 'remove';
+  String name = 'downgrade';
 
   @override
-  String get description => 'Remove dependencies from `pubspec.yaml`';
+  String get description =>
+      "Downgrade the current package's dependencies to oldest versions";
 
-  final logger = Logger('pub.remove');
+  final logger = Logger('pub.downgrade');
 
-  RemoveCommand() {
+  DowngradeCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
       'offline',
@@ -31,21 +32,23 @@ final class RemoveCommand extends Command<int> with ConfigMixin, CacheMixin {
       help: "Report what dependencies would change but don't change any",
     );
     argParser.addFlag(
-      'precompile',
-      help: 'Build executables in immediate dependencies',
+      'tighten',
+      help:
+          'Updates lower bounds in pubspec.yaml to match the resolved version',
+      negatable: false,
     );
   }
 
   @override
   Future<int> run() async {
-    final options = PubRemoveOptions.fromArgResults(argResults!);
+    final options = PubDowngradeOptions.fromArgResults(argResults!);
     final arguments = [
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
-      'remove',
+      'downgrade',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
-      if (options.precompile) '--precompile',
+      if (options.tighten) '--tighten',
       ...argResults!.rest,
     ];
 
@@ -53,34 +56,31 @@ final class RemoveCommand extends Command<int> with ConfigMixin, CacheMixin {
       logger.info('Running: dart ${arguments.join(' ')}');
     }
 
-    final pubProcess = await Process.start(
-      'dart',
-      arguments,
+    final exitCode = await runDartProcess(
+      arguments: arguments,
+      workingDirectory: options.globalPubOptions.globalOptions.directory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
-    stdout.addStream(pubProcess.stdout);
-    stderr.addStream(pubProcess.stderr);
-
-    return await pubProcess.exitCode;
+    return exitCode;
   }
 }
 
 @freezed
-abstract class PubRemoveOptions with _$PubRemoveOptions {
-  const factory PubRemoveOptions({
+abstract class PubDowngradeOptions with _$PubDowngradeOptions {
+  const factory PubDowngradeOptions({
     required GlobalPubOptions globalPubOptions,
     required bool offline,
     required bool dryRun,
-    required bool precompile,
-  }) = _PubRemoveOptions;
+    required bool tighten,
+  }) = _PubDowngradeOptions;
 
-  factory PubRemoveOptions.fromArgResults(ArgResults results) {
-    return PubRemoveOptions(
+  factory PubDowngradeOptions.fromArgResults(ArgResults results) {
+    return PubDowngradeOptions(
       globalPubOptions: GlobalPubOptions.fromArgResults(results),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
-      precompile: results.flag('precompile'),
+      tighten: results.flag('tighten'),
     );
   }
 }

@@ -1,18 +1,18 @@
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/config/data/scripts.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/process_handler_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 
 part 'get_command.freezed.dart';
 
-final class GetCommand extends Command<int> with ConfigMixin, CacheMixin {
+final class GetCommand extends Command<int>
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
   @override
   String name = 'get';
 
@@ -79,16 +79,11 @@ final class GetCommand extends Command<int> with ConfigMixin, CacheMixin {
       logger.info('Running: dart ${arguments.join(' ')}');
     }
 
-    final pubProcess = await Process.start(
-      'dart',
-      arguments,
+    final exitCode = await runDartProcess(
+      arguments: arguments,
+      workingDirectory: options.globalPubOptions.globalOptions.directory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
-
-    stdout.addStream(pubProcess.stdout);
-    stderr.addStream(pubProcess.stderr);
-
-    final exitCode = await pubProcess.exitCode;
 
     if (exitCode != 0) {
       return exitCode;

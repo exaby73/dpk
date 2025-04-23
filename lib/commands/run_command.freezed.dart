@@ -12,138 +12,150 @@ part of 'run_command.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$RunOptions {
+  GlobalOptions get globalOptions;
+  set globalOptions(GlobalOptions value);
+  String? get script;
+  set script(String? value);
 
- GlobalOptions get globalOptions; set globalOptions(GlobalOptions value); String? get script; set script(String? value);
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$RunOptionsCopyWith<RunOptions> get copyWith => _$RunOptionsCopyWithImpl<RunOptions>(this as RunOptions, _$identity);
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $RunOptionsCopyWith<RunOptions> get copyWith =>
+      _$RunOptionsCopyWithImpl<RunOptions>(this as RunOptions, _$identity);
 
-
-
-
-
-@override
-String toString() {
-  return 'RunOptions(globalOptions: $globalOptions, script: $script)';
-}
-
-
+  @override
+  String toString() {
+    return 'RunOptions(globalOptions: $globalOptions, script: $script)';
+  }
 }
 
 /// @nodoc
-abstract mixin class $RunOptionsCopyWith<$Res>  {
-  factory $RunOptionsCopyWith(RunOptions value, $Res Function(RunOptions) _then) = _$RunOptionsCopyWithImpl;
-@useResult
-$Res call({
- GlobalOptions globalOptions, String? script
-});
+abstract mixin class $RunOptionsCopyWith<$Res> {
+  factory $RunOptionsCopyWith(
+          RunOptions value, $Res Function(RunOptions) _then) =
+      _$RunOptionsCopyWithImpl;
+  @useResult
+  $Res call({GlobalOptions globalOptions, String? script});
 
-
-$GlobalOptionsCopyWith<$Res> get globalOptions;
-
+  $GlobalOptionsCopyWith<$Res> get globalOptions;
 }
+
 /// @nodoc
-class _$RunOptionsCopyWithImpl<$Res>
-    implements $RunOptionsCopyWith<$Res> {
+class _$RunOptionsCopyWithImpl<$Res> implements $RunOptionsCopyWith<$Res> {
   _$RunOptionsCopyWithImpl(this._self, this._then);
 
   final RunOptions _self;
   final $Res Function(RunOptions) _then;
 
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? globalOptions = null,Object? script = freezed,}) {
-  return _then(_self.copyWith(
-globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,script: freezed == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
-as String?,
-  ));
-}
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$GlobalOptionsCopyWith<$Res> get globalOptions {
-  
-  return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
-    return _then(_self.copyWith(globalOptions: value));
-  });
-}
-}
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? globalOptions = null,
+    Object? script = freezed,
+  }) {
+    return _then(_self.copyWith(
+      globalOptions: null == globalOptions
+          ? _self.globalOptions
+          : globalOptions // ignore: cast_nullable_to_non_nullable
+              as GlobalOptions,
+      script: freezed == script
+          ? _self.script
+          : script // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GlobalOptionsCopyWith<$Res> get globalOptions {
+    return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
+      return _then(_self.copyWith(globalOptions: value));
+    });
+  }
+}
 
 /// @nodoc
-
 
 class _RunOptions implements RunOptions {
-   _RunOptions({required this.globalOptions, required this.script});
-  
+  _RunOptions({required this.globalOptions, required this.script});
 
-@override  GlobalOptions globalOptions;
-@override  String? script;
+  @override
+  GlobalOptions globalOptions;
+  @override
+  String? script;
 
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$RunOptionsCopyWith<_RunOptions> get copyWith => __$RunOptionsCopyWithImpl<_RunOptions>(this, _$identity);
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$RunOptionsCopyWith<_RunOptions> get copyWith =>
+      __$RunOptionsCopyWithImpl<_RunOptions>(this, _$identity);
 
-
-
-
-
-@override
-String toString() {
-  return 'RunOptions(globalOptions: $globalOptions, script: $script)';
-}
-
-
+  @override
+  String toString() {
+    return 'RunOptions(globalOptions: $globalOptions, script: $script)';
+  }
 }
 
 /// @nodoc
-abstract mixin class _$RunOptionsCopyWith<$Res> implements $RunOptionsCopyWith<$Res> {
-  factory _$RunOptionsCopyWith(_RunOptions value, $Res Function(_RunOptions) _then) = __$RunOptionsCopyWithImpl;
-@override @useResult
-$Res call({
- GlobalOptions globalOptions, String? script
-});
+abstract mixin class _$RunOptionsCopyWith<$Res>
+    implements $RunOptionsCopyWith<$Res> {
+  factory _$RunOptionsCopyWith(
+          _RunOptions value, $Res Function(_RunOptions) _then) =
+      __$RunOptionsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({GlobalOptions globalOptions, String? script});
 
-
-@override $GlobalOptionsCopyWith<$Res> get globalOptions;
-
+  @override
+  $GlobalOptionsCopyWith<$Res> get globalOptions;
 }
+
 /// @nodoc
-class __$RunOptionsCopyWithImpl<$Res>
-    implements _$RunOptionsCopyWith<$Res> {
+class __$RunOptionsCopyWithImpl<$Res> implements _$RunOptionsCopyWith<$Res> {
   __$RunOptionsCopyWithImpl(this._self, this._then);
 
   final _RunOptions _self;
   final $Res Function(_RunOptions) _then;
 
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? globalOptions = null,Object? script = freezed,}) {
-  return _then(_RunOptions(
-globalOptions: null == globalOptions ? _self.globalOptions : globalOptions // ignore: cast_nullable_to_non_nullable
-as GlobalOptions,script: freezed == script ? _self.script : script // ignore: cast_nullable_to_non_nullable
-as String?,
-  ));
-}
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? globalOptions = null,
+    Object? script = freezed,
+  }) {
+    return _then(_RunOptions(
+      globalOptions: null == globalOptions
+          ? _self.globalOptions
+          : globalOptions // ignore: cast_nullable_to_non_nullable
+              as GlobalOptions,
+      script: freezed == script
+          ? _self.script
+          : script // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 
-/// Create a copy of RunOptions
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$GlobalOptionsCopyWith<$Res> get globalOptions {
-  
-  return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
-    return _then(_self.copyWith(globalOptions: value));
-  });
-}
+  /// Create a copy of RunOptions
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $GlobalOptionsCopyWith<$Res> get globalOptions {
+    return $GlobalOptionsCopyWith<$Res>(_self.globalOptions, (value) {
+      return _then(_self.copyWith(globalOptions: value));
+    });
+  }
 }
 
 // dart format on

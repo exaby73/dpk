@@ -1,0 +1,23 @@
+mode: project
+
+catalog:
+  environment:
+    sdk: ^3.6.0
+
+  resolution: workspace
+  publish_to: none
+  repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/DPK_PACKAGE_PATH
+  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
+  topics:
+    - dpk
+
+  dependencies:
+
+  dev_dependencies:
+    build_runner: 2.4.15
+  dependency_overrides:
+    meta: 1.15.0
+    luthor:
+      git:
+        url: https://github.com/exaby73/luthor.git
+        path: packages/luthor

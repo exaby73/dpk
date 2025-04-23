@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/core/mixins/cache_mixin.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/process_handler_mixin.dart';
+import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/extensions/string_extensions.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -11,13 +10,13 @@ import 'package:logging/logging.dart';
 
 part 'add_command.freezed.dart';
 
-final class AddCommand extends Command<int> with ConfigMixin, CacheMixin {
+final class AddCommand extends Command<int>
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
   @override
   String name = 'add';
 
   @override
-  String get description =>
-      '''
+  String get description => '''
 Add dependencies to `pubspec.yaml`.
 
 Invoking `dart pub add foo bar` will add `foo` and `bar` to `pubspec.yaml`
@@ -52,7 +51,8 @@ For example:
   * Add a git dependency with a path and ref specified:
     `dart pub add \\
       'foo:{"git":{"url":"../foo.git","ref":"<branch>","path":"<subdir>"}}'`
-'''.trimIndents();
+'''
+      .trimIndents();
 
   final logger = Logger('pub.add');
 
@@ -90,16 +90,13 @@ For example:
       logger.info('Running: dart ${arguments.join(' ')}');
     }
 
-    final pubProcess = await Process.start(
-      'dart',
-      arguments,
+    final exitCode = await runDartProcess(
+      arguments: arguments,
+      workingDirectory: options.globalPubOptions.globalOptions.directory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
-    stdout.addStream(pubProcess.stdout);
-    stderr.addStream(pubProcess.stderr);
-
-    return await pubProcess.exitCode;
+    return exitCode;
   }
 }
 

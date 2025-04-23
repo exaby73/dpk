@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:dpk/commands/parent_commands/add_command.dart';
-import 'package:dpk/commands/parent_commands/downgrade_command.dart';
-import 'package:dpk/commands/parent_commands/get_command.dart';
+import 'package:dpk/commands/add_command.dart';
+import 'package:dpk/commands/downgrade_command.dart';
+import 'package:dpk/commands/get_command.dart';
+import 'package:dpk/commands/link_command.dart';
 import 'package:dpk/commands/parent_commands/patch_command.dart';
-import 'package:dpk/commands/parent_commands/remove_command.dart';
-import 'package:dpk/commands/parent_commands/upgrade_command.dart';
+import 'package:dpk/commands/remove_command.dart';
 import 'package:dpk/commands/run_command.dart';
+import 'package:dpk/commands/upgrade_command.dart';
 import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/core/injection_container.dart';
@@ -54,7 +55,8 @@ final class DpkCommandRunner extends CommandRunner<int> {
       ..addCommand(RemoveCommand())
       ..addCommand(UpgradeCommand())
       ..addCommand(PatchCommand())
-      ..addCommand(RunCommand());
+      ..addCommand(RunCommand())
+      ..addCommand(LinkCommand());
 
     return runner;
   }

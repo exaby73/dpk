@@ -12,131 +12,180 @@ part of 'dpk_config.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$DpkConfig {
+  DpkMode get mode;
+  Catalog? get catalog;
 
- DpkMode get mode;
-/// Create a copy of DpkConfig
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$DpkConfigCopyWith<DpkConfig> get copyWith => _$DpkConfigCopyWithImpl<DpkConfig>(this as DpkConfig, _$identity);
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DpkConfigCopyWith<DpkConfig> get copyWith =>
+      _$DpkConfigCopyWithImpl<DpkConfig>(this as DpkConfig, _$identity);
 
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DpkConfig &&
+            (identical(other.mode, mode) || other.mode == mode) &&
+            (identical(other.catalog, catalog) || other.catalog == catalog));
+  }
 
+  @override
+  int get hashCode => Object.hash(runtimeType, mode, catalog);
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DpkConfig&&(identical(other.mode, mode) || other.mode == mode));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,mode);
-
-@override
-String toString() {
-  return 'DpkConfig(mode: $mode)';
-}
-
-
+  @override
+  String toString() {
+    return 'DpkConfig(mode: $mode, catalog: $catalog)';
+  }
 }
 
 /// @nodoc
-abstract mixin class $DpkConfigCopyWith<$Res>  {
-  factory $DpkConfigCopyWith(DpkConfig value, $Res Function(DpkConfig) _then) = _$DpkConfigCopyWithImpl;
-@useResult
-$Res call({
- DpkMode mode
-});
+abstract mixin class $DpkConfigCopyWith<$Res> {
+  factory $DpkConfigCopyWith(DpkConfig value, $Res Function(DpkConfig) _then) =
+      _$DpkConfigCopyWithImpl;
+  @useResult
+  $Res call({DpkMode mode, Catalog? catalog});
 
-
-
-
+  $CatalogCopyWith<$Res>? get catalog;
 }
+
 /// @nodoc
-class _$DpkConfigCopyWithImpl<$Res>
-    implements $DpkConfigCopyWith<$Res> {
+class _$DpkConfigCopyWithImpl<$Res> implements $DpkConfigCopyWith<$Res> {
   _$DpkConfigCopyWithImpl(this._self, this._then);
 
   final DpkConfig _self;
   final $Res Function(DpkConfig) _then;
 
-/// Create a copy of DpkConfig
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,}) {
-  return _then(_self.copyWith(
-mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
-as DpkMode,
-  ));
-}
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? mode = null,
+    Object? catalog = freezed,
+  }) {
+    return _then(_self.copyWith(
+      mode: null == mode
+          ? _self.mode
+          : mode // ignore: cast_nullable_to_non_nullable
+              as DpkMode,
+      catalog: freezed == catalog
+          ? _self.catalog
+          : catalog // ignore: cast_nullable_to_non_nullable
+              as Catalog?,
+    ));
+  }
 
-}
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CatalogCopyWith<$Res>? get catalog {
+    if (_self.catalog == null) {
+      return null;
+    }
 
+    return $CatalogCopyWith<$Res>(_self.catalog!, (value) {
+      return _then(_self.copyWith(catalog: value));
+    });
+  }
+}
 
 /// @nodoc
-
 
 class _DpkConfig implements DpkConfig {
-  const _DpkConfig({this.mode = DpkMode.global});
-  
+  const _DpkConfig({this.mode = DpkMode.global, this.catalog});
 
-@override@JsonKey() final  DpkMode mode;
+  @override
+  @JsonKey()
+  final DpkMode mode;
+  @override
+  final Catalog? catalog;
 
-/// Create a copy of DpkConfig
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$DpkConfigCopyWith<_DpkConfig> get copyWith => __$DpkConfigCopyWithImpl<_DpkConfig>(this, _$identity);
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$DpkConfigCopyWith<_DpkConfig> get copyWith =>
+      __$DpkConfigCopyWithImpl<_DpkConfig>(this, _$identity);
 
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _DpkConfig &&
+            (identical(other.mode, mode) || other.mode == mode) &&
+            (identical(other.catalog, catalog) || other.catalog == catalog));
+  }
 
+  @override
+  int get hashCode => Object.hash(runtimeType, mode, catalog);
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DpkConfig&&(identical(other.mode, mode) || other.mode == mode));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,mode);
-
-@override
-String toString() {
-  return 'DpkConfig(mode: $mode)';
-}
-
-
+  @override
+  String toString() {
+    return 'DpkConfig(mode: $mode, catalog: $catalog)';
+  }
 }
 
 /// @nodoc
-abstract mixin class _$DpkConfigCopyWith<$Res> implements $DpkConfigCopyWith<$Res> {
-  factory _$DpkConfigCopyWith(_DpkConfig value, $Res Function(_DpkConfig) _then) = __$DpkConfigCopyWithImpl;
-@override @useResult
-$Res call({
- DpkMode mode
-});
+abstract mixin class _$DpkConfigCopyWith<$Res>
+    implements $DpkConfigCopyWith<$Res> {
+  factory _$DpkConfigCopyWith(
+          _DpkConfig value, $Res Function(_DpkConfig) _then) =
+      __$DpkConfigCopyWithImpl;
+  @override
+  @useResult
+  $Res call({DpkMode mode, Catalog? catalog});
 
-
-
-
+  @override
+  $CatalogCopyWith<$Res>? get catalog;
 }
+
 /// @nodoc
-class __$DpkConfigCopyWithImpl<$Res>
-    implements _$DpkConfigCopyWith<$Res> {
+class __$DpkConfigCopyWithImpl<$Res> implements _$DpkConfigCopyWith<$Res> {
   __$DpkConfigCopyWithImpl(this._self, this._then);
 
   final _DpkConfig _self;
   final $Res Function(_DpkConfig) _then;
 
-/// Create a copy of DpkConfig
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,}) {
-  return _then(_DpkConfig(
-mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
-as DpkMode,
-  ));
-}
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? mode = null,
+    Object? catalog = freezed,
+  }) {
+    return _then(_DpkConfig(
+      mode: null == mode
+          ? _self.mode
+          : mode // ignore: cast_nullable_to_non_nullable
+              as DpkMode,
+      catalog: freezed == catalog
+          ? _self.catalog
+          : catalog // ignore: cast_nullable_to_non_nullable
+              as Catalog?,
+    ));
+  }
 
+  /// Create a copy of DpkConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CatalogCopyWith<$Res>? get catalog {
+    if (_self.catalog == null) {
+      return null;
+    }
 
+    return $CatalogCopyWith<$Res>(_self.catalog!, (value) {
+      return _then(_self.copyWith(catalog: value));
+    });
+  }
 }
 
 // dart format on
