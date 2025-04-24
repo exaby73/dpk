@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -10,6 +11,7 @@ import 'package:dpk/core/shell.dart';
 import 'package:dpk/core/types.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:glob/glob.dart';
 import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
@@ -136,6 +138,34 @@ final class DpkScriptRunner {
     }
 
     if (scriptExists) {
+      final packagesToRunInGlobs = script.runInPackages;
+      late final bool hasToRunMultiple;
+      final packagesToRunIn = <String>[];
+
+      final workspace = config.pubspec.workspace;
+      if (packagesToRunInGlobs != null && workspace == null) {
+        throw StateError(
+          'No workspace packages configured, '
+          'but you have runInPackages configured',
+        );
+      }
+
+      if (packagesToRunInGlobs == null) {
+        hasToRunMultiple = false;
+      } else if (packagesToRunInGlobs.isEmpty) {
+        hasToRunMultiple = false;
+      } else {
+        for (final pattern in packagesToRunInGlobs) {
+          final glob = Glob(pattern);
+          for (final package in workspace!) {
+            if (glob.matches(package)) {
+              packagesToRunIn.add(package);
+            }
+          }
+        }
+        hasToRunMultiple = packagesToRunIn.isNotEmpty;
+      }
+
       if (script.command.isEmpty) {
         throw StateError('Script command is empty');
       }
@@ -146,6 +176,52 @@ final class DpkScriptRunner {
         command,
         if (arguments.length > 1) ...['--', ...arguments.sublist(1)],
       ];
+
+      if (hasToRunMultiple) {
+        final processExitCodesFutures = <Future<int>>[];
+        final stdoutStream = StreamController<List<int>>();
+        final stderrStream = StreamController<List<int>>();
+
+        for (final package in packagesToRunIn) {
+          final process = await Process.start(
+            getShell(),
+            ['-c', finalScript.join(' ')],
+            runInShell: true,
+            workingDirectory: package,
+          );
+
+          process.stdout.transform(utf8.decoder).listen((event) {
+            final prefix = '[$package]: ';
+            final logLines = event.split('\n');
+            for (int i = 1; i < logLines.length; i++) {
+              final originalLogLine = logLines[i];
+              if (originalLogLine.trim().isEmpty) {
+                continue;
+              }
+              logLines[i] = originalLogLine.padLeft(
+                originalLogLine.length + prefix.length,
+              );
+            }
+            stdoutStream.add('$prefix${logLines.join('\n')}'.codeUnits);
+          });
+          process.stderr.transform(utf8.decoder).listen((event) {
+            stderrStream.add('[$package]: $event'.codeUnits);
+          });
+
+          processExitCodesFutures.add(process.exitCode);
+        }
+
+        stdout.addStream(stdoutStream.stream);
+        stderr.addStream(stderrStream.stream);
+
+        final processExitCodes = await Future.wait(processExitCodesFutures);
+        return processExitCodes.fold(
+          0,
+          (previousValue, element) {
+            return previousValue == 0 ? element : previousValue;
+          },
+        );
+      }
 
       final process = await Process.start(
         getShell(),

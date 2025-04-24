@@ -21,3 +21,15 @@ catalog:
       git:
         url: https://github.com/exaby73/luthor.git
         path: packages/luthor
+
+scripts:
+  pwd_single:
+    command: pwd
+  pubget:
+    command: dart pub get
+    runInPackages:
+      - "**/*"
+  pwd:
+    command: pwd
+    runInPackages:
+      - "**/*"

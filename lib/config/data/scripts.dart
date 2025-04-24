@@ -27,8 +27,8 @@ abstract class Scripts with _$Scripts {
 abstract class Script with _$Script {
   factory Script({
     required String name,
-    required String? description,
     required String command,
+    List<String>? runInPackages,
     required String? runHooksFrom,
   }) {
     final type = HookType.values.firstWhere(
@@ -38,16 +38,17 @@ abstract class Script with _$Script {
 
     return Script._(
       name: name,
-      description: description,
       command: command,
+      runInPackages: runInPackages,
       hookType: type,
       runHooksFrom: runHooksFrom,
     );
   }
+
   const factory Script._({
     required String name,
-    required String? description,
     required String command,
+    List<String>? runInPackages,
     required HookType hookType,
     required String? runHooksFrom,
   }) = _Script;
@@ -56,7 +57,6 @@ abstract class Script with _$Script {
     if (yaml is String) {
       return Script(
         name: name,
-        description: null,
         command: yaml,
         runHooksFrom: null,
       );
@@ -66,14 +66,14 @@ abstract class Script with _$Script {
       throw StateError('Invalid script: $yaml');
     }
 
-    final description = yaml['description'] as String?;
     final command = yaml['command'] as String;
     final runHooksFrom = yaml['runHooksFrom'] as String?;
+    final runInPackages = (yaml['runInPackages'] as YamlList?)?.cast<String>();
 
     return Script(
       name: name,
-      description: description,
       command: command,
+      runInPackages: runInPackages,
       runHooksFrom: runHooksFrom,
     );
   }
