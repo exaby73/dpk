@@ -164,8 +164,8 @@ class __$ScriptsCopyWithImpl<$Res> implements _$ScriptsCopyWith<$Res> {
 /// @nodoc
 mixin _$Script {
   String get name;
-  String? get description;
   String get command;
+  List<String>? get runInPackages;
   HookType get hookType;
   String? get runHooksFrom;
 
@@ -185,9 +185,9 @@ mixin _$Script {
         (other.runtimeType == runtimeType &&
             other is Script &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.command, command) || other.command == command) &&
+            const DeepCollectionEquality()
+                .equals(other.runInPackages, runInPackages) &&
             (identical(other.hookType, hookType) ||
                 other.hookType == hookType) &&
             (identical(other.runHooksFrom, runHooksFrom) ||
@@ -197,11 +197,16 @@ mixin _$Script {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, name, description, command, hookType, runHooksFrom);
+      runtimeType,
+      name,
+      command,
+      const DeepCollectionEquality().hash(runInPackages),
+      hookType,
+      runHooksFrom);
 
   @override
   String toString() {
-    return 'Script(name: $name, description: $description, command: $command, hookType: $hookType, runHooksFrom: $runHooksFrom)';
+    return 'Script(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom)';
   }
 }
 
@@ -212,8 +217,8 @@ abstract mixin class $ScriptCopyWith<$Res> {
   @useResult
   $Res call(
       {String name,
-      String? description,
       String command,
+      List<String>? runInPackages,
       HookType hookType,
       String? runHooksFrom});
 }
@@ -231,8 +236,8 @@ class _$ScriptCopyWithImpl<$Res> implements $ScriptCopyWith<$Res> {
   @override
   $Res call({
     Object? name = null,
-    Object? description = freezed,
     Object? command = null,
+    Object? runInPackages = freezed,
     Object? hookType = null,
     Object? runHooksFrom = freezed,
   }) {
@@ -241,14 +246,14 @@ class _$ScriptCopyWithImpl<$Res> implements $ScriptCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: freezed == description
-          ? _self.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
       command: null == command
           ? _self.command
           : command // ignore: cast_nullable_to_non_nullable
               as String,
+      runInPackages: freezed == runInPackages
+          ? _self.runInPackages
+          : runInPackages // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
       hookType: null == hookType
           ? _self.hookType
           : hookType // ignore: cast_nullable_to_non_nullable
@@ -266,18 +271,27 @@ class _$ScriptCopyWithImpl<$Res> implements $ScriptCopyWith<$Res> {
 class _Script implements Script {
   const _Script(
       {required this.name,
-      required this.description,
       required this.command,
+      final List<String>? runInPackages,
       required this.hookType,
-      required this.runHooksFrom});
+      required this.runHooksFrom})
+      : _runInPackages = runInPackages;
   factory _Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
 
   @override
   final String name;
   @override
-  final String? description;
-  @override
   final String command;
+  final List<String>? _runInPackages;
+  @override
+  List<String>? get runInPackages {
+    final value = _runInPackages;
+    if (value == null) return null;
+    if (_runInPackages is EqualUnmodifiableListView) return _runInPackages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   final HookType hookType;
   @override
@@ -304,9 +318,9 @@ class _Script implements Script {
         (other.runtimeType == runtimeType &&
             other is _Script &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
             (identical(other.command, command) || other.command == command) &&
+            const DeepCollectionEquality()
+                .equals(other._runInPackages, _runInPackages) &&
             (identical(other.hookType, hookType) ||
                 other.hookType == hookType) &&
             (identical(other.runHooksFrom, runHooksFrom) ||
@@ -316,11 +330,16 @@ class _Script implements Script {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, name, description, command, hookType, runHooksFrom);
+      runtimeType,
+      name,
+      command,
+      const DeepCollectionEquality().hash(_runInPackages),
+      hookType,
+      runHooksFrom);
 
   @override
   String toString() {
-    return 'Script._(name: $name, description: $description, command: $command, hookType: $hookType, runHooksFrom: $runHooksFrom)';
+    return 'Script._(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom)';
   }
 }
 
@@ -332,8 +351,8 @@ abstract mixin class _$ScriptCopyWith<$Res> implements $ScriptCopyWith<$Res> {
   @useResult
   $Res call(
       {String name,
-      String? description,
       String command,
+      List<String>? runInPackages,
       HookType hookType,
       String? runHooksFrom});
 }
@@ -351,8 +370,8 @@ class __$ScriptCopyWithImpl<$Res> implements _$ScriptCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? name = null,
-    Object? description = freezed,
     Object? command = null,
+    Object? runInPackages = freezed,
     Object? hookType = null,
     Object? runHooksFrom = freezed,
   }) {
@@ -361,14 +380,14 @@ class __$ScriptCopyWithImpl<$Res> implements _$ScriptCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: freezed == description
-          ? _self.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
       command: null == command
           ? _self.command
           : command // ignore: cast_nullable_to_non_nullable
               as String,
+      runInPackages: freezed == runInPackages
+          ? _self._runInPackages
+          : runInPackages // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
       hookType: null == hookType
           ? _self.hookType
           : hookType // ignore: cast_nullable_to_non_nullable

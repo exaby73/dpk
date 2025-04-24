@@ -18,16 +18,18 @@ Map<String, dynamic> _$ScriptsToJson(_Scripts instance) => <String, dynamic>{
 
 _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
       name: json['name'] as String,
-      description: json['description'] as String?,
       command: json['command'] as String,
+      runInPackages: (json['runInPackages'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       hookType: $enumDecode(_$HookTypeEnumMap, json['hookType']),
       runHooksFrom: json['runHooksFrom'] as String?,
     );
 
 Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
       'name': instance.name,
-      'description': instance.description,
       'command': instance.command,
+      'runInPackages': instance.runInPackages,
       'hookType': _$HookTypeEnumMap[instance.hookType]!,
       'runHooksFrom': instance.runHooksFrom,
     };
