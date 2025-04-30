@@ -88,7 +88,7 @@ final class GetCommand extends Command<int>
     }
 
     if (config.pubspec.name == '_') {
-      return _generateDependencyOverrides(options, arguments);
+      await _generateDependencyOverrides(options, arguments);
     }
 
     final exitCode = await runDartProcess(
@@ -114,7 +114,7 @@ final class GetCommand extends Command<int>
     return postHookExitCode;
   }
 
-  Future<int> _generateDependencyOverrides(
+  Future<void> _generateDependencyOverrides(
     PubGetOptions options,
     List<String> arguments,
   ) async {
@@ -181,14 +181,6 @@ final class GetCommand extends Command<int>
 
     final pubspecOverridesYamlString = pubspecOverridesYamlEditor.toString();
     originalPubspecFile.writeAsStringSync(pubspecOverridesYamlString);
-
-    await runDartProcess(
-      arguments: arguments,
-      workingDirectory: options.globalPubOptions.globalOptions.directory,
-      environment: getCacheEnv(options.globalPubOptions.cacheDir),
-    );
-
-    return 0;
   }
 
   void _editPubspecOfWorkspace(String workspace, Catalog catalog) {
