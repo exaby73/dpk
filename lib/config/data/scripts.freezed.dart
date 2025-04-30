@@ -168,6 +168,7 @@ mixin _$Script {
   List<String>? get runInPackages;
   HookType get hookType;
   String? get runHooksFrom;
+  Map<String, String>? get env;
 
   /// Create a copy of Script
   /// with the given fields replaced by the non-null parameter values.
@@ -191,7 +192,8 @@ mixin _$Script {
             (identical(other.hookType, hookType) ||
                 other.hookType == hookType) &&
             (identical(other.runHooksFrom, runHooksFrom) ||
-                other.runHooksFrom == runHooksFrom));
+                other.runHooksFrom == runHooksFrom) &&
+            const DeepCollectionEquality().equals(other.env, env));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -202,11 +204,12 @@ mixin _$Script {
       command,
       const DeepCollectionEquality().hash(runInPackages),
       hookType,
-      runHooksFrom);
+      runHooksFrom,
+      const DeepCollectionEquality().hash(env));
 
   @override
   String toString() {
-    return 'Script(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom)';
+    return 'Script(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom, env: $env)';
   }
 }
 
@@ -220,7 +223,8 @@ abstract mixin class $ScriptCopyWith<$Res> {
       String command,
       List<String>? runInPackages,
       HookType hookType,
-      String? runHooksFrom});
+      String? runHooksFrom,
+      Map<String, String>? env});
 }
 
 /// @nodoc
@@ -240,6 +244,7 @@ class _$ScriptCopyWithImpl<$Res> implements $ScriptCopyWith<$Res> {
     Object? runInPackages = freezed,
     Object? hookType = null,
     Object? runHooksFrom = freezed,
+    Object? env = freezed,
   }) {
     return _then(_self.copyWith(
       name: null == name
@@ -262,6 +267,10 @@ class _$ScriptCopyWithImpl<$Res> implements $ScriptCopyWith<$Res> {
           ? _self.runHooksFrom
           : runHooksFrom // ignore: cast_nullable_to_non_nullable
               as String?,
+      env: freezed == env
+          ? _self.env
+          : env // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>?,
     ));
   }
 }
@@ -274,8 +283,10 @@ class _Script implements Script {
       required this.command,
       final List<String>? runInPackages,
       required this.hookType,
-      required this.runHooksFrom})
-      : _runInPackages = runInPackages;
+      required this.runHooksFrom,
+      final Map<String, String>? env})
+      : _runInPackages = runInPackages,
+        _env = env;
   factory _Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
 
   @override
@@ -296,6 +307,15 @@ class _Script implements Script {
   final HookType hookType;
   @override
   final String? runHooksFrom;
+  final Map<String, String>? _env;
+  @override
+  Map<String, String>? get env {
+    final value = _env;
+    if (value == null) return null;
+    if (_env is EqualUnmodifiableMapView) return _env;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   /// Create a copy of Script
   /// with the given fields replaced by the non-null parameter values.
@@ -324,7 +344,8 @@ class _Script implements Script {
             (identical(other.hookType, hookType) ||
                 other.hookType == hookType) &&
             (identical(other.runHooksFrom, runHooksFrom) ||
-                other.runHooksFrom == runHooksFrom));
+                other.runHooksFrom == runHooksFrom) &&
+            const DeepCollectionEquality().equals(other._env, _env));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -335,11 +356,12 @@ class _Script implements Script {
       command,
       const DeepCollectionEquality().hash(_runInPackages),
       hookType,
-      runHooksFrom);
+      runHooksFrom,
+      const DeepCollectionEquality().hash(_env));
 
   @override
   String toString() {
-    return 'Script._(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom)';
+    return 'Script._(name: $name, command: $command, runInPackages: $runInPackages, hookType: $hookType, runHooksFrom: $runHooksFrom, env: $env)';
   }
 }
 
@@ -354,7 +376,8 @@ abstract mixin class _$ScriptCopyWith<$Res> implements $ScriptCopyWith<$Res> {
       String command,
       List<String>? runInPackages,
       HookType hookType,
-      String? runHooksFrom});
+      String? runHooksFrom,
+      Map<String, String>? env});
 }
 
 /// @nodoc
@@ -374,6 +397,7 @@ class __$ScriptCopyWithImpl<$Res> implements _$ScriptCopyWith<$Res> {
     Object? runInPackages = freezed,
     Object? hookType = null,
     Object? runHooksFrom = freezed,
+    Object? env = freezed,
   }) {
     return _then(_Script(
       name: null == name
@@ -396,6 +420,10 @@ class __$ScriptCopyWithImpl<$Res> implements _$ScriptCopyWith<$Res> {
           ? _self.runHooksFrom
           : runHooksFrom // ignore: cast_nullable_to_non_nullable
               as String?,
+      env: freezed == env
+          ? _self._env
+          : env // ignore: cast_nullable_to_non_nullable
+              as Map<String, String>?,
     ));
   }
 }

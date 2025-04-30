@@ -88,7 +88,7 @@ final class GetCommand extends Command<int>
     }
 
     if (config.pubspec.name == '_') {
-      return _generateDependencyOverrides(options);
+      return _generateDependencyOverrides(options, arguments);
     }
 
     final exitCode = await runDartProcess(
@@ -114,7 +114,10 @@ final class GetCommand extends Command<int>
     return postHookExitCode;
   }
 
-  Future<int> _generateDependencyOverrides(PubGetOptions options) async {
+  Future<int> _generateDependencyOverrides(
+    PubGetOptions options,
+    List<String> arguments,
+  ) async {
     if (config.pubspec.workspace == null) {
       throw StateError('Link command can only be used in a pub workspace');
     }
@@ -179,7 +182,11 @@ final class GetCommand extends Command<int>
     final pubspecOverridesYamlString = pubspecOverridesYamlEditor.toString();
     originalPubspecFile.writeAsStringSync(pubspecOverridesYamlString);
 
-    await runDartProcess(arguments: ['pub', 'get']);
+    await runDartProcess(
+      arguments: arguments,
+      workingDirectory: options.globalPubOptions.globalOptions.directory,
+      environment: getCacheEnv(options.globalPubOptions.cacheDir),
+    );
 
     return 0;
   }

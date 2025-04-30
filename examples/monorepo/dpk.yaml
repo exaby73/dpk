@@ -11,8 +11,6 @@ catalog:
   topics:
     - dpk
 
-  dependencies:
-
   dev_dependencies:
     build_runner: 2.4.15
   dependency_overrides:
@@ -23,6 +21,10 @@ catalog:
         path: packages/luthor
 
 scripts:
+  env:
+    command: echo $FOO
+    env:
+      FOO: bar
   pwd_single:
     command: pwd
   pubget:

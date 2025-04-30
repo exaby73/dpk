@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Added `env` to scripts.
+
 ## 0.1.3
 
 - Added `link` to `get` command.

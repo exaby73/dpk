@@ -190,6 +190,7 @@ final class DpkScriptRunner {
             ['-c', finalScript.join(' ')],
             runInShell: true,
             workingDirectory: package,
+            environment: script.env,
           );
 
           process.stdout.transform(utf8.decoder).listen((event) {
@@ -232,6 +233,7 @@ final class DpkScriptRunner {
         workingDirectory: packagesToRunIn.isNotEmpty
             ? packagesToRunIn.first
             : options.globalOptions.directory,
+        environment: script.env,
       );
 
       stdout.addStream(process.stdout);

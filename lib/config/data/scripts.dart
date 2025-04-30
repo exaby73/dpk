@@ -30,6 +30,7 @@ abstract class Script with _$Script {
     required String command,
     List<String>? runInPackages,
     required String? runHooksFrom,
+    Map<String, String>? env,
   }) {
     final type = HookType.values.firstWhere(
       (type) => type.name == name,
@@ -42,6 +43,7 @@ abstract class Script with _$Script {
       runInPackages: runInPackages,
       hookType: type,
       runHooksFrom: runHooksFrom,
+      env: env,
     );
   }
 
@@ -51,6 +53,7 @@ abstract class Script with _$Script {
     List<String>? runInPackages,
     required HookType hookType,
     required String? runHooksFrom,
+    Map<String, String>? env,
   }) = _Script;
 
   factory Script.fromYaml(String name, dynamic yaml) {
@@ -69,12 +72,14 @@ abstract class Script with _$Script {
     final command = yaml['command'] as String;
     final runHooksFrom = yaml['runHooksFrom'] as String?;
     final runInPackages = (yaml['runInPackages'] as YamlList?)?.cast<String>();
+    final env = (yaml['env'] as YamlMap?)?.cast<String, String>();
 
     return Script(
       name: name,
       command: command,
       runInPackages: runInPackages,
       runHooksFrom: runHooksFrom,
+      env: env,
     );
   }
 
