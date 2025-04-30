@@ -163,7 +163,7 @@ final class DpkScriptRunner {
             }
           }
         }
-        hasToRunMultiple = packagesToRunIn.isNotEmpty;
+        hasToRunMultiple = packagesToRunIn.length > 1;
       }
 
       if (script.command.isEmpty) {
@@ -174,7 +174,9 @@ final class DpkScriptRunner {
 
       final finalScript = [
         command,
-        if (arguments.length > 1) ...['--', ...arguments.sublist(1)],
+        if (arguments.length > 1)
+          // ...['--', ...arguments.sublist(1)],
+          ...arguments.sublist(1),
       ];
 
       if (hasToRunMultiple) {
@@ -227,7 +229,9 @@ final class DpkScriptRunner {
         getShell(),
         ['-c', finalScript.join(' ')],
         runInShell: true,
-        workingDirectory: options.globalOptions.directory,
+        workingDirectory: packagesToRunIn.isNotEmpty
+            ? packagesToRunIn.first
+            : options.globalOptions.directory,
       );
 
       stdout.addStream(process.stdout);

@@ -4,7 +4,6 @@ import 'package:args/command_runner.dart';
 import 'package:dpk/commands/add_command.dart';
 import 'package:dpk/commands/downgrade_command.dart';
 import 'package:dpk/commands/get_command.dart';
-import 'package:dpk/commands/link_command.dart';
 import 'package:dpk/commands/parent_commands/patch_command.dart';
 import 'package:dpk/commands/remove_command.dart';
 import 'package:dpk/commands/run_command.dart';
@@ -55,8 +54,7 @@ final class DpkCommandRunner extends CommandRunner<int> {
       ..addCommand(RemoveCommand())
       ..addCommand(UpgradeCommand())
       ..addCommand(PatchCommand())
-      ..addCommand(RunCommand())
-      ..addCommand(LinkCommand());
+      ..addCommand(RunCommand());
 
     return runner;
   }
