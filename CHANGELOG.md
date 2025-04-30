@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Added `link` to `get` command.
+
 ## 0.1.2
 
 - Added catalog support
