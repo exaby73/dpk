@@ -119,12 +119,12 @@ final class GetCommand extends Command<int>
     List<String> arguments,
   ) async {
     if (config.pubspec.workspace == null) {
-      throw StateError('Link command can only be used in a pub workspace');
+      throw StateError('No workspace found in pubspec.yaml');
     }
 
     final catalog = config.dpkConfig.catalog;
     if (catalog == null) {
-      throw StateError('Catalog not found in your configuration');
+      return;
     }
 
     for (final workspace in config.pubspec.workspace!) {
