@@ -71,26 +71,29 @@ final class PatchApplyCommand extends Command<int>
       return 1;
     }
 
-    for (final gitDep in Directory(
+    final gitDepsDir = Directory(
       join(options.globalPatchOptions.cacheDir, 'git'),
-    ).listSync()) {
-      if (basename(gitDep.path) == 'cache') {
-        continue;
-      }
+    );
+    if (gitDepsDir.existsSync()) {
+      for (final gitDep in gitDepsDir.listSync()) {
+        if (basename(gitDep.path) == 'cache') {
+          continue;
+        }
 
-      final result = await Process.run(
-          'git',
-          [
-            'checkout',
-            '.',
-          ],
-          workingDirectory: gitDep.path);
+        final result = await Process.run(
+            'git',
+            [
+              'checkout',
+              '.',
+            ],
+            workingDirectory: gitDep.path);
 
-      if (result.exitCode != 0) {
-        stderr.writeln(
-          'Failed to apply git dependency ${basename(gitDep.path)}:\n${result.stderr}',
-        );
-        return 1;
+        if (result.exitCode != 0) {
+          stderr.writeln(
+            'Failed to apply git dependency ${basename(gitDep.path)}:\n${result.stderr}',
+          );
+          return 1;
+        }
       }
     }
 

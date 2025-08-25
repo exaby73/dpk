@@ -1,3 +1,7 @@
+## 0.1.7
+
+- Fix: Apply command not working when git dependencies are present.
+
 ## 0.1.5
 
 - Fix: Postget script not running when in pub workspace.
