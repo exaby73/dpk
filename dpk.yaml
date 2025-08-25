@@ -2,6 +2,7 @@ mode: global
 
 scripts:
   activate: dart pub global activate --source path . --overwrite
+  analyze: dart analyze
 
   preget: |
     echo --------------------------------
