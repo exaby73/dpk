@@ -61,39 +61,45 @@ dpk run analyze
 
 ### Script Hooks
 
-Scripts can have `pre` and `post` hooks that run before and after the main command. These are defined by prefixing the script name with `pre:` or `post:`:
+Scripts can have `pre` and `post` hooks that run before and after the main command. Currently supported hooks are for `get` and `build` commands:
 
 **Example with hooks:**
 
 ```yaml
 scripts:
-  build: dart compile exe bin/main.dart
-  pre:build: echo "Starting build..."
-  post:build: echo "Build complete!"
-  
-  test:
-    command: dart test
-  pre:test: dart analyze
-  post:test: dart format --set-exit-if-changed .
+  # Get command hooks
+  preget: echo "Starting dependency resolution..."
+  get: dart pub get
+  postget: echo "Dependencies resolved!"
+
+  # Build command hooks
+  prebuild: dart run build_runner clean
+  build: dart run build_runner build -d
+  postbuild: echo "Build completed successfully"
+
+  # Watch command can inherit build hooks
+  watch:
+    runHooksFrom: build
+    command: dart run build_runner watch -d
 ```
 
 When you run `dpk run build`, it executes:
 
-1. `pre:build` hook
+1. `prebuild` hook (if defined)
 2. `build` command
-3. `post:build` hook
+3. `postbuild` hook (if defined)
 
 ### Environment Variables
 
-dpk supports environment variable substitution in your `dpk.yaml` configuration using the `${VAR_NAME}` syntax:
+You can set environment variables for scripts using the `env` section:
 
 ```yaml
 scripts:
   deploy:
-    command: deploy --api-key ${API_KEY}
+    command: deploy --api-key $API_KEY
     env:
-      API_KEY: ${DEPLOY_API_KEY}
-      ENVIRONMENT: ${ENV:-production}  # With default value
+      API_KEY: your-secret-key
+      ENVIRONMENT: production
 ```
 
 ### Patching Dependencies
@@ -108,7 +114,25 @@ First, initialize the patching environment. This will create a `pub_packages` di
 dpk patch init
 ```
 
-This command must be run after fetching dependencies with `dpk get`. It creates a git repository in the `.dpk/pub_packages` directory and commits the initial state of your dependencies.
+This command must be run after fetching dependencies with `dpk get`. It creates a git repository in the `pub_packages` directory and commits the initial state of your dependencies.
+
+**Important:** Make sure to exclude the `pub_packages` directory from version control and analysis:
+
+1. Add to `.gitignore`:
+
+```text
+pub_packages/
+```
+
+1. Add to `analysis_options.yaml` to prevent analyzer performance issues:
+
+```yaml
+analyzer:
+  exclude:
+    - pub_packages/**
+```
+
+Excluding `pub_packages` from analysis is crucial - without this, the Dart analyzer will consume excessive resources analyzing all dependency code, leading to slow performance and potential crashes.
 
 #### 2. Modify Your Dependencies
 
@@ -134,6 +158,8 @@ dpk patch apply
 
 This command will apply all `.patch` files found in the `patches` directory to the corresponding packages in `pub_packages`. This is useful in a CI/CD environment or when another developer on your team needs to get your changes.
 
+**Note:** If you haven't run `dpk patch init` yet, you'll need to run it first to set up the patching environment.
+
 ## Configuration (`dpk.yaml`)
 
 The `dpk.yaml` file allows for advanced configuration of scripts and workspace settings. Below is a complete reference of all available options:
@@ -142,34 +168,34 @@ The `dpk.yaml` file allows for advanced configuration of scripts and workspace s
 
 ```yaml
 # Operational mode
-mode: global  # or 'project' (reserved for future use)
+mode: global # or 'project' - see mode section below
 
 # Script definitions
 scripts:
   # Simple format
   analyze: dart analyze
   format: dart format .
-  
+
   # Advanced format with all options
   test:
     command: dart test
     env:
       TEST_ENV: integration
-      API_URL: ${API_URL:-http://localhost:8080}
-    runInPackages:  # Run in specific workspace packages
+      API_URL: http://localhost:8080
+    runInPackages: # Run in specific workspace packages
       - 'packages/*'
       - 'apps/*'
-    runHooksFrom: build  # Inherit hooks from another script
-  
+    runHooksFrom: build # Inherit hooks from another script
+
   build:
     command: dart compile exe bin/main.dart
-  
+
   # Hook definitions
   pre:build: echo "Starting build at $(date)"
   post:build: |
     echo "Build completed"
     ls -la bin/
-  
+
   pre:test: dart analyze
   post:test: dart format --set-exit-if-changed .
 
@@ -179,35 +205,35 @@ catalog:
   # Environment constraints
   environment:
     sdk: '>=3.0.0 <4.0.0'
-    flutter: '>=3.10.0'  # Optional Flutter SDK constraint
-  
+    flutter: '>=3.10.0' # Optional Flutter SDK constraint
+
   # Package metadata
   repository: https://github.com/username/repo
   issue_tracker: https://github.com/username/repo/issues
   documentation: https://docs.example.com
   homepage: https://example.com
-  
+
   # Publishing configuration
-  publish_to: none  # or a custom pub server URL
-  
+  publish_to: none # or a custom pub server URL
+
   # Package categorization for pub.dev
   topics:
     - dart
     - cli
     - package-manager
-  
+
   # Dependency resolution type
-  resolution: hosted  # or 'git' for git-based dependencies
-  
+  resolution: hosted # or 'git' for git-based dependencies
+
   # Shared dependencies across workspace
   dependencies:
     http: ^1.1.0
     path: ^1.9.0
-  
+
   dev_dependencies:
     lints: ^3.0.0
     test: ^1.24.0
-  
+
   # Override dependencies at workspace level
   dependency_overrides:
     http: ^1.2.0
@@ -219,8 +245,8 @@ catalog:
 
 Specifies the operational mode for `dpk`.
 
-- **`global`** (default): `dpk` behaves as a general-purpose tool.
-- **`project`**: Reserved for future enhancements.
+- **`global`** (default): Packages are installed using the standard `dart pub get` behavior (to the global pub cache).
+- **`project`**: Packages are installed to the local `pub_packages` directory for patching and local modifications.
 
 #### `scripts`
 
@@ -237,15 +263,15 @@ scripts:
 
 ```yaml
 scripts:
-  test: 
-    command: dart test                    # Required
-    env:                                  # Optional environment variables
+  test:
+    command: dart test # Required
+    env: # Optional environment variables
       MY_VAR: 'some_value'
-      API_KEY: ${ENV_API_KEY}            # Use system env var
-    runInPackages:                       # For monorepos - glob patterns
+      API_KEY: 'your-api-key'
+    runInPackages: # For monorepos - glob patterns
       - 'packages/*'
-      - '!packages/experimental_*'       # Exclude pattern
-    runHooksFrom: build                  # Inherit pre/post hooks
+      - '!packages/experimental_*' # Exclude pattern
+    runHooksFrom: build # Inherit pre/post hooks
 ```
 
 **Script Options:**
@@ -315,8 +341,8 @@ Scripts can be chained and share hooks using `runHooksFrom`:
 scripts:
   ci:
     command: echo "Running CI"
-    runHooksFrom: test  # Inherits pre:test and post:test
-  
+    runHooksFrom: test # Inherits pre:test and post:test
+
   pre:test: dart analyze
   post:test: dart format --set-exit-if-changed .
 ```

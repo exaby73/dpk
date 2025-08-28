@@ -17,6 +17,7 @@ scripts:
 
   prebuild: dpk run clean
   build: dart run build_runner build -d
+  postbuild: echo "Build completed successfully"
 
   watch:
     runHooksFrom: build
