@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
+import 'package:cli_completion/cli_completion.dart';
 import 'package:dpk/commands/add_command.dart';
 import 'package:dpk/commands/downgrade_command.dart';
 import 'package:dpk/commands/get_command.dart';
@@ -14,7 +14,7 @@ import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:logging/logging.dart';
 
-final class DpkCommandRunner extends CommandRunner<int> {
+final class DpkCommandRunner extends CompletionCommandRunner<int> {
   late final ConfigData config;
   final List<String> args;
 

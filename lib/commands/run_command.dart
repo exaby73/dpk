@@ -25,10 +25,25 @@ final class RunCommand extends Command<int> with ConfigMixin {
 
   RunCommand() {
     addGlobalArgs(argParser);
+    _registerScriptSubcommands();
+  }
+
+  void _registerScriptSubcommands() {
+    final scripts = config.scripts?.scriptsMap;
+    if (scripts != null) {
+      for (final scriptName in scripts.keys) {
+        addSubcommand(ScriptSubCommand(
+          scriptName: scriptName,
+          config: config,
+        ));
+      }
+    }
   }
 
   @override
   Future<int> run() async {
+    // If a sub-command was called, it will be handled by the ScriptSubCommand
+    // This method only handles the fallback case for backward compatibility
     final options = RunOptions.fromArgResults(argResults!);
     options.script ??= _promptForScript();
 
@@ -74,6 +89,41 @@ abstract class RunOptions with _$RunOptions {
       globalOptions: GlobalOptions.fromArgResults(results),
       script: results.rest.firstOrNull,
     );
+  }
+}
+
+final class ScriptSubCommand extends Command<int> {
+  final String scriptName;
+  final ConfigData config;
+
+  ScriptSubCommand({
+    required this.scriptName,
+    required this.config,
+  });
+
+  @override
+  String get name => scriptName;
+
+  @override
+  String get description {
+    final script = config.scripts?.scriptsMap[scriptName];
+    return script?.command ?? 'Run $scriptName script';
+  }
+
+  @override
+  Future<int> run() async {
+    final options = RunOptions(
+      globalOptions: GlobalOptions.fromArgResults(globalResults!),
+      script: scriptName,
+    );
+
+    final runner = DpkScriptRunner(
+      config: config,
+      options: options,
+      arguments: argResults!.rest,
+    );
+
+    return await runner.run();
   }
 }
 

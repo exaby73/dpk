@@ -3,7 +3,6 @@ import 'package:args/command_runner.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
-import 'package:dpk/utils/extensions/string_extensions.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
@@ -16,43 +15,7 @@ final class AddCommand extends Command<int>
   String name = 'add';
 
   @override
-  String get description => '''
-Add dependencies to `pubspec.yaml`.
-
-Invoking `dart pub add foo bar` will add `foo` and `bar` to `pubspec.yaml`
-with a default constraint derived from latest compatible version.
-
-Add to dev_dependencies by prefixing with "dev:".
-
-Make dependency overrides by prefixing with "override:".
-
-Add packages with specific constraints or other sources by giving a descriptor
-after a colon.
-
-For example:
-  * Add a hosted dependency at newest compatible stable version:
-    `dart pub add foo`
-  * Add a hosted dev dependency at newest compatible stable version:
-    `dart pub add dev:foo`
-  * Add a hosted dependency with the given constraint
-    `dart pub add foo:^1.2.3`
-  * Add multiple dependencies:
-    `dart pub add foo dev:bar`
-  * Add a path dependency:
-    `dart pub add 'foo:{"path":"../foo"}'`
-  * Add a hosted dependency:
-    `dart pub add 'foo:{"hosted":"my-pub.dev"}'`
-  * Add an sdk dependency:
-    `dart pub add 'foo:{"sdk":"flutter"}'`
-  * Add a git dependency:
-    `dart pub add 'foo:{"git":"https://github.com/foo/foo"}'`
-  * Add a dependency override:
-    `dart pub add 'override:foo:1.0.0'`
-  * Add a git dependency with a path and ref specified:
-    `dart pub add \\
-      'foo:{"git":{"url":"../foo.git","ref":"<branch>","path":"<subdir>"}}'`
-'''
-      .trimIndents();
+  String get description => 'Add dependencies to `pubspec.yaml`';
 
   final logger = Logger('pub.add');
 
