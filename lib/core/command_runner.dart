@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:dpk/commands/add_command.dart';
 import 'package:dpk/commands/downgrade_command.dart';
@@ -10,6 +11,7 @@ import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/commands/upgrade_command.dart';
 import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/constants/pubspec.g.dart';
 import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:logging/logging.dart';
@@ -24,6 +26,11 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     required this.args,
   }) {
     addGlobalArgs(argParser);
+    argParser.addFlag(
+      'version',
+      negatable: false,
+      help: 'Print the version and exit.',
+    );
     final argResults = parse(args);
     final directory =
         argResults['directory'] as String? ?? Directory.current.path;
@@ -57,6 +64,15 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       ..addCommand(RunCommand());
 
     return runner;
+  }
+
+  @override
+  Future<int?> runCommand(ArgResults topLevelResults) async {
+    if (topLevelResults.flag('version')) {
+      print('dpk ${Pubspec.version.representation}');
+      return 0;
+    }
+    return await super.runCommand(topLevelResults);
   }
 
   Future<int?> runDpk() {

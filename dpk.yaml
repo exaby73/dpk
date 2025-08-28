@@ -13,11 +13,11 @@ scripts:
     echo Postget script
     echo --------------------------------
 
-  clean: dpk run build_runner clean
+  clean: dart run build_runner clean
 
   prebuild: dpk run clean
-  build: dpk run build_runner -- build -d
+  build: dart run build_runner build -d
 
   watch:
     runHooksFrom: build
-    command: dpk run build_runner -- watch -d
+    command: dart run build_runner watch -d

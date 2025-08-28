@@ -292,17 +292,12 @@ final class DpkScriptRunner {
       return process.exitCode;
     }
 
-    final process = await Process.start(
-      'dart',
-      ['run', ...arguments],
-      runInShell: true,
-      workingDirectory: options.globalOptions.directory,
+    // If we get here, the script doesn't exist in dpk.yaml
+    final availableScripts = config.scripts?.scriptsMap.keys.toList() ?? [];
+    throw StateError(
+      'Script "${options.script}" not found in dpk.yaml.\n'
+      'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}'
     );
-
-    stdout.addStream(process.stdout);
-    stderr.addStream(process.stderr);
-
-    return process.exitCode;
   }
 
   (IntCallback?, IntCallback?) _getHooks({
