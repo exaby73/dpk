@@ -10,6 +10,7 @@ import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/shell.dart';
 import 'package:dpk/core/types.dart';
 import 'package:dpk/utils/globals/global_args.dart';
+import 'package:dpk/utils/terminal_title.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:glob/glob.dart';
 import 'package:prompts/prompts.dart' as prompts;
@@ -182,6 +183,10 @@ final class DpkScriptRunner {
   }) async {
     final script = config.scripts?.scriptsMap[options.script];
     final scriptExists = script != null;
+
+    if (scriptExists && options.script != null) {
+      setTerminalTitle('dpk run ${options.script}');
+    }
 
     if (!scriptExists && skipIfMissing) {
       return 0;

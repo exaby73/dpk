@@ -1,3 +1,7 @@
+## 0.1.11
+
+- Added support for terminal title.
+
 ## 0.1.9
 
 - Added `version` flag to print the version and exit.

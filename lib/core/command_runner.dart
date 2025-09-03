@@ -14,6 +14,7 @@ import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/constants/pubspec.g.dart';
 import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
+import 'package:dpk/utils/terminal_title.dart';
 import 'package:logging/logging.dart';
 
 final class DpkCommandRunner extends CompletionCommandRunner<int> {
@@ -72,7 +73,19 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       print('dpk ${Pubspec.version.representation}');
       return 0;
     }
-    return await super.runCommand(topLevelResults);
+
+    final commandName = topLevelResults.command?.name;
+    if (commandName != null) {
+      setTerminalTitle('dpk $commandName');
+    } else {
+      setTerminalTitle('dpk');
+    }
+
+    try {
+      return await super.runCommand(topLevelResults);
+    } finally {
+      restoreTerminalTitle();
+    }
   }
 
   Future<int?> runDpk() {
