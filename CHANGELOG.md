@@ -1,3 +1,7 @@
+## 0.1.13
+
+- Fix `--version` command printing old version.
+
 ## 0.1.12
 
 - Fixed a bug where arguements after `--` were not being passed scripts.
