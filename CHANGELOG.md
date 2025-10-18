@@ -1,3 +1,7 @@
+## 0.1.12
+
+- Fixed a bug where arguements after `--` were not being passed scripts.
+
 ## 0.1.11
 
 - Added support for terminal title.

@@ -22,3 +22,6 @@ scripts:
   watch:
     runHooksFrom: build
     command: dart run build_runner watch -d
+
+  # Test commands
+  echo: echo

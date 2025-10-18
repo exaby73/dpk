@@ -51,7 +51,7 @@ final class RunCommand extends Command<int> with ConfigMixin {
     final runner = DpkScriptRunner(
       config: config,
       options: options,
-      arguments: argResults!.rest,
+      arguments: argResults!.rest.skip(1).toList(),
     );
 
     return await runner.run();
@@ -229,9 +229,8 @@ final class DpkScriptRunner {
 
       final finalScript = [
         command,
-        if (arguments.length > 1)
-          // ...['--', ...arguments.sublist(1)],
-          ...arguments.sublist(1),
+        if (arguments.isNotEmpty)
+          ...arguments,
       ];
 
       if (hasToRunMultiple) {
