@@ -1,3 +1,7 @@
+## 0.1.14
+
+- Fix: Correctly set 'PUB_CACHE' in getCacheEnv method for project mode.
+
 ## 0.1.13
 
 - Fix `--version` command printing old version.

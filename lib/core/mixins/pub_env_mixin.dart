@@ -8,11 +8,11 @@ base mixin PubEnvMixin on ConfigMixin {
 
   Map<String, String> getCacheEnv(String cacheDir) {
     return {
-      if (isProjectMode) 'PUB_CACHE': cacheDir,
       if (Platform.environment.containsKey('PUB_CACHE'))
         'PUB_CACHE': Platform.environment['PUB_CACHE']!,
       if (Platform.environment.containsKey('PUB_HOSTED_URL'))
         'PUB_HOSTED_URL': Platform.environment['PUB_HOSTED_URL']!,
+      if (isProjectMode) 'PUB_CACHE': cacheDir,
     };
   }
 }
