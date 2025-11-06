@@ -1,23 +1,23 @@
 mode: global
 
 scripts:
-  activate: dart pub global activate --source path . --overwrite
+  activate: rm -rf ./.dart_tool/pub && dart pub global activate --source path . --overwrite
   analyze: dart analyze
 
-  preget: |
+  pre:get: |
     echo --------------------------------
     echo Preget script
     echo --------------------------------
-  postget: |
+  post:get: |
     echo --------------------------------
     echo Postget script
     echo --------------------------------
 
   clean: dart run build_runner clean
 
-  prebuild: dpk run clean
+  pre:build: dpk run clean
   build: dart run build_runner build -d
-  postbuild: echo "Build completed successfully"
+  post:build: echo "Build completed successfully"
 
   watch:
     runHooksFrom: build
@@ -25,3 +25,17 @@ scripts:
 
   # Test commands
   echo: echo
+
+  pre:test: |
+    echo --------------------------------
+    echo Pretest script
+    echo --------------------------------
+  post:test: |
+    echo --------------------------------
+    echo Posttest script
+    echo --------------------------------
+
+  test: echo "Test completed successfully"
+  test2:
+    runHooksFrom: test
+    command: echo "Test2 completed successfully"

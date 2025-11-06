@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/shell.dart';
@@ -229,8 +228,7 @@ final class DpkScriptRunner {
 
       final finalScript = [
         command,
-        if (arguments.isNotEmpty)
-          ...arguments,
+        if (arguments.isNotEmpty) ...arguments,
       ];
 
       if (hasToRunMultiple) {
@@ -298,10 +296,8 @@ final class DpkScriptRunner {
 
     // If we get here, the script doesn't exist in dpk.yaml
     final availableScripts = config.scripts?.scriptsMap.keys.toList() ?? [];
-    throw StateError(
-      'Script "${options.script}" not found in dpk.yaml.\n'
-      'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}'
-    );
+    throw StateError('Script "${options.script}" not found in dpk.yaml.\n'
+        'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}');
   }
 
   (IntCallback?, IntCallback?) _getHooks({
@@ -310,28 +306,30 @@ final class DpkScriptRunner {
     required List<String> arguments,
   }) {
     final script = config.scripts?.scriptsMap[options.script];
-    final hooks = commandToHookMapper[script?.runHooksFrom ?? options.script];
-    if (hooks == null) {
+    final commandName = script?.runHooksFrom ?? options.script;
+
+    if (commandName == null) {
       return (null, null);
     }
+
+    final preHookName = 'pre:$commandName';
+    final postHookName = 'post:$commandName';
 
     IntCallback? preHookCallback;
     IntCallback? postHookCallback;
 
-    final (preHook, postHook) = hooks;
-
-    if (config.scripts?.scriptsMap.containsKey(preHook.name) == true) {
+    if (config.scripts?.scriptsMap.containsKey(preHookName) == true) {
       preHookCallback = () => _runScript(
             config: config,
-            options: options.copyWith(script: preHook.name),
+            options: options.copyWith(script: preHookName),
             arguments: [],
           );
     }
 
-    if (config.scripts?.scriptsMap.containsKey(postHook.name) == true) {
+    if (config.scripts?.scriptsMap.containsKey(postHookName) == true) {
       postHookCallback = () => _runScript(
             config: config,
-            options: options.copyWith(script: postHook.name),
+            options: options.copyWith(script: postHookName),
             arguments: [],
           );
     }

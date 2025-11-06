@@ -92,13 +92,13 @@ sealed class Pubspec {
   static const PubspecVersion version = (
     /// Non-canonical string representation of the version as provided
     /// in the pubspec.yaml file.
-    representation: r'0.1.14',
+    representation: r'0.2.0',
 
     /// Returns a 'canonicalized' representation
     /// of the application version.
     /// This represents the version string in accordance with
     /// Semantic Versioning (SemVer) standards.
-    canonical: r'0.1.14',
+    canonical: r'0.2.0',
 
     /// MAJOR version when you make incompatible API changes.
     /// The major version number: 1 in "1.2.3".
@@ -107,11 +107,11 @@ sealed class Pubspec {
     /// MINOR version when you add functionality
     /// in a backward compatible manner.
     /// The minor version number: 2 in "1.2.3".
-    minor: 1,
+    minor: 2,
 
     /// PATCH version when you make backward compatible bug fixes.
     /// The patch version number: 3 in "1.2.3".
-    patch: 14,
+    patch: 0,
 
     /// The pre-release identifier: "foo" in "1.2.3-foo".
     preRelease: <String>[],
@@ -123,13 +123,13 @@ sealed class Pubspec {
   /// Build date and time (UTC)
   static final DateTime timestamp = DateTime.utc(
     2025,
-    10,
-    27,
-    23,
-    1,
-    46,
-    690,
-    335,
+    11,
+    6,
+    6,
+    35,
+    15,
+    482,
+    770,
   );
 
   /// Name
@@ -409,7 +409,6 @@ sealed class Pubspec {
   static const Map<String, Object> dependencies = <String, Object>{
     'args': r'^2.7.0',
     'cli_completion': r'^0.5.1',
-    'cli_launcher': r'^0.3.1',
     'collection': r'^1.19.1',
     'freezed_annotation': r'^3.0.0',
     'get_it': r'^8.0.3',

@@ -33,10 +33,22 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       help: 'Print the version and exit.',
     );
     final argResults = parse(args);
-    final directory =
-        argResults['directory'] as String? ?? Directory.current.path;
+    final directoryArg = argResults['directory'] as String?;
 
-    config = loadConfig(Directory(directory));
+    final Directory workingDirectory;
+    if (directoryArg != null) {
+      workingDirectory = Directory(directoryArg);
+    } else {
+      final dpkYamlDir = findDpkYamlDirectory(Directory.current);
+      if (dpkYamlDir != null) {
+        workingDirectory = dpkYamlDir;
+        Directory.current = workingDirectory;
+      } else {
+        workingDirectory = Directory.current;
+      }
+    }
+
+    config = loadConfig(workingDirectory);
   }
 
   factory DpkCommandRunner.init(List<String> arguments) {

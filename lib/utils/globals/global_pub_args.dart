@@ -9,8 +9,7 @@ void addGlobalPubArgs(ArgParser parser) {
   addGlobalArgs(parser);
   parser.addFlag(
     'color',
-    help:
-        'Use colors in terminal output\n'
+    help: 'Use colors in terminal output\n'
         'Defaults to color when connected to a terminal, and no-color otherwise.',
     defaultsTo: null,
   );

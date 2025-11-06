@@ -25,33 +25,10 @@ abstract class Scripts with _$Scripts {
 
 @freezed
 abstract class Script with _$Script {
-  factory Script({
+  const factory Script({
     required String name,
     required String command,
     List<String>? runInPackages,
-    required String? runHooksFrom,
-    Map<String, String>? env,
-  }) {
-    final type = HookType.values.firstWhere(
-      (type) => type.name == name,
-      orElse: () => HookType.none,
-    );
-
-    return Script._(
-      name: name,
-      command: command,
-      runInPackages: runInPackages,
-      hookType: type,
-      runHooksFrom: runHooksFrom,
-      env: env,
-    );
-  }
-
-  const factory Script._({
-    required String name,
-    required String command,
-    List<String>? runInPackages,
-    required HookType hookType,
     required String? runHooksFrom,
     Map<String, String>? env,
   }) = _Script;
@@ -85,5 +62,3 @@ abstract class Script with _$Script {
 
   factory Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
 }
-
-enum HookType { none, preget, postget, prebuild, postbuild }

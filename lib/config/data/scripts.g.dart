@@ -22,7 +22,6 @@ _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
       runInPackages: (json['runInPackages'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      hookType: $enumDecode(_$HookTypeEnumMap, json['hookType']),
       runHooksFrom: json['runHooksFrom'] as String?,
       env: (json['env'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
@@ -33,15 +32,6 @@ Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
       'name': instance.name,
       'command': instance.command,
       'runInPackages': instance.runInPackages,
-      'hookType': _$HookTypeEnumMap[instance.hookType]!,
       'runHooksFrom': instance.runHooksFrom,
       'env': instance.env,
     };
-
-const _$HookTypeEnumMap = {
-  HookType.none: 'none',
-  HookType.preget: 'preget',
-  HookType.postget: 'postget',
-  HookType.prebuild: 'prebuild',
-  HookType.postbuild: 'postbuild',
-};

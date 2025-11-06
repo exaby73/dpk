@@ -2,12 +2,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/config/data/catalog.dart';
 import 'package:dpk/config/data/dependency.dart';
 import 'package:dpk/config/data/dpk_workspace_environment.dart';
-import 'package:dpk/config/data/scripts.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
@@ -20,7 +19,7 @@ import 'package:yaml_edit/yaml_edit.dart';
 part 'get_command.freezed.dart';
 
 final class GetCommand extends Command<int>
-    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin, HookRunnerMixin {
   @override
   String name = 'get';
 
@@ -69,16 +68,10 @@ final class GetCommand extends Command<int>
       ...argResults!.rest,
     ];
 
-    final preHookRunner = DpkScriptRunner(
-      config: config,
-      arguments: [],
-      options: RunOptions(
-        globalOptions: options.globalPubOptions.globalOptions,
-        script: HookType.preget.name,
-      ),
+    final preHookExitCode = await runPreHook(
+      commandName: 'get',
+      globalOptions: options.globalPubOptions.globalOptions,
     );
-
-    final preHookExitCode = await preHookRunner.run(skipIfMissing: true);
     if (preHookExitCode != 0) {
       return preHookExitCode;
     }
@@ -101,16 +94,10 @@ final class GetCommand extends Command<int>
       return exitCode;
     }
 
-    final postHookRunner = DpkScriptRunner(
-      config: config,
-      arguments: [],
-      options: RunOptions(
-        globalOptions: options.globalPubOptions.globalOptions,
-        script: HookType.postget.name,
-      ),
+    final postHookExitCode = await runPostHook(
+      commandName: 'get',
+      globalOptions: options.globalPubOptions.globalOptions,
     );
-
-    final postHookExitCode = await postHookRunner.run(skipIfMissing: true);
     return postHookExitCode;
   }
 

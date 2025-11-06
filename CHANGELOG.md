@@ -1,3 +1,12 @@
+## 0.2.0
+
+- Feat: Added support for recursively finding the dpk.yaml file in parent directories.
+- Feat!: Added support for arbritary script hooks.
+
+### Breaking changes
+
+- Hooks now use the `pre:` and `post:` prefix.
+
 ## 0.1.14
 
 - Fix: Correctly set 'PUB_CACHE' in getCacheEnv method for project mode.

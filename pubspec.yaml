@@ -1,6 +1,6 @@
 name: dpk
 description: An alternative package manager for Dart
-version: 0.1.14
+version: 0.2.0
 repository: https://github.com/exaby73/dpk
 
 environment:
@@ -9,7 +9,6 @@ environment:
 dependencies:
   args: ^2.7.0
   cli_completion: ^0.5.1
-  cli_launcher: ^0.3.1
   collection: ^1.19.1
   freezed_annotation: ^3.0.0
   get_it: ^8.0.3
