@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Fix: Added hook support to all built-in commands (`add`, `remove`, `upgrade`, `downgrade`)
+
 ## 0.2.0
 
 - Feat: Added support for recursively finding the dpk.yaml file in parent directories.

@@ -61,21 +61,20 @@ dpk run analyze
 
 ### Script Hooks
 
-Scripts can have `pre` and `post` hooks that run before and after the main command. Currently supported hooks are for `get` and `build` commands:
+Scripts can have `pre` and `post` hooks that run before and after any script or built-in command. Hooks use the format `pre:<script>` and `post:<script>`:
 
 **Example with hooks:**
 
 ```yaml
 scripts:
-  # Get command hooks
-  preget: echo "Starting dependency resolution..."
-  get: dart pub get
-  postget: echo "Dependencies resolved!"
+  # Get command hooks (works with built-in dpk get command)
+  pre:get: echo "Starting dependency resolution..."
+  post:get: echo "Dependencies resolved!"
 
   # Build command hooks
-  prebuild: dart run build_runner clean
+  pre:build: dart run build_runner clean
   build: dart run build_runner build -d
-  postbuild: echo "Build completed successfully"
+  post:build: echo "Build completed successfully"
 
   # Watch command can inherit build hooks
   watch:
@@ -85,9 +84,11 @@ scripts:
 
 When you run `dpk run build`, it executes:
 
-1. `prebuild` hook (if defined)
+1. `pre:build` hook (if defined)
 2. `build` command
-3. `postbuild` hook (if defined)
+3. `post:build` hook (if defined)
+
+**Note:** Hooks work for any script you define, as well as built-in dpk commands like `get`, `add`, `remove`, etc.
 
 ### Environment Variables
 

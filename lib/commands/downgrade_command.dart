@@ -1,6 +1,7 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
+import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
@@ -10,7 +11,7 @@ import 'package:logging/logging.dart';
 part 'downgrade_command.freezed.dart';
 
 final class DowngradeCommand extends Command<int>
-    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin {
+    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin, HookRunnerMixin {
   @override
   String name = 'downgrade';
 
@@ -52,6 +53,14 @@ final class DowngradeCommand extends Command<int>
       ...argResults!.rest,
     ];
 
+    final preHookExitCode = await runPreHook(
+      commandName: 'downgrade',
+      globalOptions: options.globalPubOptions.globalOptions,
+    );
+    if (preHookExitCode != 0) {
+      return preHookExitCode;
+    }
+
     if (options.globalPubOptions.globalOptions.verbose) {
       logger.info('Running: dart ${arguments.join(' ')}');
     }
@@ -62,7 +71,15 @@ final class DowngradeCommand extends Command<int>
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
-    return exitCode;
+    if (exitCode != 0) {
+      return exitCode;
+    }
+
+    final postHookExitCode = await runPostHook(
+      commandName: 'downgrade',
+      globalOptions: options.globalPubOptions.globalOptions,
+    );
+    return postHookExitCode;
   }
 }
 
