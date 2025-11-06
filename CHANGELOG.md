@@ -1,3 +1,8 @@
+## 0.2.3
+
+- Fix: Commands like `add`, `remove`, `upgrade`, and `downgrade` now correctly operate in the current directory instead of the dpk.yaml directory, ensuring packages are added to the correct pubspec.yaml when running from subdirectories
+- Fix: Hooks now run in isolation with directory save/restore, preventing directory changes from affecting the calling command
+
 ## 0.2.2
 
 - Fix: `-C` flag no longer causes "directory does not exist" error by removing duplicate directory argument passed to dart pub

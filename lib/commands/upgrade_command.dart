@@ -88,7 +88,6 @@ final class UpgradeCommand extends Command<int>
 
     final exitCode = await runDartProcess(
       arguments: arguments,
-      workingDirectory: options.globalPubOptions.globalOptions.directory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 

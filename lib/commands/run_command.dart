@@ -144,10 +144,20 @@ final class DpkScriptRunner {
   }) async {
     assert(options.script != null, 'Script name is required');
 
+    final scriptExists = config.scripts?.scriptsMap.containsKey(options.script) == true;
+
+    if (!scriptExists && skipIfMissing) {
+      return 0;
+    }
+
+    final targetDirectory =
+        options.globalOptions.directory ?? config.workingDirectory;
+    Directory.current = targetDirectory;
+
     IntCallback? preHook;
     IntCallback? postHook;
 
-    if (config.scripts?.scriptsMap.containsKey(options.script) == true) {
+    if (scriptExists) {
       (preHook, postHook) = _getHooks(
         config: config,
         options: options,

@@ -35,18 +35,11 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     final argResults = parse(args);
     final directoryArg = argResults['directory'] as String?;
 
-    final Directory workingDirectory;
-    if (directoryArg != null) {
-      workingDirectory = Directory(directoryArg);
-    } else {
-      final dpkYamlDir = findDpkYamlDirectory(Directory.current);
-      if (dpkYamlDir != null) {
-        workingDirectory = dpkYamlDir;
-        Directory.current = workingDirectory;
-      } else {
-        workingDirectory = Directory.current;
-      }
-    }
+    final Directory startDirectory =
+        directoryArg != null ? Directory(directoryArg) : Directory.current;
+
+    final dpkYamlDir = findDpkYamlDirectory(startDirectory);
+    final Directory workingDirectory = dpkYamlDir ?? startDirectory;
 
     config = loadConfig(workingDirectory);
   }
@@ -82,6 +75,7 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     if (topLevelResults.flag('version')) {
+      // ignore: avoid_print
       print('dpk ${Pubspec.version.representation}');
       return 0;
     }

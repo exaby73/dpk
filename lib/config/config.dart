@@ -43,6 +43,7 @@ ConfigData loadConfig(Directory directory) {
   final mergedYaml = mergeMaps(pubspecYaml as Map, (configYaml as Map?) ?? {});
   final configData = ConfigData.fromYaml(
     loadYaml(jsonEncode(mergedYaml)) as YamlMap,
+    directory.path,
   );
 
   return configData;

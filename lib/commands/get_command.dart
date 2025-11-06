@@ -57,6 +57,11 @@ final class GetCommand extends Command<int>
   @override
   Future<int> run() async {
     final options = PubGetOptions.fromArgResults(argResults!);
+
+    final targetDirectory = options.globalPubOptions.globalOptions.directory ??
+        config.workingDirectory;
+    Directory.current = targetDirectory;
+
     final arguments = [
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
@@ -86,7 +91,6 @@ final class GetCommand extends Command<int>
 
     final exitCode = await runDartProcess(
       arguments: arguments,
-      workingDirectory: options.globalPubOptions.globalOptions.directory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 

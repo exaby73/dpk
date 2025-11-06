@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/config/data/config_data.dart';
@@ -45,6 +47,11 @@ base mixin HookRunnerMixin on Command<int> {
       ),
     );
 
-    return await hookRunner.run(skipIfMissing: true);
+    final originalDirectory = Directory.current;
+    try {
+      return await hookRunner.run(skipIfMissing: true);
+    } finally {
+      Directory.current = originalDirectory;
+    }
   }
 }

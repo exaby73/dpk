@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
@@ -64,16 +62,10 @@ final class RemoveCommand extends Command<int>
       logger.info('Running: dart ${arguments.join(' ')}');
     }
 
-    final pubProcess = await Process.start(
-      'dart',
-      arguments,
+    final exitCode = await runDartProcess(
+      arguments: arguments,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
-
-    stdout.addStream(pubProcess.stdout);
-    stderr.addStream(pubProcess.stderr);
-
-    final exitCode = await pubProcess.exitCode;
 
     if (exitCode != 0) {
       return exitCode;

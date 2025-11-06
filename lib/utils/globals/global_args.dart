@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -52,8 +54,11 @@ abstract class GlobalOptions with _$GlobalOptions {
   }) = _GlobalOptions;
 
   factory GlobalOptions.fromArgResults(ArgResults results) {
+    final directoryArg = results.option('directory');
     return GlobalOptions(
-      directory: results.option('directory'),
+      directory: directoryArg != null
+          ? Directory(directoryArg).absolute.path
+          : null,
       verbose: results.flag('verbose'),
       debug: results.flag('debug'),
     );
