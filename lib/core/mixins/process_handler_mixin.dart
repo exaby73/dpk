@@ -6,10 +6,14 @@ mixin ProcessHandlerMixin {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
+    final wd = workingDirectory != null
+        ? Directory(workingDirectory).absolute.path
+        : null;
     final process = await Process.start(
       'dart',
       arguments,
-      workingDirectory: workingDirectory,
+      workingDirectory: wd,
+      runInShell: true,
       environment: environment,
     );
 

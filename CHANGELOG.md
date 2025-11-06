@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Fix: `-C` flag no longer causes "directory does not exist" error by removing duplicate directory argument passed to dart pub
+
 ## 0.2.1
 
 - Fix: Added hook support to all built-in commands (`add`, `remove`, `upgrade`, `downgrade`)

@@ -18,10 +18,6 @@ void addGlobalPubArgs(ArgParser parser) {
 List<String> buildGlobalArgs(GlobalPubOptions options) {
   return [
     if (options.globalOptions.verbose) '--verbose',
-    if (options.globalOptions.directory?.isNotEmpty == true) ...[
-      '-C',
-      options.globalOptions.directory!,
-    ],
     if (options.color != null) options.color! ? '--color' : '--no-color',
   ];
 }
