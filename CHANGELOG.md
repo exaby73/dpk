@@ -1,3 +1,7 @@
+## 0.2.4
+
+- Fix: `HostedDependency.toJson()` now outputs simplified format (version string instead of map) when no hosted field is present, matching standard pubspec.yaml format and producing cleaner generated files
+
 ## 0.2.3
 
 - Fix: Commands like `add`, `remove`, `upgrade`, and `downgrade` now correctly operate in the current directory instead of the dpk.yaml directory, ensuring packages are added to the correct pubspec.yaml when running from subdirectories

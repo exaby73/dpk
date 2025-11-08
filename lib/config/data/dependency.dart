@@ -107,15 +107,15 @@ Dependency? _fromJson(Object? data, String name) {
   return null;
 }
 
-sealed class Dependency {
-  Map<String, dynamic> toJson() {
+sealed class Dependency<ToJsonType> {
+  ToJsonType toJson() {
     return switch (this) {
       SdkDependency() => _$SdkDependencyToJson(this as SdkDependency),
       GitDependency() => {'git': _$GitDependencyToJson(this as GitDependency)},
       PathDependency() =>
         throw StateError('Never called due to being overriden'),
       HostedDependency() => _$HostedDependencyToJson(this as HostedDependency),
-    };
+    } as ToJsonType;
   }
 }
 
@@ -260,6 +260,15 @@ class HostedDependency extends Dependency {
 
   @override
   String toString() => 'HostedDependency: $version';
+
+  @override
+  dynamic toJson() {
+    final json = _$HostedDependencyToJson(this);
+    if (json.containsKey('hosted')) {
+      return json;
+    }
+    return json['version'] as String;
+  }
 }
 
 @JsonSerializable(includeIfNull: false)
