@@ -39,11 +39,12 @@ final class PatchInitCommand extends Command<int>
     }
 
     final options = PatchOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final cacheDir = Directory(resolvedCacheDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
+        '$resolvedCacheDir does not exist. Did you run `$kExecutableName pub get`?',
       );
       return 1;
     }
@@ -55,7 +56,7 @@ final class PatchInitCommand extends Command<int>
 
     // dart format off
     final dotGitDir = Directory(
-      options.globalPatchOptions.cacheDir,
+      resolvedCacheDir,
     ).listSync().firstWhereOrNull((entity) => basename(entity.path) == '.git')
         as Directory?;
     // dart format on
@@ -75,7 +76,7 @@ final class PatchInitCommand extends Command<int>
             'checkout',
             '.',
           ],
-          workingDirectory: options.globalPatchOptions.cacheDir);
+          workingDirectory: resolvedCacheDir);
 
       await dotGitDir.delete(recursive: true);
     }
@@ -85,14 +86,14 @@ final class PatchInitCommand extends Command<int>
         [
           'init',
         ],
-        workingDirectory: options.globalPatchOptions.cacheDir);
+        workingDirectory: resolvedCacheDir);
     await Process.run(
         'git',
         [
           'add',
           '.',
         ],
-        workingDirectory: options.globalPatchOptions.cacheDir);
+        workingDirectory: resolvedCacheDir);
     await Process.run(
         'git',
         [
@@ -100,7 +101,7 @@ final class PatchInitCommand extends Command<int>
           '-m',
           '"Patch initialized"',
         ],
-        workingDirectory: options.globalPatchOptions.cacheDir);
+        workingDirectory: resolvedCacheDir);
 
     stdout.writeln('Patch initialized');
 

@@ -39,12 +39,13 @@ final class PatchGenerateCommand extends Command<int>
     }
 
     final options = GenerateOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final cacheDir = Directory(resolvedCacheDir);
     final patchDir = Directory(options.globalPatchOptions.patchDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
+        '$resolvedCacheDir does not exist. Did you run `$kExecutableName pub get`?',
       );
       return 1;
     }
@@ -83,7 +84,7 @@ final class PatchGenerateCommand extends Command<int>
           'status',
           '-s',
         ],
-        workingDirectory: options.globalPatchOptions.cacheDir);
+        workingDirectory: resolvedCacheDir);
 
     if (statusExitCode != 0) {
       stderr.writeln('Failed to generate patch files:\n$statusStderr');
@@ -132,7 +133,7 @@ final class PatchGenerateCommand extends Command<int>
       }
 
       final gitDir = join(
-        options.globalPatchOptions.cacheDir,
+        resolvedCacheDir,
         'git',
         packageName,
       );
@@ -172,12 +173,12 @@ final class PatchGenerateCommand extends Command<int>
       late final String workingDir;
       if (isGit) {
         workingDir = join(
-          options.globalPatchOptions.cacheDir,
+          resolvedCacheDir,
           'git',
           packageName,
         );
       } else {
-        workingDir = options.globalPatchOptions.cacheDir;
+        workingDir = resolvedCacheDir;
       }
 
       final ProcessResult(

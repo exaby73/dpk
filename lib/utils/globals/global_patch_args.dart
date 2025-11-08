@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dpk/utils/cache_directory.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:path/path.dart';
@@ -22,7 +21,7 @@ abstract class GlobalPatchOptions with _$GlobalPatchOptions {
   }) {
     return GlobalPatchOptions._internal(
       globalOptions: globalOptions,
-      cacheDir: initializeCacheDir(cacheDir, globalOptions.directory),
+      cacheDir: cacheDir,
       patchDir: _initializePatchDir(patchDir, globalOptions.directory),
     );
   }

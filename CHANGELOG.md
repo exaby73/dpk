@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Fix: `cacheDir` is now resolved relative to the dpk.yaml directory instead of the current working directory, ensuring consistent cache location across all commands (`add`, `get`, `remove`, `upgrade`, `downgrade`, and patch commands) regardless of where they are executed from
+
 ## 0.3.0
 
 - Feat: Catalog dependencies now update matching dependencies in workspace packages during `dpk get`, synchronizing versions across all dependency sections (dependencies, dev_dependencies, dependency_overrides) with validation to prevent duplicate package names across catalog sections

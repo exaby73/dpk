@@ -34,11 +34,12 @@ final class PatchApplyCommand extends Command<int>
     }
 
     final options = ApplyOptions.fromArgResults(argResults!);
-    final cacheDir = Directory(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final cacheDir = Directory(resolvedCacheDir);
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(
-        '${options.globalPatchOptions.cacheDir} does not exist. Did you run `$kExecutableName pub get`?',
+        '$resolvedCacheDir does not exist. Did you run `$kExecutableName pub get`?',
       );
       return 1;
     }
@@ -62,7 +63,7 @@ final class PatchApplyCommand extends Command<int>
           'checkout',
           '.',
         ],
-        workingDirectory: options.globalPatchOptions.cacheDir);
+        workingDirectory: resolvedCacheDir);
 
     if (checkoutResult.exitCode != 0) {
       stderr.writeln(
@@ -72,7 +73,7 @@ final class PatchApplyCommand extends Command<int>
     }
 
     final gitDepsDir = Directory(
-      join(options.globalPatchOptions.cacheDir, 'git'),
+      join(resolvedCacheDir, 'git'),
     );
     if (gitDepsDir.existsSync()) {
       for (final gitDep in gitDepsDir.listSync()) {
@@ -119,7 +120,7 @@ final class PatchApplyCommand extends Command<int>
             'apply',
             patch.path,
           ],
-          workingDirectory: options.globalPatchOptions.cacheDir);
+          workingDirectory: resolvedCacheDir);
 
       if (result.exitCode != 0) {
         stderr.writeln(
@@ -131,7 +132,7 @@ final class PatchApplyCommand extends Command<int>
 
     for (final patch in gitPatches) {
       final workingDir = join(
-        options.globalPatchOptions.cacheDir,
+        resolvedCacheDir,
         'git',
         basenameWithoutExtension(patch.path),
       );
