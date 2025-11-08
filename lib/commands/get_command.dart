@@ -118,6 +118,8 @@ final class GetCommand extends Command<int>
       return;
     }
 
+    _validateCatalogDependencies(catalog);
+
     for (final workspace in config.pubspec.workspace!) {
       _editPubspecOfWorkspace(workspace, catalog);
     }
@@ -240,6 +242,8 @@ final class GetCommand extends Command<int>
       editor.update(['resolution'], catalog.resolution);
     }
 
+    _updateWorkspaceDependencies(editor, originalPubspec, catalog);
+
     pubspecFile.writeAsStringSync(editor.toString());
   }
 
@@ -256,6 +260,107 @@ final class GetCommand extends Command<int>
       dpkPackageName: packageName,
       dpkPackageVersion: packageVersion?.toString(),
     );
+  }
+
+  void _validateCatalogDependencies(Catalog catalog) {
+    final allPackageNames = <String, List<String>>{};
+
+    final Catalog(
+      dependencies: catalogDependencies,
+      devDependencies: catalogDevDependencies,
+      dependencyOverrides: catalogDependencyOverrides
+    ) = catalog;
+
+    if (catalogDependencies != null) {
+      for (final packageName in catalogDependencies.keys) {
+        allPackageNames.putIfAbsent(packageName, () => []).add('dependencies');
+      }
+    }
+
+    if (catalogDevDependencies != null) {
+      for (final packageName in catalogDevDependencies.keys) {
+        allPackageNames
+            .putIfAbsent(packageName, () => [])
+            .add('dev_dependencies');
+      }
+    }
+
+    if (catalogDependencyOverrides != null) {
+      for (final packageName in catalogDependencyOverrides.keys) {
+        allPackageNames
+            .putIfAbsent(packageName, () => [])
+            .add('dependency_overrides');
+      }
+    }
+
+    final duplicates = allPackageNames.entries
+        .where((entry) => entry.value.length > 1)
+        .toList();
+
+    if (duplicates.isNotEmpty) {
+      final duplicateMessages = duplicates.map((entry) {
+        return 'Package "${entry.key}" appears in: ${entry.value.join(", ")}';
+      }).join('\n');
+      throw StateError(
+        'Catalog has duplicate package names across different sections:\n$duplicateMessages',
+      );
+    }
+  }
+
+  Map<String, Dependency> _combineCatalogDependencies(Catalog catalog) {
+    final combined = <String, Dependency>{};
+
+    final Catalog(
+      dependencies: catalogDependencies,
+      devDependencies: catalogDevDependencies,
+      dependencyOverrides: catalogDependencyOverrides
+    ) = catalog;
+
+    if (catalogDependencies != null) {
+      combined.addAll(catalogDependencies);
+    }
+
+    if (catalogDevDependencies != null) {
+      combined.addAll(catalogDevDependencies);
+    }
+
+    if (catalogDependencyOverrides != null) {
+      combined.addAll(catalogDependencyOverrides);
+    }
+
+    return combined;
+  }
+
+  void _updateWorkspaceDependencies(
+    YamlEditor editor,
+    pubspec_parse.Pubspec pubspec,
+    Catalog catalog,
+  ) {
+    final catalogDependencies = _combineCatalogDependencies(catalog);
+
+    if (catalogDependencies.isEmpty) {
+      return;
+    }
+
+    final dependencySections = [
+      ('dependencies', pubspec.dependencies),
+      ('dev_dependencies', pubspec.devDependencies),
+      ('dependency_overrides', pubspec.dependencyOverrides),
+    ];
+
+    for (final (sectionName, sectionDeps) in dependencySections) {
+      if (sectionDeps.isEmpty) {
+        continue;
+      }
+
+      for (final entry in sectionDeps.entries) {
+        final packageName = entry.key;
+        if (catalogDependencies.containsKey(packageName)) {
+          final catalogDep = catalogDependencies[packageName]!;
+          editor.update([sectionName, packageName], catalogDep.toJson());
+        }
+      }
+    }
   }
 
   ({

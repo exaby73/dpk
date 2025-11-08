@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Feat: Catalog dependencies now update matching dependencies in workspace packages during `dpk get`, synchronizing versions across all dependency sections (dependencies, dev_dependencies, dependency_overrides) with validation to prevent duplicate package names across catalog sections
+
 ## 0.2.4
 
 - Fix: `HostedDependency.toJson()` now outputs simplified format (version string instead of map) when no hosted field is present, matching standard pubspec.yaml format and producing cleaner generated files
