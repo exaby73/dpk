@@ -12,6 +12,7 @@ import 'package:dpk/utils/globals/global_args.dart';
 import 'package:dpk/utils/terminal_title.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as path;
 import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
@@ -246,12 +247,18 @@ final class DpkScriptRunner {
         final stdoutStream = StreamController<List<int>>();
         final stderrStream = StreamController<List<int>>();
 
+        // Resolve package paths relative to workspace root if available
+        final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
+
         for (final package in packagesToRunIn) {
+          // Resolve package path relative to workspace root
+          final packagePath = path.join(workspaceRoot, package);
+
           final process = await Process.start(
             getShell(),
             ['-c', finalScript.join(' ')],
             runInShell: true,
-            workingDirectory: package,
+            workingDirectory: packagePath,
             environment: script.env,
           );
 

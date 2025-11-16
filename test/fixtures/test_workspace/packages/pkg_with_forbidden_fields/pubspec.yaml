@@ -1,0 +1,6 @@
+name: pkg_with_forbidden_fields
+
+resolution: workspace
+
+environment:
+  sdk: ^3.7.0

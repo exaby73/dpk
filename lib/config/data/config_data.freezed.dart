@@ -19,6 +19,7 @@ mixin _$ConfigData {
   DpkConfig get dpkConfig;
   Scripts? get scripts;
   String get workingDirectory;
+  String? get workspaceRoot;
 
   /// Create a copy of ConfigData
   /// with the given fields replaced by the non-null parameter values.
@@ -37,16 +38,18 @@ mixin _$ConfigData {
                 other.dpkConfig == dpkConfig) &&
             (identical(other.scripts, scripts) || other.scripts == scripts) &&
             (identical(other.workingDirectory, workingDirectory) ||
-                other.workingDirectory == workingDirectory));
+                other.workingDirectory == workingDirectory) &&
+            (identical(other.workspaceRoot, workspaceRoot) ||
+                other.workspaceRoot == workspaceRoot));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, pubspec, dpkConfig, scripts, workingDirectory);
+  int get hashCode => Object.hash(runtimeType, pubspec, dpkConfig, scripts,
+      workingDirectory, workspaceRoot);
 
   @override
   String toString() {
-    return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts, workingDirectory: $workingDirectory)';
+    return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts, workingDirectory: $workingDirectory, workspaceRoot: $workspaceRoot)';
   }
 }
 
@@ -60,7 +63,8 @@ abstract mixin class $ConfigDataCopyWith<$Res> {
       {Pubspec pubspec,
       DpkConfig dpkConfig,
       Scripts? scripts,
-      String workingDirectory});
+      String workingDirectory,
+      String? workspaceRoot});
 
   $DpkConfigCopyWith<$Res> get dpkConfig;
   $ScriptsCopyWith<$Res>? get scripts;
@@ -82,6 +86,7 @@ class _$ConfigDataCopyWithImpl<$Res> implements $ConfigDataCopyWith<$Res> {
     Object? dpkConfig = null,
     Object? scripts = freezed,
     Object? workingDirectory = null,
+    Object? workspaceRoot = freezed,
   }) {
     return _then(_self.copyWith(
       pubspec: null == pubspec
@@ -100,6 +105,10 @@ class _$ConfigDataCopyWithImpl<$Res> implements $ConfigDataCopyWith<$Res> {
           ? _self.workingDirectory
           : workingDirectory // ignore: cast_nullable_to_non_nullable
               as String,
+      workspaceRoot: freezed == workspaceRoot
+          ? _self.workspaceRoot
+          : workspaceRoot // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 
@@ -135,7 +144,8 @@ class _ConfigData implements ConfigData {
       {required this.pubspec,
       required this.dpkConfig,
       required this.scripts,
-      required this.workingDirectory});
+      required this.workingDirectory,
+      this.workspaceRoot});
 
   @override
   final Pubspec pubspec;
@@ -145,6 +155,8 @@ class _ConfigData implements ConfigData {
   final Scripts? scripts;
   @override
   final String workingDirectory;
+  @override
+  final String? workspaceRoot;
 
   /// Create a copy of ConfigData
   /// with the given fields replaced by the non-null parameter values.
@@ -164,16 +176,18 @@ class _ConfigData implements ConfigData {
                 other.dpkConfig == dpkConfig) &&
             (identical(other.scripts, scripts) || other.scripts == scripts) &&
             (identical(other.workingDirectory, workingDirectory) ||
-                other.workingDirectory == workingDirectory));
+                other.workingDirectory == workingDirectory) &&
+            (identical(other.workspaceRoot, workspaceRoot) ||
+                other.workspaceRoot == workspaceRoot));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, pubspec, dpkConfig, scripts, workingDirectory);
+  int get hashCode => Object.hash(runtimeType, pubspec, dpkConfig, scripts,
+      workingDirectory, workspaceRoot);
 
   @override
   String toString() {
-    return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts, workingDirectory: $workingDirectory)';
+    return 'ConfigData(pubspec: $pubspec, dpkConfig: $dpkConfig, scripts: $scripts, workingDirectory: $workingDirectory, workspaceRoot: $workspaceRoot)';
   }
 }
 
@@ -189,7 +203,8 @@ abstract mixin class _$ConfigDataCopyWith<$Res>
       {Pubspec pubspec,
       DpkConfig dpkConfig,
       Scripts? scripts,
-      String workingDirectory});
+      String workingDirectory,
+      String? workspaceRoot});
 
   @override
   $DpkConfigCopyWith<$Res> get dpkConfig;
@@ -213,6 +228,7 @@ class __$ConfigDataCopyWithImpl<$Res> implements _$ConfigDataCopyWith<$Res> {
     Object? dpkConfig = null,
     Object? scripts = freezed,
     Object? workingDirectory = null,
+    Object? workspaceRoot = freezed,
   }) {
     return _then(_ConfigData(
       pubspec: null == pubspec
@@ -231,6 +247,10 @@ class __$ConfigDataCopyWithImpl<$Res> implements _$ConfigDataCopyWith<$Res> {
           ? _self.workingDirectory
           : workingDirectory // ignore: cast_nullable_to_non_nullable
               as String,
+      workspaceRoot: freezed == workspaceRoot
+          ? _self.workspaceRoot
+          : workspaceRoot // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 

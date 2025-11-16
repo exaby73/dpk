@@ -1,0 +1,8 @@
+mode: project
+
+catalog:
+  environment:
+    sdk: ^3.7.0
+
+scripts:
+  some_script: echo "test"

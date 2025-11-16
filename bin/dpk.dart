@@ -7,7 +7,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> _init(List<String> arguments) async {
-  final runner = DpkCommandRunner.init(arguments);
+  final runner = await DpkCommandRunner.init(arguments);
   final exitCode = await runner.runDpk();
   exit(exitCode ?? 1);
 }

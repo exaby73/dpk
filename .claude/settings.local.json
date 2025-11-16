@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(dart analyze:*)",
-      "Bash(dart format:*)"
+      "Bash(dart format:*)",
+      "Bash(dart pub workspace:*)",
+      "Bash(dart test:*)",
+      "Bash(dart pub get:*)",
+      "Bash(xargs cat:*)"
     ],
     "deny": [],
     "ask": []

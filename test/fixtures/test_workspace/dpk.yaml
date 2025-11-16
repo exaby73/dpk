@@ -1,0 +1,9 @@
+mode: project
+
+scripts:
+  root_script: echo "from root"
+  shared_script: echo "shared from root"
+  multi_package:
+    command: pwd
+    runInPackages:
+      - '**/*'

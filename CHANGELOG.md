@@ -1,3 +1,10 @@
+## 0.4.0
+
+- Feat: Workspace packages can now define package-specific `dpk.yaml` files that merge with workspace root scripts, with package scripts taking precedence over root scripts for script name conflicts
+- Feat: Scripts with `runInPackages` now work correctly when executed from workspace package directories, automatically resolving package paths relative to the workspace root
+- Feat: Workspace root `dpk.yaml` scripts are automatically inherited by all workspace packages, enabling shared script definitions across the workspace
+- Fix: Package `dpk.yaml` files are now validated to prevent defining forbidden fields (`catalog`, `mode`, `dependency_overrides`) which must only be defined in workspace root
+
 ## 0.3.1
 
 - Fix: `cacheDir` is now resolved relative to the dpk.yaml directory instead of the current working directory, ensuring consistent cache location across all commands (`add`, `get`, `remove`, `upgrade`, `downgrade`, and patch commands) regardless of where they are executed from

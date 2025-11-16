@@ -13,9 +13,14 @@ abstract class ConfigData with _$ConfigData {
     required DpkConfig dpkConfig,
     required Scripts? scripts,
     required String workingDirectory,
+    String? workspaceRoot,
   }) = _ConfigData;
 
-  factory ConfigData.fromYaml(YamlMap yaml, String workingDirectory) {
+  factory ConfigData.fromYaml(
+    YamlMap yaml,
+    String workingDirectory, [
+    String? workspaceRoot,
+  ]) {
     final pubspec = Pubspec.fromJson(yaml);
     final rawScripts = yaml['scripts'];
     if (rawScripts is! YamlMap?) {
@@ -35,6 +40,7 @@ abstract class ConfigData with _$ConfigData {
       dpkConfig: dpkConfig,
       scripts: scripts,
       workingDirectory: workingDirectory,
+      workspaceRoot: workspaceRoot,
     );
   }
 }
