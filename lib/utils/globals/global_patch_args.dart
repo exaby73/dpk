@@ -19,13 +19,13 @@ abstract class GlobalPatchOptions with _$GlobalPatchOptions {
     required String cacheDir,
     required String patchDir,
   }) {
-    return GlobalPatchOptions._internal(
+    return GlobalPatchOptions.internal(
       globalOptions: globalOptions,
       cacheDir: cacheDir,
       patchDir: _initializePatchDir(patchDir, globalOptions.directory),
     );
   }
-  const factory GlobalPatchOptions._internal({
+  const factory GlobalPatchOptions.internal({
     required GlobalOptions globalOptions,
     required String cacheDir,
     required String patchDir,

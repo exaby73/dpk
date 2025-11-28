@@ -8,7 +8,8 @@ void addGlobalPubArgs(ArgParser parser) {
   addGlobalArgs(parser);
   parser.addFlag(
     'color',
-    help: 'Use colors in terminal output\n'
+    help:
+        'Use colors in terminal output\n'
         'Defaults to color when connected to a terminal, and no-color otherwise.',
     defaultsTo: null,
   );
@@ -28,13 +29,13 @@ abstract class GlobalPubOptions with _$GlobalPubOptions {
     required String cacheDir,
     required bool? color,
   }) {
-    return GlobalPubOptions._internal(
+    return GlobalPubOptions.internal(
       globalOptions: globalOptions,
       cacheDir: cacheDir,
       color: color,
     );
   }
-  const factory GlobalPubOptions._internal({
+  const factory GlobalPubOptions.internal({
     required GlobalOptions globalOptions,
     required String cacheDir,
     required bool? color,

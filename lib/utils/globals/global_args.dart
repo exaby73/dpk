@@ -41,13 +41,14 @@ abstract class GlobalOptions with _$GlobalOptions {
     required bool verbose,
     required bool debug,
   }) {
-    return GlobalOptions._internal(
+    return GlobalOptions.internal(
       directory: directory,
       verbose: verbose,
       debug: debug,
     );
   }
-  const factory GlobalOptions._internal({
+
+  const factory GlobalOptions.internal({
     required String? directory,
     required bool verbose,
     required bool debug,

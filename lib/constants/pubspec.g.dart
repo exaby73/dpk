@@ -125,11 +125,11 @@ sealed class Pubspec {
     2025,
     11,
     28,
-    0,
-    54,
-    33,
-    112,
-    628,
+    1,
+    4,
+    8,
+    579,
+    430,
   );
 
   /// Name
@@ -347,7 +347,7 @@ sealed class Pubspec {
 
   /// Environment
   static const Map<String, String> environment = <String, String>{
-    'sdk': '^3.6.0',
+    'sdk': '^3.8.0',
   };
 
   /// Platforms
@@ -411,7 +411,7 @@ sealed class Pubspec {
     'cli_completion': r'^0.5.1',
     'collection': r'^1.19.1',
     'freezed_annotation': r'^3.0.0',
-    'get_it': r'^8.0.3',
+    'get_it': r'^9.1.1',
     'glob': r'^2.1.3',
     'json_annotation': r'^4.9.0',
     'logging': r'^1.3.0',
@@ -430,7 +430,7 @@ sealed class Pubspec {
     'freezed': r'^3.0.4',
     'json_serializable': r'^6.9.4',
     'lint': r'^2.8.0',
-    'pubspec_generator': r'^4.3.0',
+    'pubspec_generator': r'^5.0.0',
     'test': r'^1.25.15',
   };
 
