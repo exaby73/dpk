@@ -34,7 +34,9 @@ final class PatchApplyCommand extends Command<int>
     }
 
     final options = ApplyOptions.fromArgResults(argResults!);
-    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(
+      options.globalPatchOptions.cacheDir,
+    );
     final cacheDir = Directory(resolvedCacheDir);
 
     if (!cacheDir.existsSync()) {
@@ -57,13 +59,10 @@ final class PatchApplyCommand extends Command<int>
       return 1;
     }
 
-    final checkoutResult = await Process.run(
-        'git',
-        [
-          'checkout',
-          '.',
-        ],
-        workingDirectory: resolvedCacheDir);
+    final checkoutResult = await Process.run('git', [
+      'checkout',
+      '.',
+    ], workingDirectory: resolvedCacheDir);
 
     if (checkoutResult.exitCode != 0) {
       stderr.writeln(
@@ -72,22 +71,17 @@ final class PatchApplyCommand extends Command<int>
       return 1;
     }
 
-    final gitDepsDir = Directory(
-      join(resolvedCacheDir, 'git'),
-    );
+    final gitDepsDir = Directory(join(resolvedCacheDir, 'git'));
     if (gitDepsDir.existsSync()) {
       for (final gitDep in gitDepsDir.listSync()) {
         if (basename(gitDep.path) == 'cache') {
           continue;
         }
 
-        final result = await Process.run(
-            'git',
-            [
-              'checkout',
-              '.',
-            ],
-            workingDirectory: gitDep.path);
+        final result = await Process.run('git', [
+          'checkout',
+          '.',
+        ], workingDirectory: gitDep.path);
 
         if (result.exitCode != 0) {
           stderr.writeln(
@@ -114,13 +108,10 @@ final class PatchApplyCommand extends Command<int>
     }
 
     for (final patch in hostedPatches) {
-      final result = await Process.run(
-          'git',
-          [
-            'apply',
-            patch.path,
-          ],
-          workingDirectory: resolvedCacheDir);
+      final result = await Process.run('git', [
+        'apply',
+        patch.path,
+      ], workingDirectory: resolvedCacheDir);
 
       if (result.exitCode != 0) {
         stderr.writeln(
@@ -137,13 +128,10 @@ final class PatchApplyCommand extends Command<int>
         basenameWithoutExtension(patch.path),
       );
 
-      final checkoutResult = await Process.run(
-          'git',
-          [
-            'checkout',
-            '.',
-          ],
-          workingDirectory: workingDir);
+      final checkoutResult = await Process.run('git', [
+        'checkout',
+        '.',
+      ], workingDirectory: workingDir);
 
       if (checkoutResult.exitCode != 0) {
         stderr.writeln(
@@ -152,13 +140,10 @@ final class PatchApplyCommand extends Command<int>
         return 1;
       }
 
-      final result = await Process.run(
-          'git',
-          [
-            'apply',
-            patch.path,
-          ],
-          workingDirectory: workingDir);
+      final result = await Process.run('git', [
+        'apply',
+        patch.path,
+      ], workingDirectory: workingDir);
 
       if (result.exitCode != 0) {
         stderr.writeln(

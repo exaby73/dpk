@@ -35,11 +35,7 @@ abstract class Script with _$Script {
 
   factory Script.fromYaml(String name, dynamic yaml) {
     if (yaml is String) {
-      return Script(
-        name: name,
-        command: yaml,
-        runHooksFrom: null,
-      );
+      return Script(name: name, command: yaml, runHooksFrom: null);
     }
 
     if (yaml is! YamlMap) {

@@ -12,17 +12,22 @@ part 'dependency.g.dart';
 
 Dependency fromPubspecParseDependency(pubspec_parse.Dependency dep) {
   return switch (dep) {
-    pubspec_parse.SdkDependency() =>
-      SdkDependency(dep.sdk, version: dep.version),
-    pubspec_parse.GitDependency() =>
-      GitDependency(dep.url, ref: dep.ref, path: dep.path),
+    pubspec_parse.SdkDependency() => SdkDependency(
+      dep.sdk,
+      version: dep.version,
+    ),
+    pubspec_parse.GitDependency() => GitDependency(
+      dep.url,
+      ref: dep.ref,
+      path: dep.path,
+    ),
     pubspec_parse.PathDependency() => PathDependency(dep.path),
     pubspec_parse.HostedDependency() => HostedDependency(
-        version: dep.version,
-        hosted: dep.hosted != null
-            ? HostedDetails(dep.hosted!.declaredName, dep.hosted!.url)
-            : null,
-      ),
+      version: dep.version,
+      hosted: dep.hosted != null
+          ? HostedDetails(dep.hosted!.declaredName, dep.hosted!.url)
+          : null,
+    ),
   };
 }
 
@@ -63,14 +68,17 @@ Dependency? _fromJson(Object? data, String name) {
   }
 
   if (data is Map) {
-    final matchedKeys =
-        data.keys.cast<String>().where((key) => key != 'version').toList();
+    final matchedKeys = data.keys
+        .cast<String>()
+        .where((key) => key != 'version')
+        .toList();
 
     if (data.isEmpty || (matchedKeys.isEmpty && data.containsKey('version'))) {
       return _$HostedDependencyFromJson(data.cast());
     } else {
-      final firstUnrecognizedKey =
-          matchedKeys.firstWhereOrNull((k) => !_sourceKeys.contains(k));
+      final firstUnrecognizedKey = matchedKeys.firstWhereOrNull(
+        (k) => !_sourceKeys.contains(k),
+      );
 
       return $checkedNew<Dependency>('Dependency', data, () {
         if (firstUnrecognizedKey != null) {
@@ -95,8 +103,9 @@ Dependency? _fromJson(Object? data, String name) {
           'git' => GitDependency.fromData(data[key]),
           'path' => PathDependency.fromData(data[key]),
           'sdk' => _$SdkDependencyFromJson(data.cast()),
-          'hosted' => _$HostedDependencyFromJson(data.cast())
-            ..hosted?._nameOfPackage = name,
+          'hosted' => _$HostedDependencyFromJson(
+            data.cast(),
+          )..hosted?._nameOfPackage = name,
           _ => throw StateError('There is a bug in pubspec_parse.'),
         };
       });
@@ -110,12 +119,18 @@ Dependency? _fromJson(Object? data, String name) {
 sealed class Dependency<ToJsonType> {
   ToJsonType toJson() {
     return switch (this) {
-      SdkDependency() => _$SdkDependencyToJson(this as SdkDependency),
-      GitDependency() => {'git': _$GitDependencyToJson(this as GitDependency)},
-      PathDependency() =>
-        throw StateError('Never called due to being overriden'),
-      HostedDependency() => _$HostedDependencyToJson(this as HostedDependency),
-    } as ToJsonType;
+          SdkDependency() => _$SdkDependencyToJson(this as SdkDependency),
+          GitDependency() => {
+            'git': _$GitDependencyToJson(this as GitDependency),
+          },
+          PathDependency() => throw StateError(
+            'Never called due to being overriden',
+          ),
+          HostedDependency() => _$HostedDependencyToJson(
+            this as HostedDependency,
+          ),
+        }
+        as ToJsonType;
   }
 }
 
@@ -126,7 +141,7 @@ class SdkDependency extends Dependency {
   final VersionConstraint version;
 
   SdkDependency(this.sdk, {VersionConstraint? version})
-      : version = version ?? VersionConstraint.any;
+    : version = version ?? VersionConstraint.any;
 
   @override
   bool operator ==(Object other) =>
@@ -247,7 +262,7 @@ class HostedDependency extends Dependency {
   final HostedDetails? hosted;
 
   HostedDependency({VersionConstraint? version, this.hosted})
-      : version = version ?? VersionConstraint.any;
+    : version = version ?? VersionConstraint.any;
 
   @override
   bool operator ==(Object other) =>

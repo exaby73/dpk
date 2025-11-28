@@ -39,7 +39,9 @@ final class PatchGenerateCommand extends Command<int>
     }
 
     final options = GenerateOptions.fromArgResults(argResults!);
-    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(
+      options.globalPatchOptions.cacheDir,
+    );
     final cacheDir = Directory(resolvedCacheDir);
     final patchDir = Directory(options.globalPatchOptions.patchDir);
 
@@ -78,13 +80,10 @@ final class PatchGenerateCommand extends Command<int>
       stdout: statusStdout as String,
       stderr: statusStderr as String,
       exitCode: statusExitCode,
-    ) = await Process.run(
-        'git',
-        [
-          'status',
-          '-s',
-        ],
-        workingDirectory: resolvedCacheDir);
+    ) = await Process.run('git', [
+      'status',
+      '-s',
+    ], workingDirectory: resolvedCacheDir);
 
     if (statusExitCode != 0) {
       stderr.writeln('Failed to generate patch files:\n$statusStderr');
@@ -96,8 +95,9 @@ final class PatchGenerateCommand extends Command<int>
       return 0;
     }
 
-    final statusLines =
-        statusStdout.split('\n').where((line) => line.trim().isNotEmpty);
+    final statusLines = statusStdout
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty);
     final patches = <({String packageName, bool isGit}), List<String>>{};
     final untrackedFiles = <String>[];
 
@@ -132,16 +132,15 @@ final class PatchGenerateCommand extends Command<int>
         continue;
       }
 
-      final gitDir = join(
-        resolvedCacheDir,
-        'git',
-        packageName,
-      );
+      final gitDir = join(resolvedCacheDir, 'git', packageName);
       final ProcessResult(
         stdout: statusStdout as String,
         stderr: statusStderr as String,
         exitCode: statusExitCode,
-      ) = await Process.run('git', ['status', '-s'], workingDirectory: gitDir);
+      ) = await Process.run('git', [
+        'status',
+        '-s',
+      ], workingDirectory: gitDir);
 
       if (statusExitCode != 0) {
         stderr.writeln('Failed to generate patch files:\n$statusStderr');
@@ -153,8 +152,9 @@ final class PatchGenerateCommand extends Command<int>
         return 0;
       }
 
-      final statusLines =
-          statusStdout.split('\n').where((line) => line.trim().isNotEmpty);
+      final statusLines = statusStdout
+          .split('\n')
+          .where((line) => line.trim().isNotEmpty);
       for (final line in statusLines) {
         final [status, path] = line.trim().split(RegExp(r'\s+'));
         if (status == '??') {
@@ -172,11 +172,7 @@ final class PatchGenerateCommand extends Command<int>
       final (:packageName, :isGit) = key;
       late final String workingDir;
       if (isGit) {
-        workingDir = join(
-          resolvedCacheDir,
-          'git',
-          packageName,
-        );
+        workingDir = join(resolvedCacheDir, 'git', packageName);
       } else {
         workingDir = resolvedCacheDir;
       }
@@ -185,15 +181,12 @@ final class PatchGenerateCommand extends Command<int>
         stdout: diffStdout as String,
         stderr: diffStderr as String,
         exitCode: diffExitCode,
-      ) = await Process.run(
-          'git',
-          [
-            'diff',
-            '--no-ext-diff',
-            '--no-color',
-            ...filePaths,
-          ],
-          workingDirectory: workingDir);
+      ) = await Process.run('git', [
+        'diff',
+        '--no-ext-diff',
+        '--no-color',
+        ...filePaths,
+      ], workingDirectory: workingDir);
 
       if (diffExitCode != 0) {
         stderr.writeln('Failed to generate patch files:\n$diffStderr');

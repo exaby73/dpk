@@ -39,7 +39,9 @@ final class PatchInitCommand extends Command<int>
     }
 
     final options = PatchOptions.fromArgResults(argResults!);
-    final resolvedCacheDir = resolveCacheDir(options.globalPatchOptions.cacheDir);
+    final resolvedCacheDir = resolveCacheDir(
+      options.globalPatchOptions.cacheDir,
+    );
     final cacheDir = Directory(resolvedCacheDir);
 
     if (!cacheDir.existsSync()) {
@@ -70,38 +72,21 @@ final class PatchInitCommand extends Command<int>
     }
 
     if (dotGitExists && options.force) {
-      await Process.run(
-          'git',
-          [
-            'checkout',
-            '.',
-          ],
-          workingDirectory: resolvedCacheDir);
+      await Process.run('git', [
+        'checkout',
+        '.',
+      ], workingDirectory: resolvedCacheDir);
 
       await dotGitDir.delete(recursive: true);
     }
 
-    await Process.run(
-        'git',
-        [
-          'init',
-        ],
-        workingDirectory: resolvedCacheDir);
-    await Process.run(
-        'git',
-        [
-          'add',
-          '.',
-        ],
-        workingDirectory: resolvedCacheDir);
-    await Process.run(
-        'git',
-        [
-          'commit',
-          '-m',
-          '"Patch initialized"',
-        ],
-        workingDirectory: resolvedCacheDir);
+    await Process.run('git', ['init'], workingDirectory: resolvedCacheDir);
+    await Process.run('git', ['add', '.'], workingDirectory: resolvedCacheDir);
+    await Process.run('git', [
+      'commit',
+      '-m',
+      '"Patch initialized"',
+    ], workingDirectory: resolvedCacheDir);
 
     stdout.writeln('Patch initialized');
 

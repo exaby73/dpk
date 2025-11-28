@@ -50,8 +50,9 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     final argResults = tempParser.parse(globalRawArgs);
     final directoryArg = argResults['directory'] as String?;
 
-    final startDirectory =
-        directoryArg != null ? Directory(directoryArg) : Directory.current;
+    final startDirectory = directoryArg != null
+        ? Directory(directoryArg)
+        : Directory.current;
 
     final dpkYamlDir = await findDpkYamlDirectory(startDirectory);
     final Directory workingDirectory = dpkYamlDir ?? startDirectory;

@@ -15,10 +15,7 @@ base mixin HookRunnerMixin on Command<int> {
     required GlobalOptions globalOptions,
   }) {
     final hookName = 'pre:$commandName';
-    return _runHook(
-      hookName: hookName,
-      globalOptions: globalOptions,
-    );
+    return _runHook(hookName: hookName, globalOptions: globalOptions);
   }
 
   /// Runs the post-hook for the given command name if it exists.
@@ -28,10 +25,7 @@ base mixin HookRunnerMixin on Command<int> {
     required GlobalOptions globalOptions,
   }) {
     final hookName = 'post:$commandName';
-    return _runHook(
-      hookName: hookName,
-      globalOptions: globalOptions,
-    );
+    return _runHook(hookName: hookName, globalOptions: globalOptions);
   }
 
   Future<int> _runHook({
@@ -41,10 +35,7 @@ base mixin HookRunnerMixin on Command<int> {
     final hookRunner = DpkScriptRunner(
       config: config,
       arguments: [],
-      options: RunOptions(
-        globalOptions: globalOptions,
-        script: hookName,
-      ),
+      options: RunOptions(globalOptions: globalOptions, script: hookName),
     );
 
     final originalDirectory = Directory.current;

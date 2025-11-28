@@ -32,10 +32,7 @@ final class RunCommand extends Command<int> with ConfigMixin {
     final scripts = config.scripts?.scriptsMap;
     if (scripts != null) {
       for (final scriptName in scripts.keys) {
-        addSubcommand(ScriptSubCommand(
-          scriptName: scriptName,
-          config: config,
-        ));
+        addSubcommand(ScriptSubCommand(scriptName: scriptName, config: config));
       }
     }
   }
@@ -96,10 +93,7 @@ final class ScriptSubCommand extends Command<int> {
   final String scriptName;
   final ConfigData config;
 
-  ScriptSubCommand({
-    required this.scriptName,
-    required this.config,
-  });
+  ScriptSubCommand({required this.scriptName, required this.config});
 
   @override
   String get name => scriptName;
@@ -196,7 +190,7 @@ final class DpkScriptRunner {
   ) {
     if (maxWidth <= 0) {
       return [
-        <int>[...indentBytes, ...lineBytes]
+        <int>[...indentBytes, ...lineBytes],
       ];
     }
 
@@ -247,7 +241,8 @@ final class DpkScriptRunner {
             currentLine.addAll(ansiBuffer);
           }
           currentLine.addAll(remainingBytes);
-          visibleLength = indentBytes.length +
+          visibleLength =
+              indentBytes.length +
               (visibleLength - lastWhitespaceVisibleLength - 1);
           lastWhitespacePos = -1;
         } else {
@@ -275,7 +270,7 @@ final class DpkScriptRunner {
 
     return wrapped.isEmpty
         ? [
-            <int>[...indentBytes, ...lineBytes]
+            <int>[...indentBytes, ...lineBytes],
           ]
         : wrapped;
   }
@@ -332,10 +327,7 @@ final class DpkScriptRunner {
 
       final command = script.command.trim();
 
-      final finalScript = [
-        command,
-        if (arguments.isNotEmpty) ...arguments,
-      ];
+      final finalScript = [command, if (arguments.isNotEmpty) ...arguments];
 
       if (hasToRunMultiple) {
         final processExitCodesFutures = <Future<int>>[];
@@ -364,18 +356,46 @@ final class DpkScriptRunner {
           var buffer = <int>[];
           var headerPrinted = false;
 
-          process.stdout.listen((event) {
-            if (event.isEmpty) return;
+          process.stdout.listen(
+            (event) {
+              if (event.isEmpty) return;
 
-            buffer.addAll(event);
-            var start = 0;
+              buffer.addAll(event);
+              var start = 0;
 
-            for (var i = 0; i < buffer.length; i++) {
-              if (buffer[i] == newlineByte) {
-                final lineBytes = buffer.sublist(start, i);
-                final wrappedLines =
-                    _wrapLineWithAnsi(lineBytes, maxLineWidth, indentBytes);
+              for (var i = 0; i < buffer.length; i++) {
+                if (buffer[i] == newlineByte) {
+                  final lineBytes = buffer.sublist(start, i);
+                  final wrappedLines = _wrapLineWithAnsi(
+                    lineBytes,
+                    maxLineWidth,
+                    indentBytes,
+                  );
 
+                  for (var j = 0; j < wrappedLines.length; j++) {
+                    final output = <int>[];
+                    if (j == 0 && !headerPrinted) {
+                      output.addAll(headerBytes);
+                      headerPrinted = true;
+                    }
+                    output.addAll(wrappedLines[j]);
+                    output.add(newlineByte);
+                    stdout.add(output);
+                  }
+
+                  start = i + 1;
+                }
+              }
+
+              buffer = buffer.sublist(start);
+            },
+            onDone: () {
+              if (buffer.isNotEmpty) {
+                final wrappedLines = _wrapLineWithAnsi(
+                  buffer,
+                  maxLineWidth,
+                  indentBytes,
+                );
                 for (var j = 0; j < wrappedLines.length; j++) {
                   final output = <int>[];
                   if (j == 0 && !headerPrinted) {
@@ -386,43 +406,52 @@ final class DpkScriptRunner {
                   output.add(newlineByte);
                   stdout.add(output);
                 }
-
-                start = i + 1;
               }
-            }
-
-            buffer = buffer.sublist(start);
-          }, onDone: () {
-            if (buffer.isNotEmpty) {
-              final wrappedLines =
-                  _wrapLineWithAnsi(buffer, maxLineWidth, indentBytes);
-              for (var j = 0; j < wrappedLines.length; j++) {
-                final output = <int>[];
-                if (j == 0 && !headerPrinted) {
-                  output.addAll(headerBytes);
-                  headerPrinted = true;
-                }
-                output.addAll(wrappedLines[j]);
-                output.add(newlineByte);
-                stdout.add(output);
-              }
-            }
-          });
+            },
+          );
 
           var stderrBuffer = <int>[];
 
-          process.stderr.listen((event) {
-            if (event.isEmpty) return;
+          process.stderr.listen(
+            (event) {
+              if (event.isEmpty) return;
 
-            stderrBuffer.addAll(event);
-            var start = 0;
+              stderrBuffer.addAll(event);
+              var start = 0;
 
-            for (var i = 0; i < stderrBuffer.length; i++) {
-              if (stderrBuffer[i] == newlineByte) {
-                final lineBytes = stderrBuffer.sublist(start, i);
-                final wrappedLines =
-                    _wrapLineWithAnsi(lineBytes, maxLineWidth, indentBytes);
+              for (var i = 0; i < stderrBuffer.length; i++) {
+                if (stderrBuffer[i] == newlineByte) {
+                  final lineBytes = stderrBuffer.sublist(start, i);
+                  final wrappedLines = _wrapLineWithAnsi(
+                    lineBytes,
+                    maxLineWidth,
+                    indentBytes,
+                  );
 
+                  for (var j = 0; j < wrappedLines.length; j++) {
+                    final output = <int>[];
+                    if (j == 0 && !headerPrinted) {
+                      output.addAll(headerBytes);
+                      headerPrinted = true;
+                    }
+                    output.addAll(wrappedLines[j]);
+                    output.add(newlineByte);
+                    stderr.add(output);
+                  }
+
+                  start = i + 1;
+                }
+              }
+
+              stderrBuffer = stderrBuffer.sublist(start);
+            },
+            onDone: () {
+              if (stderrBuffer.isNotEmpty) {
+                final wrappedLines = _wrapLineWithAnsi(
+                  stderrBuffer,
+                  maxLineWidth,
+                  indentBytes,
+                );
                 for (var j = 0; j < wrappedLines.length; j++) {
                   final output = <int>[];
                   if (j == 0 && !headerPrinted) {
@@ -433,39 +462,17 @@ final class DpkScriptRunner {
                   output.add(newlineByte);
                   stderr.add(output);
                 }
-
-                start = i + 1;
               }
-            }
-
-            stderrBuffer = stderrBuffer.sublist(start);
-          }, onDone: () {
-            if (stderrBuffer.isNotEmpty) {
-              final wrappedLines =
-                  _wrapLineWithAnsi(stderrBuffer, maxLineWidth, indentBytes);
-              for (var j = 0; j < wrappedLines.length; j++) {
-                final output = <int>[];
-                if (j == 0 && !headerPrinted) {
-                  output.addAll(headerBytes);
-                  headerPrinted = true;
-                }
-                output.addAll(wrappedLines[j]);
-                output.add(newlineByte);
-                stderr.add(output);
-              }
-            }
-          });
+            },
+          );
 
           processExitCodesFutures.add(process.exitCode);
         }
 
         final processExitCodes = await Future.wait(processExitCodesFutures);
-        return processExitCodes.fold(
-          0,
-          (previousValue, element) {
-            return previousValue == 0 ? element : previousValue;
-          },
-        );
+        return processExitCodes.fold(0, (previousValue, element) {
+          return previousValue == 0 ? element : previousValue;
+        });
       }
 
       final process = await Process.start(
@@ -484,8 +491,10 @@ final class DpkScriptRunner {
 
     // If we get here, the script doesn't exist in dpk.yaml
     final availableScripts = config.scripts?.scriptsMap.keys.toList() ?? [];
-    throw StateError('Script "${options.script}" not found in dpk.yaml.\n'
-        'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}');
+    throw StateError(
+      'Script "${options.script}" not found in dpk.yaml.\n'
+      'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}',
+    );
   }
 
   (IntCallback?, IntCallback?) _getHooks({
@@ -508,18 +517,18 @@ final class DpkScriptRunner {
 
     if (config.scripts?.scriptsMap.containsKey(preHookName) == true) {
       preHookCallback = () => _runScript(
-            config: config,
-            options: options.copyWith(script: preHookName),
-            arguments: [],
-          );
+        config: config,
+        options: options.copyWith(script: preHookName),
+        arguments: [],
+      );
     }
 
     if (config.scripts?.scriptsMap.containsKey(postHookName) == true) {
       postHookCallback = () => _runScript(
-            config: config,
-            options: options.copyWith(script: postHookName),
-            arguments: [],
-          );
+        config: config,
+        options: options.copyWith(script: postHookName),
+        arguments: [],
+      );
     }
 
     return (preHookCallback, postHookCallback);

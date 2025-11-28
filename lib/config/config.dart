@@ -87,7 +87,8 @@ Future<ConfigData> loadConfig(Directory directory) async {
         join(workspaceInfo.workspaceRoot!.path, 'pubspec.yaml'),
       );
       if (rootPubspecFile.existsSync()) {
-        workspaceRootPubspec = loadYaml(rootPubspecFile.readAsStringSync()) as Map;
+        workspaceRootPubspec =
+            loadYaml(rootPubspecFile.readAsStringSync()) as Map;
       }
 
       // Load workspace root dpk.yaml if it exists
@@ -128,7 +129,10 @@ Future<ConfigData> loadConfig(Directory directory) async {
   // If in a workspace package, also merge the workspace field from root pubspec
   if (workspaceInfo.isWorkspacePackage && workspaceRootPubspec != null) {
     if (workspaceRootPubspec.containsKey('workspace')) {
-      mergedYaml = {...mergedYaml, 'workspace': workspaceRootPubspec['workspace']};
+      mergedYaml = {
+        ...mergedYaml,
+        'workspace': workspaceRootPubspec['workspace'],
+      };
     }
   }
 

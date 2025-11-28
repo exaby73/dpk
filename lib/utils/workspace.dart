@@ -19,9 +19,10 @@ class WorkspaceInfo {
     required this.isWorkspace,
     this.workspaceRoot,
     required this.currentPackage,
-  }) : isWorkspacePackage = isWorkspace &&
-            workspaceRoot != null &&
-            workspaceRoot.path != currentPackage.path;
+  }) : isWorkspacePackage =
+           isWorkspace &&
+           workspaceRoot != null &&
+           workspaceRoot.path != currentPackage.path;
 }
 
 /// Cache for workspace info to avoid repeated process calls
@@ -62,9 +63,12 @@ Future<WorkspaceInfo> getWorkspaceInfo(Directory directory) async {
     }
 
     // Parse JSON output
-    final jsonOutput = jsonDecode(result.stdout as String) as Map<String, dynamic>;
-    final packages = (jsonOutput['packages'] as List<dynamic>?)
-        ?.cast<Map<String, dynamic>>() ?? [];
+    final jsonOutput =
+        jsonDecode(result.stdout as String) as Map<String, dynamic>;
+    final packages =
+        (jsonOutput['packages'] as List<dynamic>?)
+            ?.cast<Map<String, dynamic>>() ??
+        [];
 
     if (packages.isEmpty) {
       // No packages found, not a workspace

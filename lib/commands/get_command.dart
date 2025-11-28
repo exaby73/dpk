@@ -58,7 +58,8 @@ final class GetCommand extends Command<int>
   Future<int> run() async {
     final options = PubGetOptions.fromArgResults(argResults!);
 
-    final targetDirectory = options.globalPubOptions.globalOptions.directory ??
+    final targetDirectory =
+        options.globalPubOptions.globalOptions.directory ??
         config.workingDirectory;
     Directory.current = targetDirectory;
 
@@ -126,8 +127,9 @@ final class GetCommand extends Command<int>
 
     final originalPubspecFile = File('pubspec.yaml');
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
-    final originalPubspec =
-        pubspec_parse.Pubspec.parse(originalPubspecYamlString);
+    final originalPubspec = pubspec_parse.Pubspec.parse(
+      originalPubspecYamlString,
+    );
     final (:dependencies, :devDependencies, :dependencyOverrides) =
         _generateDependencies(originalPubspec, catalog);
 
@@ -136,11 +138,9 @@ final class GetCommand extends Command<int>
     if (dependencies.isNotEmpty) {
       pubspecOverridesYamlEditor.update(
         ['dependencies'],
-        dependencies.map(
-          (key, value) {
-            return MapEntry(key, value.toJson());
-          },
-        ),
+        dependencies.map((key, value) {
+          return MapEntry(key, value.toJson());
+        }),
       );
     } else if (originalPubspec.dependencies.isNotEmpty) {
       pubspecOverridesYamlEditor.remove(['dependencies']);
@@ -149,11 +149,9 @@ final class GetCommand extends Command<int>
     if (devDependencies.isNotEmpty) {
       pubspecOverridesYamlEditor.update(
         ['dev_dependencies'],
-        devDependencies.map(
-          (key, value) {
-            return MapEntry(key, value.toJson());
-          },
-        ),
+        devDependencies.map((key, value) {
+          return MapEntry(key, value.toJson());
+        }),
       );
     } else if (originalPubspec.devDependencies.isNotEmpty) {
       pubspecOverridesYamlEditor.remove(['dev_dependencies']);
@@ -162,11 +160,9 @@ final class GetCommand extends Command<int>
     if (dependencyOverrides.isNotEmpty) {
       pubspecOverridesYamlEditor.update(
         ['dependency_overrides'],
-        dependencyOverrides.map(
-          (key, value) {
-            return MapEntry(key, value.toJson());
-          },
-        ),
+        dependencyOverrides.map((key, value) {
+          return MapEntry(key, value.toJson());
+        }),
       );
     } else if (originalPubspec.dependencyOverrides.isNotEmpty) {
       pubspecOverridesYamlEditor.remove(['dependency_overrides']);
@@ -182,8 +178,9 @@ final class GetCommand extends Command<int>
       throw StateError('pubspec.yaml not found in $workspace');
     }
 
-    final originalPubspec =
-        pubspec_parse.Pubspec.parse(pubspecFile.readAsStringSync());
+    final originalPubspec = pubspec_parse.Pubspec.parse(
+      pubspecFile.readAsStringSync(),
+    );
     final env = _createDpkEnv(originalPubspec, workspace);
     final editor = YamlEditor(pubspecFile.readAsStringSync());
 
@@ -191,10 +188,7 @@ final class GetCommand extends Command<int>
       editor.update(
         ['environment'],
         catalog.environment!.map(
-          (key, value) => MapEntry(
-            key,
-            value?.toString(),
-          ),
+          (key, value) => MapEntry(key, value?.toString()),
         ),
       );
     }
@@ -204,19 +198,15 @@ final class GetCommand extends Command<int>
     }
 
     if (catalog.repository != null) {
-      editor.update(
-        ['repository'],
-        env.replace(catalog.repository!.toString()),
-      );
+      editor.update([
+        'repository',
+      ], env.replace(catalog.repository!.toString()));
     }
 
     if (catalog.issueTracker != null) {
-      editor.update(
-        ['issue_tracker'],
-        env.replace(
-          catalog.issueTracker!.toString(),
-        ),
-      );
+      editor.update([
+        'issue_tracker',
+      ], env.replace(catalog.issueTracker!.toString()));
     }
 
     if (catalog.topics != null) {
@@ -268,7 +258,7 @@ final class GetCommand extends Command<int>
     final Catalog(
       dependencies: catalogDependencies,
       devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides
+      dependencyOverrides: catalogDependencyOverrides,
     ) = catalog;
 
     if (catalogDependencies != null) {
@@ -298,9 +288,11 @@ final class GetCommand extends Command<int>
         .toList();
 
     if (duplicates.isNotEmpty) {
-      final duplicateMessages = duplicates.map((entry) {
-        return 'Package "${entry.key}" appears in: ${entry.value.join(", ")}';
-      }).join('\n');
+      final duplicateMessages = duplicates
+          .map((entry) {
+            return 'Package "${entry.key}" appears in: ${entry.value.join(", ")}';
+          })
+          .join('\n');
       throw StateError(
         'Catalog has duplicate package names across different sections:\n$duplicateMessages',
       );
@@ -313,7 +305,7 @@ final class GetCommand extends Command<int>
     final Catalog(
       dependencies: catalogDependencies,
       devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides
+      dependencyOverrides: catalogDependencyOverrides,
     ) = catalog;
 
     if (catalogDependencies != null) {
@@ -366,8 +358,9 @@ final class GetCommand extends Command<int>
   ({
     Map<String, Dependency> dependencies,
     Map<String, Dependency> devDependencies,
-    Map<String, Dependency> dependencyOverrides
-  }) _generateDependencies(
+    Map<String, Dependency> dependencyOverrides,
+  })
+  _generateDependencies(
     pubspec_parse.Pubspec originalPubspec,
     Catalog catalog,
   ) {
@@ -378,7 +371,7 @@ final class GetCommand extends Command<int>
     final Catalog(
       dependencies: catalogDependencies,
       devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides
+      dependencyOverrides: catalogDependencyOverrides,
     ) = catalog;
 
     if (catalogDependencies != null) {
