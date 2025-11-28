@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -145,7 +144,8 @@ final class DpkScriptRunner {
   }) async {
     assert(options.script != null, 'Script name is required');
 
-    final scriptExists = config.scripts?.scriptsMap.containsKey(options.script) == true;
+    final scriptExists =
+        config.scripts?.scriptsMap.containsKey(options.script) == true;
 
     if (!scriptExists && skipIfMissing) {
       return 0;
@@ -183,6 +183,101 @@ final class DpkScriptRunner {
 
     final postHookExitCode = await postHook?.call();
     return postHookExitCode ?? 0;
+  }
+
+  List<String> _wrapCommandForPty(String command) {
+    return ['-c', command];
+  }
+
+  List<List<int>> _wrapLineWithAnsi(
+    List<int> lineBytes,
+    int maxWidth,
+    List<int> indentBytes,
+  ) {
+    if (maxWidth <= 0) {
+      return [
+        <int>[...indentBytes, ...lineBytes]
+      ];
+    }
+
+    final wrapped = <List<int>>[];
+    var currentLine = <int>[...indentBytes];
+    var visibleLength = indentBytes.length;
+    var inAnsi = false;
+    var ansiBuffer = <int>[];
+    var lastWhitespacePos = -1;
+    var lastWhitespaceVisibleLength = 0;
+
+    for (var i = 0; i < lineBytes.length; i++) {
+      final byte = lineBytes[i];
+
+      if (byte == 0x1B) {
+        inAnsi = true;
+        ansiBuffer = [byte];
+        currentLine.add(byte);
+        continue;
+      }
+
+      if (inAnsi) {
+        ansiBuffer.add(byte);
+        currentLine.add(byte);
+        if (byte >= 0x40 && byte <= 0x7E) {
+          inAnsi = false;
+          ansiBuffer = [];
+        }
+        continue;
+      }
+
+      final isWhitespace = byte == 0x20 || byte == 0x09;
+      if (isWhitespace) {
+        lastWhitespacePos = currentLine.length;
+        lastWhitespaceVisibleLength = visibleLength;
+      }
+
+      if (visibleLength >= maxWidth &&
+          currentLine.length > indentBytes.length) {
+        if (lastWhitespacePos > indentBytes.length &&
+            lastWhitespaceVisibleLength > indentBytes.length) {
+          final wrappedLine = currentLine.sublist(0, lastWhitespacePos);
+          final remainingBytes = currentLine.sublist(lastWhitespacePos + 1);
+          wrapped.add(wrappedLine);
+
+          currentLine = <int>[...indentBytes];
+          if (ansiBuffer.isNotEmpty) {
+            currentLine.addAll(ansiBuffer);
+          }
+          currentLine.addAll(remainingBytes);
+          visibleLength = indentBytes.length +
+              (visibleLength - lastWhitespaceVisibleLength - 1);
+          lastWhitespacePos = -1;
+        } else {
+          wrapped.add(currentLine);
+          currentLine = <int>[...indentBytes];
+          if (ansiBuffer.isNotEmpty) {
+            currentLine.addAll(ansiBuffer);
+          }
+          visibleLength = indentBytes.length;
+          lastWhitespacePos = -1;
+        }
+      }
+
+      currentLine.add(byte);
+      if (byte == 0x09) {
+        visibleLength = ((visibleLength ~/ 8) + 1) * 8;
+      } else if (byte >= 0x20) {
+        visibleLength++;
+      }
+    }
+
+    if (currentLine.isNotEmpty) {
+      wrapped.add(currentLine);
+    }
+
+    return wrapped.isEmpty
+        ? [
+            <int>[...indentBytes, ...lineBytes]
+          ]
+        : wrapped;
   }
 
   Future<int> _runScript({
@@ -244,8 +339,10 @@ final class DpkScriptRunner {
 
       if (hasToRunMultiple) {
         final processExitCodesFutures = <Future<int>>[];
-        final stdoutStream = StreamController<List<int>>();
-        final stderrStream = StreamController<List<int>>();
+        final newlineByte = 0x0A;
+        final indentLength = 4;
+        final terminalWidth = stdout.hasTerminal ? stdout.terminalColumns : 80;
+        final maxLineWidth = terminalWidth - indentLength;
 
         // Resolve package paths relative to workspace root if available
         final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
@@ -256,35 +353,111 @@ final class DpkScriptRunner {
 
           final process = await Process.start(
             getShell(),
-            ['-c', finalScript.join(' ')],
+            _wrapCommandForPty(finalScript.join(' ')),
             runInShell: true,
             workingDirectory: packagePath,
             environment: script.env,
           );
 
-          process.stdout.transform(utf8.decoder).listen((event) {
-            final prefix = '[$package]: ';
-            final logLines = event.split('\n');
-            for (int i = 1; i < logLines.length; i++) {
-              final originalLogLine = logLines[i];
-              if (originalLogLine.trim().isEmpty) {
-                continue;
+          final headerBytes = '[$package]\n'.codeUnits;
+          final indentBytes = '    '.codeUnits;
+          var buffer = <int>[];
+          var headerPrinted = false;
+
+          process.stdout.listen((event) {
+            if (event.isEmpty) return;
+
+            buffer.addAll(event);
+            var start = 0;
+
+            for (var i = 0; i < buffer.length; i++) {
+              if (buffer[i] == newlineByte) {
+                final lineBytes = buffer.sublist(start, i);
+                final wrappedLines =
+                    _wrapLineWithAnsi(lineBytes, maxLineWidth, indentBytes);
+
+                for (var j = 0; j < wrappedLines.length; j++) {
+                  final output = <int>[];
+                  if (j == 0 && !headerPrinted) {
+                    output.addAll(headerBytes);
+                    headerPrinted = true;
+                  }
+                  output.addAll(wrappedLines[j]);
+                  output.add(newlineByte);
+                  stdout.add(output);
+                }
+
+                start = i + 1;
               }
-              logLines[i] = originalLogLine.padLeft(
-                originalLogLine.length + prefix.length,
-              );
             }
-            stdoutStream.add('$prefix${logLines.join('\n')}'.codeUnits);
+
+            buffer = buffer.sublist(start);
+          }, onDone: () {
+            if (buffer.isNotEmpty) {
+              final wrappedLines =
+                  _wrapLineWithAnsi(buffer, maxLineWidth, indentBytes);
+              for (var j = 0; j < wrappedLines.length; j++) {
+                final output = <int>[];
+                if (j == 0 && !headerPrinted) {
+                  output.addAll(headerBytes);
+                  headerPrinted = true;
+                }
+                output.addAll(wrappedLines[j]);
+                output.add(newlineByte);
+                stdout.add(output);
+              }
+            }
           });
-          process.stderr.transform(utf8.decoder).listen((event) {
-            stderrStream.add('[$package]: $event'.codeUnits);
+
+          var stderrBuffer = <int>[];
+
+          process.stderr.listen((event) {
+            if (event.isEmpty) return;
+
+            stderrBuffer.addAll(event);
+            var start = 0;
+
+            for (var i = 0; i < stderrBuffer.length; i++) {
+              if (stderrBuffer[i] == newlineByte) {
+                final lineBytes = stderrBuffer.sublist(start, i);
+                final wrappedLines =
+                    _wrapLineWithAnsi(lineBytes, maxLineWidth, indentBytes);
+
+                for (var j = 0; j < wrappedLines.length; j++) {
+                  final output = <int>[];
+                  if (j == 0 && !headerPrinted) {
+                    output.addAll(headerBytes);
+                    headerPrinted = true;
+                  }
+                  output.addAll(wrappedLines[j]);
+                  output.add(newlineByte);
+                  stderr.add(output);
+                }
+
+                start = i + 1;
+              }
+            }
+
+            stderrBuffer = stderrBuffer.sublist(start);
+          }, onDone: () {
+            if (stderrBuffer.isNotEmpty) {
+              final wrappedLines =
+                  _wrapLineWithAnsi(stderrBuffer, maxLineWidth, indentBytes);
+              for (var j = 0; j < wrappedLines.length; j++) {
+                final output = <int>[];
+                if (j == 0 && !headerPrinted) {
+                  output.addAll(headerBytes);
+                  headerPrinted = true;
+                }
+                output.addAll(wrappedLines[j]);
+                output.add(newlineByte);
+                stderr.add(output);
+              }
+            }
           });
 
           processExitCodesFutures.add(process.exitCode);
         }
-
-        stdout.addStream(stdoutStream.stream);
-        stderr.addStream(stderrStream.stream);
 
         final processExitCodes = await Future.wait(processExitCodesFutures);
         return processExitCodes.fold(
@@ -303,10 +476,8 @@ final class DpkScriptRunner {
             ? packagesToRunIn.first
             : options.globalOptions.directory,
         environment: script.env,
+        mode: ProcessStartMode.inheritStdio,
       );
-
-      stdout.addStream(process.stdout);
-      stderr.addStream(process.stderr);
 
       return process.exitCode;
     }

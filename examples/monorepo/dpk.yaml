@@ -31,8 +31,18 @@ scripts:
   pubget:
     command: dart pub get
     runInPackages:
-      - '**/*'
+      - "**/*"
   pwd:
     command: pwd
     runInPackages:
-      - '**/*'
+      - "**/*"
+
+  pre:build:
+    command: dart run build_runner clean
+    runInPackages:
+      - "**/*"
+  build:
+    command: dart run build_runner build -d
+    runInPackages:
+      - "**/*"
+  post:build: echo "Build completed successfully"
