@@ -1,3 +1,9 @@
+## 0.5.0
+
+- [BREAKING] Feat: Update min Dart to 3.8.0
+- Feat: Improve parallel script output with header grouping, indentation, and line wrapping, and preserve colors for single scripts
+- Feat: Add summary table for parallel scripts
+
 ## 0.4.0
 
 - Feat: Workspace packages can now define package-specific `dpk.yaml` files that merge with workspace root scripts, with package scripts taking precedence over root scripts for script name conflicts
