@@ -36,6 +36,10 @@ scripts:
     command: pwd
     runInPackages:
       - "**/*"
+  pwd_from_root:
+    command: 'echo "ROOT: $DPK_ROOT" && cd $DPK_ROOT && pwd'
+    runInPackages:
+      - "**/*"
 
   pre:build:
     command: dart run build_runner clean

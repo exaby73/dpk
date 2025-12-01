@@ -238,15 +238,15 @@ final class DpkScriptRunner {
 
       final finalScript = [command, if (arguments.isNotEmpty) ...arguments];
 
+      // Resolve workspace root for DPK_ROOT env var and package paths
+      final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
+
       if (hasToRunMultiple) {
         final processExitCodesFutures =
             <Future<({String package, int exitCode})>>[];
         final terminalWidth = TerminalLogUtil.getTerminalWidth(stdout);
         final maxLineWidth = terminalWidth - TerminalLogUtil.indentLength;
         final indentBytes = '    '.codeUnits;
-
-        // Resolve package paths relative to workspace root if available
-        final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
 
         for (final package in packagesToRunIn) {
           // Resolve package path relative to workspace root
@@ -257,7 +257,7 @@ final class DpkScriptRunner {
             _wrapCommandForPty(finalScript.join(' ')),
             runInShell: true,
             workingDirectory: packagePath,
-            environment: script.env,
+            environment: {...?script.env, 'DPK_ROOT': workspaceRoot},
           );
 
           TerminalLogUtil.setupStreamHandlers(
@@ -308,9 +308,11 @@ final class DpkScriptRunner {
         ['-c', finalScript.join(' ')],
         runInShell: true,
         workingDirectory: packagesToRunIn.isNotEmpty
-            ? packagesToRunIn.first
+            ? path.join(workspaceRoot, packagesToRunIn.first)
             : options.globalOptions.directory,
-        environment: script.env,
+        environment: packagesToRunIn.isNotEmpty
+            ? {...?script.env, 'DPK_ROOT': workspaceRoot}
+            : script.env,
         mode: ProcessStartMode.inheritStdio,
       );
 

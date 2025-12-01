@@ -1,3 +1,7 @@
+## 0.6.0
+
+- Feat: Add DPK_ROOT environment variable support to scripts with `runInPackages` option, allowing scripts to access the workspace root directory
+
 ## 0.5.0
 
 - [BREAKING] Feat: Update min Dart to 3.8.0
