@@ -9,6 +9,7 @@ import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
 import 'package:dpk/utils/catalog_utils.dart';
+import 'package:dpk/utils/pubspec_sorter.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
@@ -138,6 +139,7 @@ final class GetCommand extends Command<int>
 
     final pubspecYamlString = editor.toString();
     originalPubspecFile.writeAsStringSync(pubspecYamlString);
+    _sortPubspecIfEnabled(originalPubspecFile);
   }
 
   void _applyRootCatalog(
@@ -220,6 +222,7 @@ final class GetCommand extends Command<int>
     updateExistingDependencies(editor, originalPubspec, catalog);
 
     pubspecFile.writeAsStringSync(editor.toString());
+    _sortPubspecIfEnabled(pubspecFile);
   }
 
   DpkWorkspaceEnvironment _createDpkEnv(
@@ -235,6 +238,13 @@ final class GetCommand extends Command<int>
       dpkPackageName: packageName,
       dpkPackageVersion: packageVersion?.toString(),
     );
+  }
+
+  void _sortPubspecIfEnabled(File pubspecFile) {
+    if (!config.dpkConfig.sortPubspec) return;
+    final content = pubspecFile.readAsStringSync();
+    final sorted = sortPubspec(content);
+    pubspecFile.writeAsStringSync(sorted);
   }
 
   void _validateCatalogDependencies(Catalog catalog) {

@@ -1,6 +1,12 @@
 name: package_3
 description: A starting point for Dart libraries or applications.
 version: 2.0.0
+publish_to: none
+repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_3
+documentation: https://pub.dev/documentation/package_3/2.0.0/
+resolution: workspace
+topics:
+  - dpk
 
 environment:
   sdk: ^3.6.0
@@ -12,16 +18,10 @@ dependencies:
     git:
       url: https://github.com/exaby73/luthor.git
       path: packages/luthor
-  meta: 1.15.0
+  meta: 1.15.0 # This is a dependency override
 
 dev_dependencies:
   build_runner: 2.4.15
   freezed: ^3.0.6
   lints: ^5.0.0
   test: ^1.24.0
-publish_to: none
-repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_3
-topics:
-  - dpk
-documentation: https://pub.dev/documentation/package_3/2.0.0/
-resolution: workspace

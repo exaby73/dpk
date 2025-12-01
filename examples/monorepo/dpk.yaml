@@ -1,4 +1,5 @@
 mode: project
+sortPubspec: true
 
 workspace:
   - packages/*

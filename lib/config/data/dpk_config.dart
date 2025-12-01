@@ -10,6 +10,7 @@ abstract class DpkConfig with _$DpkConfig {
     @Default(DpkMode.global) DpkMode mode,
     Catalog? catalog,
     List<String>? workspace,
+    @Default(false) bool sortPubspec,
   }) = _DpkConfig;
 
   factory DpkConfig.fromYaml(YamlMap yaml) {
@@ -23,6 +24,7 @@ abstract class DpkConfig with _$DpkConfig {
     final catalog = catalogYaml != null ? Catalog.fromYaml(catalogYaml) : null;
     final workspaceYaml = map['workspace'] as YamlList?;
     final workspace = workspaceYaml?.cast<String>();
+    final sortPubspec = map['sortPubspec'] as bool? ?? false;
 
     return DpkConfig(
       mode: DpkMode.values.firstWhere(
@@ -31,6 +33,7 @@ abstract class DpkConfig with _$DpkConfig {
       ),
       catalog: catalog,
       workspace: workspace,
+      sortPubspec: sortPubspec,
     );
   }
 }
