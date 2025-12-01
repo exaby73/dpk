@@ -9,6 +9,7 @@ abstract class DpkConfig with _$DpkConfig {
   const factory DpkConfig({
     @Default(DpkMode.global) DpkMode mode,
     Catalog? catalog,
+    List<String>? workspace,
   }) = _DpkConfig;
 
   factory DpkConfig.fromYaml(YamlMap yaml) {
@@ -20,6 +21,8 @@ abstract class DpkConfig with _$DpkConfig {
     final dpkMode = map['mode'] as String?;
     final catalogYaml = map['catalog'] as YamlMap?;
     final catalog = catalogYaml != null ? Catalog.fromYaml(catalogYaml) : null;
+    final workspaceYaml = map['workspace'] as YamlList?;
+    final workspace = workspaceYaml?.cast<String>();
 
     return DpkConfig(
       mode: DpkMode.values.firstWhere(
@@ -27,6 +30,7 @@ abstract class DpkConfig with _$DpkConfig {
         orElse: () => DpkMode.global,
       ),
       catalog: catalog,
+      workspace: workspace,
     );
   }
 }

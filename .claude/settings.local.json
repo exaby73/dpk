@@ -6,7 +6,8 @@
       "Bash(dart pub workspace:*)",
       "Bash(dart test:*)",
       "Bash(dart pub get:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(dart run build_runner:*)"
     ],
     "deny": [],
     "ask": []

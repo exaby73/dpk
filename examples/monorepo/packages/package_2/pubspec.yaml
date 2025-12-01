@@ -1,6 +1,12 @@
 name: package_2
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
+resolution: workspace
+publish_to: none
+repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_2
+documentation: https://pub.dev/documentation/package_2/1.0.0/
+topics:
+  - dpk
 
 environment:
   sdk: ^3.6.0
@@ -15,13 +21,7 @@ dependencies:
   meta: 1.15.0
 
 dev_dependencies:
-  build_runner: ^2.4.15
+  build_runner: 2.4.15
   freezed: ^3.0.6
   lints: ^5.0.0
   test: ^1.24.0
-publish_to: none
-topics:
-  - dpk
-documentation: https://pub.dev/documentation/package_2/1.0.0/
-resolution: workspace
-repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_2

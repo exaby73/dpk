@@ -110,66 +110,45 @@ final class GetCommand extends Command<int>
     PubGetOptions options,
     List<String> arguments,
   ) async {
-    if (config.pubspec.workspace == null) {
-      throw StateError('No workspace found in pubspec.yaml');
-    }
-
     final catalog = config.dpkConfig.catalog;
-    if (catalog == null) {
-      return;
-    }
+    final workspaces = config.pubspec.workspace;
 
-    _validateCatalogDependencies(catalog);
-
-    for (final workspace in config.pubspec.workspace!) {
-      _editPubspecOfWorkspace(workspace, catalog);
+    if (catalog != null) {
+      _validateCatalogDependencies(catalog);
     }
 
     final originalPubspecFile = File('pubspec.yaml');
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
-    final originalPubspec = pubspec_parse.Pubspec.parse(
-      originalPubspecYamlString,
-    );
-    final (:dependencies, :devDependencies, :dependencyOverrides) =
-        _generateDependencies(originalPubspec, catalog);
+    final editor = YamlEditor(originalPubspecYamlString);
 
-    final pubspecOverridesYamlEditor = YamlEditor(originalPubspecYamlString);
-
-    if (dependencies.isNotEmpty) {
-      pubspecOverridesYamlEditor.update(
-        ['dependencies'],
-        dependencies.map((key, value) {
-          return MapEntry(key, value.toJson());
-        }),
-      );
-    } else if (originalPubspec.dependencies.isNotEmpty) {
-      pubspecOverridesYamlEditor.remove(['dependencies']);
+    if (workspaces != null && workspaces.isNotEmpty) {
+      editor.update(['workspace'], workspaces);
     }
 
-    if (devDependencies.isNotEmpty) {
-      pubspecOverridesYamlEditor.update(
-        ['dev_dependencies'],
-        devDependencies.map((key, value) {
-          return MapEntry(key, value.toJson());
-        }),
-      );
-    } else if (originalPubspec.devDependencies.isNotEmpty) {
-      pubspecOverridesYamlEditor.remove(['dev_dependencies']);
+    if (catalog != null) {
+      _applyRootCatalog(editor, catalog);
+
+      for (final workspace in workspaces ?? <String>[]) {
+        _editPubspecOfWorkspace(workspace, catalog);
+      }
     }
 
-    if (dependencyOverrides.isNotEmpty) {
-      pubspecOverridesYamlEditor.update(
-        ['dependency_overrides'],
-        dependencyOverrides.map((key, value) {
-          return MapEntry(key, value.toJson());
-        }),
-      );
-    } else if (originalPubspec.dependencyOverrides.isNotEmpty) {
-      pubspecOverridesYamlEditor.remove(['dependency_overrides']);
-    }
+    final pubspecYamlString = editor.toString();
+    originalPubspecFile.writeAsStringSync(pubspecYamlString);
+  }
 
-    final pubspecOverridesYamlString = pubspecOverridesYamlEditor.toString();
-    originalPubspecFile.writeAsStringSync(pubspecOverridesYamlString);
+  void _applyRootCatalog(
+    YamlEditor editor,
+    Catalog catalog,
+  ) {
+    if (catalog.environment != null) {
+      editor.update(
+        ['environment'],
+        catalog.environment!.map(
+          (key, value) => MapEntry(key, value?.toString()),
+        ),
+      );
+    }
   }
 
   void _editPubspecOfWorkspace(String workspace, Catalog catalog) {
@@ -355,49 +334,6 @@ final class GetCommand extends Command<int>
     }
   }
 
-  ({
-    Map<String, Dependency> dependencies,
-    Map<String, Dependency> devDependencies,
-    Map<String, Dependency> dependencyOverrides,
-  })
-  _generateDependencies(
-    pubspec_parse.Pubspec originalPubspec,
-    Catalog catalog,
-  ) {
-    final dependencies = <String, Dependency>{};
-    final devDependencies = <String, Dependency>{};
-    final dependencyOverrides = <String, Dependency>{};
-
-    final Catalog(
-      dependencies: catalogDependencies,
-      devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides,
-    ) = catalog;
-
-    if (catalogDependencies != null) {
-      for (final dependency in catalogDependencies.entries) {
-        dependencies[dependency.key] = dependency.value;
-      }
-    }
-
-    if (catalogDevDependencies != null) {
-      for (final dependency in catalogDevDependencies.entries) {
-        devDependencies[dependency.key] = dependency.value;
-      }
-    }
-
-    if (catalogDependencyOverrides != null) {
-      for (final dependency in catalogDependencyOverrides.entries) {
-        dependencyOverrides[dependency.key] = dependency.value;
-      }
-    }
-
-    return (
-      dependencies: dependencies,
-      devDependencies: devDependencies,
-      dependencyOverrides: dependencyOverrides,
-    );
-  }
 }
 
 @freezed
