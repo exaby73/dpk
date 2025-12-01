@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/config/data/catalog.dart';
-import 'package:dpk/config/data/dependency.dart';
 import 'package:dpk/config/data/dpk_workspace_environment.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
+import 'package:dpk/utils/catalog_utils.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
@@ -119,6 +119,9 @@ final class GetCommand extends Command<int>
 
     final originalPubspecFile = File('pubspec.yaml');
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
+    final originalPubspec = pubspec_parse.Pubspec.parse(
+      originalPubspecYamlString,
+    );
     final editor = YamlEditor(originalPubspecYamlString);
 
     if (workspaces != null && workspaces.isNotEmpty) {
@@ -126,7 +129,7 @@ final class GetCommand extends Command<int>
     }
 
     if (catalog != null) {
-      _applyRootCatalog(editor, catalog);
+      _applyRootCatalog(editor, originalPubspec, catalog);
 
       for (final workspace in workspaces ?? <String>[]) {
         _editPubspecOfWorkspace(workspace, catalog);
@@ -139,6 +142,7 @@ final class GetCommand extends Command<int>
 
   void _applyRootCatalog(
     YamlEditor editor,
+    pubspec_parse.Pubspec pubspec,
     Catalog catalog,
   ) {
     if (catalog.environment != null) {
@@ -149,6 +153,8 @@ final class GetCommand extends Command<int>
         ),
       );
     }
+
+    updateExistingDependencies(editor, pubspec, catalog);
   }
 
   void _editPubspecOfWorkspace(String workspace, Catalog catalog) {
@@ -211,7 +217,7 @@ final class GetCommand extends Command<int>
       editor.update(['resolution'], catalog.resolution);
     }
 
-    _updateWorkspaceDependencies(editor, originalPubspec, catalog);
+    updateExistingDependencies(editor, originalPubspec, catalog);
 
     pubspecFile.writeAsStringSync(editor.toString());
   }
@@ -275,62 +281,6 @@ final class GetCommand extends Command<int>
       throw StateError(
         'Catalog has duplicate package names across different sections:\n$duplicateMessages',
       );
-    }
-  }
-
-  Map<String, Dependency> _combineCatalogDependencies(Catalog catalog) {
-    final combined = <String, Dependency>{};
-
-    final Catalog(
-      dependencies: catalogDependencies,
-      devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides,
-    ) = catalog;
-
-    if (catalogDependencies != null) {
-      combined.addAll(catalogDependencies);
-    }
-
-    if (catalogDevDependencies != null) {
-      combined.addAll(catalogDevDependencies);
-    }
-
-    if (catalogDependencyOverrides != null) {
-      combined.addAll(catalogDependencyOverrides);
-    }
-
-    return combined;
-  }
-
-  void _updateWorkspaceDependencies(
-    YamlEditor editor,
-    pubspec_parse.Pubspec pubspec,
-    Catalog catalog,
-  ) {
-    final catalogDependencies = _combineCatalogDependencies(catalog);
-
-    if (catalogDependencies.isEmpty) {
-      return;
-    }
-
-    final dependencySections = [
-      ('dependencies', pubspec.dependencies),
-      ('dev_dependencies', pubspec.devDependencies),
-      ('dependency_overrides', pubspec.dependencyOverrides),
-    ];
-
-    for (final (sectionName, sectionDeps) in dependencySections) {
-      if (sectionDeps.isEmpty) {
-        continue;
-      }
-
-      for (final entry in sectionDeps.entries) {
-        final packageName = entry.key;
-        if (catalogDependencies.containsKey(packageName)) {
-          final catalogDep = catalogDependencies[packageName]!;
-          editor.update([sectionName, packageName], catalogDep.toJson());
-        }
-      }
     }
   }
 
