@@ -1,4 +1,4 @@
-## 0.6.1
+## 0.6.2
 
 - Docs: Add setup section to README with required pubspec.yaml and dpk.yaml file structures
 
