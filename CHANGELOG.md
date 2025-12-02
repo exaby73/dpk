@@ -1,5 +1,7 @@
 ## 0.6.0
 
+- [BREAKING] Refactor: Consolidate catalog deps into single field for dependencies and
+  dev_dependencies
 - Feat: Add DPK_ROOT environment variable support to scripts with `runInPackages` option, allowing scripts to access the workspace root directory
 - Feat: Add glob pattern support for workspace in dpk.yaml
 - Feat: Add sortPubspec option to sort pubspec.yaml files on get command

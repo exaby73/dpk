@@ -15,10 +15,8 @@ catalog:
   topics:
     - dpk
 
-  dev_dependencies:
+  dependencies:
     build_runner: 2.4.15
-
-  dependency_overrides:
     meta: 1.15.0
     luthor:
       git:

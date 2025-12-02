@@ -69,10 +69,11 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
 
   static Future<DpkCommandRunner> init(List<String> arguments) async {
     Logger.root.onRecord.listen((record) {
+      final nameSubString = record.loggerName.isNotEmpty
+          ? ' [${record.loggerName}]'
+          : '';
       // ignore: avoid_print
-      print(
-        '[${record.level.name}] [${record.loggerName}] : ${record.message}',
-      );
+      print('[${record.level.name}]$nameSubString : ${record.message}');
     });
 
     final runner = await DpkCommandRunner._create(

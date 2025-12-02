@@ -16,19 +16,11 @@ abstract class Catalog with _$Catalog {
     String? documentation,
     String? resolution,
     Map<String, Dependency>? dependencies,
-    Map<String, Dependency>? devDependencies,
-    Map<String, Dependency>? dependencyOverrides,
   }) = _Catalog;
 
   factory Catalog.fromYaml(YamlMap yaml) {
     final environment = _extractEnvironment(yaml['environment'] as YamlMap?);
     final dependencies = _extractDependencies(yaml['dependencies'] as YamlMap?);
-    final devDependencies = _extractDependencies(
-      yaml['dev_dependencies'] as YamlMap?,
-    );
-    final dependencyOverrides = _extractDependencies(
-      yaml['dependency_overrides'] as YamlMap?,
-    );
     final publishTo = yaml['publish_to'] as String?;
     final repository = yaml['repository'] as String?;
     final issueTracker = yaml['issue_tracker'] as String?;
@@ -39,8 +31,6 @@ abstract class Catalog with _$Catalog {
     return Catalog(
       environment: environment,
       dependencies: dependencies,
-      devDependencies: devDependencies,
-      dependencyOverrides: dependencyOverrides,
       publishTo: publishTo,
       repository: repository != null ? Uri.parse(repository) : null,
       issueTracker: issueTracker != null ? Uri.parse(issueTracker) : null,

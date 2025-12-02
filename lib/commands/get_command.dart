@@ -114,9 +114,6 @@ final class GetCommand extends Command<int>
     final catalog = config.dpkConfig.catalog;
     final workspaces = config.pubspec.workspace;
 
-    if (catalog != null) {
-      _validateCatalogDependencies(catalog);
-    }
 
     final originalPubspecFile = File('pubspec.yaml');
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
@@ -245,53 +242,6 @@ final class GetCommand extends Command<int>
     final content = pubspecFile.readAsStringSync();
     final sorted = sortPubspec(content);
     pubspecFile.writeAsStringSync(sorted);
-  }
-
-  void _validateCatalogDependencies(Catalog catalog) {
-    final allPackageNames = <String, List<String>>{};
-
-    final Catalog(
-      dependencies: catalogDependencies,
-      devDependencies: catalogDevDependencies,
-      dependencyOverrides: catalogDependencyOverrides,
-    ) = catalog;
-
-    if (catalogDependencies != null) {
-      for (final packageName in catalogDependencies.keys) {
-        allPackageNames.putIfAbsent(packageName, () => []).add('dependencies');
-      }
-    }
-
-    if (catalogDevDependencies != null) {
-      for (final packageName in catalogDevDependencies.keys) {
-        allPackageNames
-            .putIfAbsent(packageName, () => [])
-            .add('dev_dependencies');
-      }
-    }
-
-    if (catalogDependencyOverrides != null) {
-      for (final packageName in catalogDependencyOverrides.keys) {
-        allPackageNames
-            .putIfAbsent(packageName, () => [])
-            .add('dependency_overrides');
-      }
-    }
-
-    final duplicates = allPackageNames.entries
-        .where((entry) => entry.value.length > 1)
-        .toList();
-
-    if (duplicates.isNotEmpty) {
-      final duplicateMessages = duplicates
-          .map((entry) {
-            return 'Package "${entry.key}" appears in: ${entry.value.join(", ")}';
-          })
-          .join('\n');
-      throw StateError(
-        'Catalog has duplicate package names across different sections:\n$duplicateMessages',
-      );
-    }
   }
 
 }

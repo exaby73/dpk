@@ -1,44 +1,24 @@
 import 'package:dpk/config/data/catalog.dart';
-import 'package:dpk/config/data/dependency.dart';
+import 'package:logging/logging.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
 import 'package:yaml_edit/yaml_edit.dart';
 
-/// Combines all catalog dependencies into a single map.
-Map<String, Dependency> combineCatalogDependencies(Catalog catalog) {
-  final combined = <String, Dependency>{};
-
-  if (catalog.dependencies != null) {
-    combined.addAll(catalog.dependencies!);
-  }
-
-  if (catalog.devDependencies != null) {
-    combined.addAll(catalog.devDependencies!);
-  }
-
-  if (catalog.dependencyOverrides != null) {
-    combined.addAll(catalog.dependencyOverrides!);
-  }
-
-  return combined;
-}
-
 /// Updates existing dependencies in a pubspec with catalog versions.
 /// Only updates dependencies that already exist in the pubspec.
+/// Warns if a dependency_overrides entry matches a catalog dependency.
 void updateExistingDependencies(
   YamlEditor editor,
   pubspec_parse.Pubspec pubspec,
   Catalog catalog,
 ) {
-  final catalogDependencies = combineCatalogDependencies(catalog);
-
-  if (catalogDependencies.isEmpty) {
+  final catalogDependencies = catalog.dependencies;
+  if (catalogDependencies == null || catalogDependencies.isEmpty) {
     return;
   }
 
   final dependencySections = [
     ('dependencies', pubspec.dependencies),
     ('dev_dependencies', pubspec.devDependencies),
-    ('dependency_overrides', pubspec.dependencyOverrides),
   ];
 
   for (final (sectionName, sectionDeps) in dependencySections) {
@@ -52,6 +32,16 @@ void updateExistingDependencies(
         final catalogDep = catalogDependencies[packageName]!;
         editor.update([sectionName, packageName], catalogDep.toJson());
       }
+    }
+  }
+
+  for (final entry in pubspec.dependencyOverrides.entries) {
+    final packageName = entry.key;
+    if (catalogDependencies.containsKey(packageName)) {
+      Logger.root.warning(
+        'Catalog version for "$packageName" in ${pubspec.name} will be '
+        'overridden by dependency_overrides.',
+      );
     }
   }
 }
