@@ -19,7 +19,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 final class DpkCommandRunner extends CompletionCommandRunner<int> {
-  late final ConfigData config;
+  final ConfigData? config;
   final List<String> args;
 
   DpkCommandRunner._({
@@ -41,24 +41,32 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     required String description,
     required List<String> args,
   }) async {
-    // Create a temporary arg parser to parse directory flag
-    final tempParser = ArgParser();
-    final globalRawArgs = [
-      for (final arg in args)
-        if (tempParser.options.containsKey(arg)) arg,
-    ];
-    addGlobalArgs(tempParser);
-    final argResults = tempParser.parse(globalRawArgs);
-    final directoryArg = argResults['directory'] as String?;
+    // Skip config loading for help requests
+    final isHelpRequest = args.contains('--help') ||
+        args.contains('-h') ||
+        args.isEmpty;
 
-    final startDirectory = directoryArg != null
-        ? Directory(directoryArg)
-        : Directory.current;
+    ConfigData? config;
+    if (!isHelpRequest) {
+      // Create a temporary arg parser to parse directory flag
+      final tempParser = ArgParser();
+      final globalRawArgs = [
+        for (final arg in args)
+          if (tempParser.options.containsKey(arg)) arg,
+      ];
+      addGlobalArgs(tempParser);
+      final argResults = tempParser.parse(globalRawArgs);
+      final directoryArg = argResults['directory'] as String?;
 
-    final dpkYamlDir = await findDpkYamlDirectory(startDirectory);
-    final Directory workingDirectory = dpkYamlDir ?? startDirectory;
+      final startDirectory = directoryArg != null
+          ? Directory(directoryArg)
+          : Directory.current;
 
-    final config = await loadConfig(workingDirectory);
+      final dpkYamlDir = await findDpkYamlDirectory(startDirectory);
+      final Directory workingDirectory = dpkYamlDir ?? startDirectory;
+
+      config = await loadConfig(workingDirectory);
+    }
 
     return DpkCommandRunner._(
       executableName: executableName,
@@ -83,7 +91,9 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       args: arguments,
     );
 
-    container.registerSingleton<ConfigData>(runner.config);
+    if (runner.config != null) {
+      container.registerSingleton<ConfigData>(runner.config!);
+    }
 
     runner
       ..addCommand(AddCommand())
@@ -91,8 +101,12 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       ..addCommand(GetCommand())
       ..addCommand(RemoveCommand())
       ..addCommand(UpgradeCommand())
-      ..addCommand(PatchCommand())
-      ..addCommand(RunCommand());
+      ..addCommand(PatchCommand());
+
+    // RunCommand accesses config in its constructor, so only add it when config is available
+    if (runner.config != null) {
+      runner.addCommand(RunCommand());
+    }
 
     return runner;
   }
@@ -105,8 +119,8 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       return 0;
     }
 
-    if (topLevelResults.flag('help') == false) {
-      final requiredVersion = config.dpkConfig.version;
+    if (topLevelResults.flag('help') == false && config != null) {
+      final requiredVersion = config!.dpkConfig.version;
       final currentVersion = Version.parse(Pubspec.version.canonical);
       if (!requiredVersion.allows(currentVersion)) {
         // ignore: avoid_print

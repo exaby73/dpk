@@ -1,3 +1,7 @@
+## 0.6.3
+
+- Fix: Allow --version and --help to work before dpk.yaml parsing
+
 ## 0.6.2
 
 - Docs: Add setup section to README with required pubspec.yaml and dpk.yaml file structures
