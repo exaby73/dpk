@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Docs: Add setup section to README with required pubspec.yaml and dpk.yaml file structures
+
 ## 0.6.0
 
 - [BREAKING] Refactor: Consolidate catalog deps into single field for dependencies and

@@ -25,6 +25,26 @@ For Dart versions before 3.10, use:
 dart pub global activate dpk
 ```
 
+## Setup
+
+A minimal dpk project requires two files:
+
+**`pubspec.yaml`** - Standard Dart package file:
+
+```yaml
+name: my_package
+environment:
+  sdk: ^3.8.0
+```
+
+**`dpk.yaml`** - dpk configuration file:
+
+```yaml
+version: ^X.Y.Z
+```
+
+The `version` field is required and specifies which dpk version your project is compatible with. This ensures all team members use a compatible version.
+
 ## Usage
 
 `dpk` is designed to be a drop-in replacement for many `dart pub` commands.
