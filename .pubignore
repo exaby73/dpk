@@ -1,2 +1,16 @@
-pub_packages
+# Local development
+pub_packages/
 dpk.yaml
+patches/
+
+# IDE files
+*.iml
+
+# Examples
+examples/
+
+# Tests
+test/
+
+# Build configuration
+build.yaml
