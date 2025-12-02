@@ -153,6 +153,8 @@ scripts:
 
 The `patch` command set allows you to create, apply, and manage patches for your dependencies. This is particularly useful when you need to make temporary changes to a package without forking it.
 
+> **Note:** Patching requires `mode: project` in your `dpk.yaml` to install packages locally (see [mode](#mode) below).
+
 #### 1. Initialize Patching
 
 First, initialize the patching environment. This will create a `pub_packages` directory and set up a git repository to track changes.
@@ -220,7 +222,7 @@ version: ^X.Y.Z
 # Operational mode
 mode: global # or 'project' - see mode section below
 
-# Sort pubspec.yaml keys alphabetically on dpk get
+# Sort pubspec.yaml keys on dpk get
 sortPubspec: true
 
 # Workspace glob patterns (for monorepos)
