@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DpkConfig {
 
- DpkMode get mode; Catalog? get catalog; List<String>? get workspace; bool get sortPubspec;
+ DpkMode get mode; Catalog? get catalog; List<String>? get workspace; bool get sortPubspec; VersionConstraint get version;
 /// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DpkConfigCopyWith<DpkConfig> get copyWith => _$DpkConfigCopyWithImpl<DpkConfig>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DpkConfig&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other.workspace, workspace)&&(identical(other.sortPubspec, sortPubspec) || other.sortPubspec == sortPubspec));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DpkConfig&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other.workspace, workspace)&&(identical(other.sortPubspec, sortPubspec) || other.sortPubspec == sortPubspec)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,catalog,const DeepCollectionEquality().hash(workspace),sortPubspec);
+int get hashCode => Object.hash(runtimeType,mode,catalog,const DeepCollectionEquality().hash(workspace),sortPubspec,version);
 
 @override
 String toString() {
-  return 'DpkConfig(mode: $mode, catalog: $catalog, workspace: $workspace, sortPubspec: $sortPubspec)';
+  return 'DpkConfig(mode: $mode, catalog: $catalog, workspace: $workspace, sortPubspec: $sortPubspec, version: $version)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DpkConfigCopyWith<$Res>  {
   factory $DpkConfigCopyWith(DpkConfig value, $Res Function(DpkConfig) _then) = _$DpkConfigCopyWithImpl;
 @useResult
 $Res call({
- DpkMode mode, Catalog? catalog, List<String>? workspace, bool sortPubspec
+ DpkMode mode, Catalog? catalog, List<String>? workspace, bool sortPubspec, VersionConstraint version
 });
 
 
@@ -62,13 +62,14 @@ class _$DpkConfigCopyWithImpl<$Res>
 
 /// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? catalog = freezed,Object? workspace = freezed,Object? sortPubspec = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? catalog = freezed,Object? workspace = freezed,Object? sortPubspec = null,Object? version = null,}) {
   return _then(_self.copyWith(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as DpkMode,catalog: freezed == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
 as Catalog?,workspace: freezed == workspace ? _self.workspace : workspace // ignore: cast_nullable_to_non_nullable
 as List<String>?,sortPubspec: null == sortPubspec ? _self.sortPubspec : sortPubspec // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as VersionConstraint,
   ));
 }
 /// Create a copy of DpkConfig
@@ -165,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec,  VersionConstraint version)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DpkConfig() when $default != null:
-return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case _:
+return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec,_that.version);case _:
   return orElse();
 
 }
@@ -186,10 +187,10 @@ return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec,  VersionConstraint version)  $default,) {final _that = this;
 switch (_that) {
 case _DpkConfig():
-return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case _:
+return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec,_that.version);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +207,10 @@ return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DpkMode mode,  Catalog? catalog,  List<String>? workspace,  bool sortPubspec,  VersionConstraint version)?  $default,) {final _that = this;
 switch (_that) {
 case _DpkConfig() when $default != null:
-return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case _:
+return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec,_that.version);case _:
   return null;
 
 }
@@ -221,7 +222,7 @@ return $default(_that.mode,_that.catalog,_that.workspace,_that.sortPubspec);case
 
 
 class _DpkConfig implements DpkConfig {
-  const _DpkConfig({this.mode = DpkMode.global, this.catalog, final  List<String>? workspace, this.sortPubspec = false}): _workspace = workspace;
+  const _DpkConfig({this.mode = DpkMode.global, this.catalog, final  List<String>? workspace, this.sortPubspec = false, required this.version}): _workspace = workspace;
   
 
 @override@JsonKey() final  DpkMode mode;
@@ -236,6 +237,7 @@ class _DpkConfig implements DpkConfig {
 }
 
 @override@JsonKey() final  bool sortPubspec;
+@override final  VersionConstraint version;
 
 /// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +249,16 @@ _$DpkConfigCopyWith<_DpkConfig> get copyWith => __$DpkConfigCopyWithImpl<_DpkCon
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DpkConfig&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other._workspace, _workspace)&&(identical(other.sortPubspec, sortPubspec) || other.sortPubspec == sortPubspec));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DpkConfig&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.catalog, catalog) || other.catalog == catalog)&&const DeepCollectionEquality().equals(other._workspace, _workspace)&&(identical(other.sortPubspec, sortPubspec) || other.sortPubspec == sortPubspec)&&(identical(other.version, version) || other.version == version));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,catalog,const DeepCollectionEquality().hash(_workspace),sortPubspec);
+int get hashCode => Object.hash(runtimeType,mode,catalog,const DeepCollectionEquality().hash(_workspace),sortPubspec,version);
 
 @override
 String toString() {
-  return 'DpkConfig(mode: $mode, catalog: $catalog, workspace: $workspace, sortPubspec: $sortPubspec)';
+  return 'DpkConfig(mode: $mode, catalog: $catalog, workspace: $workspace, sortPubspec: $sortPubspec, version: $version)';
 }
 
 
@@ -267,7 +269,7 @@ abstract mixin class _$DpkConfigCopyWith<$Res> implements $DpkConfigCopyWith<$Re
   factory _$DpkConfigCopyWith(_DpkConfig value, $Res Function(_DpkConfig) _then) = __$DpkConfigCopyWithImpl;
 @override @useResult
 $Res call({
- DpkMode mode, Catalog? catalog, List<String>? workspace, bool sortPubspec
+ DpkMode mode, Catalog? catalog, List<String>? workspace, bool sortPubspec, VersionConstraint version
 });
 
 
@@ -284,13 +286,14 @@ class __$DpkConfigCopyWithImpl<$Res>
 
 /// Create a copy of DpkConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? catalog = freezed,Object? workspace = freezed,Object? sortPubspec = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? catalog = freezed,Object? workspace = freezed,Object? sortPubspec = null,Object? version = null,}) {
   return _then(_DpkConfig(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as DpkMode,catalog: freezed == catalog ? _self.catalog : catalog // ignore: cast_nullable_to_non_nullable
 as Catalog?,workspace: freezed == workspace ? _self._workspace : workspace // ignore: cast_nullable_to_non_nullable
 as List<String>?,sortPubspec: null == sortPubspec ? _self.sortPubspec : sortPubspec // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as VersionConstraint,
   ));
 }
 

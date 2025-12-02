@@ -16,18 +16,19 @@ abstract class ConfigData with _$ConfigData {
     String? workspaceRoot,
   }) = _ConfigData;
 
-  factory ConfigData.fromYaml(
-    YamlMap yaml,
-    String workingDirectory, [
+  factory ConfigData.fromYaml({
+    required YamlMap pubspecYaml,
+    required YamlMap dpkYaml,
+    required String workingDirectory,
     String? workspaceRoot,
-  ]) {
-    final pubspec = Pubspec.fromJson(yaml);
-    final rawScripts = yaml['scripts'];
+  }) {
+    final pubspec = Pubspec.fromJson(pubspecYaml);
+    final rawScripts = dpkYaml['scripts'];
     if (rawScripts is! YamlMap?) {
       throw StateError('Invalid scripts section');
     }
 
-    final dpkConfig = DpkConfig.fromYaml(yaml);
+    final dpkConfig = DpkConfig.fromYaml(dpkYaml);
     late final Scripts? scripts;
     if (rawScripts != null) {
       scripts = Scripts.fromYaml(rawScripts);

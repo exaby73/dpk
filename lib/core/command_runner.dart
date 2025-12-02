@@ -16,6 +16,7 @@ import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:dpk/utils/terminal_title.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 final class DpkCommandRunner extends CompletionCommandRunner<int> {
   late final ConfigData config;
@@ -102,6 +103,19 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
       // ignore: avoid_print
       print('dpk ${Pubspec.version.representation}');
       return 0;
+    }
+
+    if (topLevelResults.flag('help') == false) {
+      final requiredVersion = config.dpkConfig.version;
+      final currentVersion = Version.parse(Pubspec.version.canonical);
+      if (!requiredVersion.allows(currentVersion)) {
+        // ignore: avoid_print
+        print(
+          'Error: dpk version ${Pubspec.version.canonical} does not satisfy '
+          'required version constraint "$requiredVersion" in dpk.yaml',
+        );
+        return 1;
+      }
     }
 
     final commandName = topLevelResults.command?.name;

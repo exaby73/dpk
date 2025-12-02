@@ -1,5 +1,6 @@
 import 'package:dpk/config/data/catalog.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 part 'dpk_config.freezed.dart';
@@ -11,9 +12,16 @@ abstract class DpkConfig with _$DpkConfig {
     Catalog? catalog,
     List<String>? workspace,
     @Default(false) bool sortPubspec,
+    required VersionConstraint version,
   }) = _DpkConfig;
 
   factory DpkConfig.fromYaml(YamlMap yaml) {
+    final versionString = yaml['version'] as String?;
+    if (versionString == null) {
+      throw StateError("'version' is required in dpk.yaml");
+    }
+    final version = VersionConstraint.parse(versionString);
+
     var map = yaml;
     if (map.containsKey('dpk')) {
       map = map['dpk'] as YamlMap;
@@ -34,6 +42,7 @@ abstract class DpkConfig with _$DpkConfig {
       catalog: catalog,
       workspace: workspace,
       sortPubspec: sortPubspec,
+      version: version,
     );
   }
 }

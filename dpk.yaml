@@ -1,41 +1,19 @@
+version: ^0.6.0
+
 mode: project
 
 scripts:
-  activate: rm -rf ./.dart_tool/pub && dart pub global activate --source path . --overwrite
   analyze: dart analyze
-
-  pre:get: |
-    echo --------------------------------
-    echo Preget script
-    echo --------------------------------
-  post:get: |
-    echo --------------------------------
-    echo Postget script
-    echo --------------------------------
 
   clean: dart run build_runner clean
 
   pre:build: dpk run clean
   build: dart run build_runner build -d
-  post:build: echo "Build completed successfully"
 
   watch:
     runHooksFrom: build
     command: dart run build_runner watch -d
 
-  # Test commands
-  echo: echo
-
-  pre:test: |
-    echo --------------------------------
-    echo Pretest script
-    echo --------------------------------
-  post:test: |
-    echo --------------------------------
-    echo Posttest script
-    echo --------------------------------
-
-  test: echo "Test completed successfully"
-  test2:
-    runHooksFrom: test
-    command: echo "Test2 completed successfully"
+  publish:
+    runHooksFrom: build
+    command: dart pub publish -f

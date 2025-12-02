@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/core/constants.dart';
-import 'package:dpk/utils/collection.dart';
 import 'package:dpk/utils/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
@@ -125,19 +124,22 @@ Future<ConfigData> loadConfig(Directory directory) async {
       if (rootPubspecFile.existsSync()) {
         // Load workspace root dpk.yaml first to check for workspace globs
         final rootDpk = loadDpkYamlRaw(workspaceInfo.workspaceRoot!);
-        if (rootDpk != null) {
-          dpkYaml = rootDpk as Map;
+        if (rootDpk == null) {
+          throw StateError(
+            'dpk.yaml not found in workspace root ${workspaceInfo.workspaceRoot!.path}',
+          );
+        }
+        dpkYaml = rootDpk as Map;
 
-          // Expand workspace globs and write to root pubspec
-          final dpkWorkspace = dpkYaml['workspace'] as List?;
-          if (dpkWorkspace != null) {
-            final expandedWorkspace = expandWorkspaceGlobs(
-              dpkWorkspace,
-              workspaceInfo.workspaceRoot!,
-            );
-            if (expandedWorkspace != null) {
-              _writeWorkspaceToPubspec(rootPubspecFile, expandedWorkspace);
-            }
+        // Expand workspace globs and write to root pubspec
+        final dpkWorkspace = dpkYaml['workspace'] as List?;
+        if (dpkWorkspace != null) {
+          final expandedWorkspace = expandWorkspaceGlobs(
+            dpkWorkspace,
+            workspaceInfo.workspaceRoot!,
+          );
+          if (expandedWorkspace != null) {
+            _writeWorkspaceToPubspec(rootPubspecFile, expandedWorkspace);
           }
         }
 
@@ -166,44 +168,39 @@ Future<ConfigData> loadConfig(Directory directory) async {
   } else {
     // Not in a workspace or at workspace root: load single dpk.yaml
     final localDpk = loadDpkYamlRaw(directory);
-    if (localDpk != null) {
-      dpkYaml = localDpk as Map;
+    if (localDpk == null) {
+      throw StateError('dpk.yaml not found in ${directory.path}');
+    }
+    dpkYaml = localDpk as Map;
 
-      // Expand workspace globs and write to pubspec
-      final dpkWorkspace = dpkYaml['workspace'] as List?;
-      if (dpkWorkspace != null) {
-        final expandedWorkspace = expandWorkspaceGlobs(dpkWorkspace, directory);
-        if (expandedWorkspace != null) {
-          _writeWorkspaceToPubspec(pubspecFile, expandedWorkspace);
-        }
+    // Expand workspace globs and write to pubspec
+    final dpkWorkspace = dpkYaml['workspace'] as List?;
+    if (dpkWorkspace != null) {
+      final expandedWorkspace = expandWorkspaceGlobs(dpkWorkspace, directory);
+      if (expandedWorkspace != null) {
+        _writeWorkspaceToPubspec(pubspecFile, expandedWorkspace);
       }
     }
   }
 
   // Re-read pubspec after potential workspace expansion
-  Map pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as Map;
+  YamlMap pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as YamlMap;
 
-  // Remove workspace from dpkYaml since it's already been expanded and written to pubspec
-  final dpkYamlWithoutWorkspace = Map.from(dpkYaml)..remove('workspace');
-
-  // Merge dpk.yaml with pubspec.yaml
-  Map mergedYaml = mergeMaps(pubspecYaml, dpkYamlWithoutWorkspace);
-
-  // If in a workspace package, also merge the workspace field from root pubspec
+  // If in a workspace package, also add the workspace field from root pubspec to pubspecYaml
   if (workspaceInfo.isWorkspacePackage && workspaceRootPubspec != null) {
     if (workspaceRootPubspec.containsKey('workspace')) {
-      mergedYaml = {
-        ...mergedYaml,
-        'workspace': workspaceRootPubspec['workspace'],
-      };
+      final pubspecMap = Map<String, dynamic>.from(pubspecYaml);
+      pubspecMap['workspace'] = workspaceRootPubspec['workspace'];
+      pubspecYaml = loadYaml(jsonEncode(pubspecMap)) as YamlMap;
     }
   }
 
-  // Parse into ConfigData
+  // Parse into ConfigData with separate pubspec and dpk yamls
   final configData = ConfigData.fromYaml(
-    loadYaml(jsonEncode(mergedYaml)) as YamlMap,
-    directory.path,
-    workspaceInfo.workspaceRoot?.path,
+    pubspecYaml: pubspecYaml,
+    dpkYaml: loadYaml(jsonEncode(dpkYaml)) as YamlMap,
+    workingDirectory: directory.path,
+    workspaceRoot: workspaceInfo.workspaceRoot?.path,
   );
 
   return configData;
