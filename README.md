@@ -13,7 +13,13 @@ An alternative package manager for Dart that enhances the standard `dart pub` co
 
 ## Installation
 
-Activate `dpk` globally using the following command:
+Install `dpk` globally using the following command:
+
+```bash
+dart install dpk
+```
+
+For Dart versions before 3.10, use:
 
 ```bash
 dart pub global activate dpk
@@ -43,11 +49,13 @@ dart pub global activate dpk
 
 ### Running Scripts
 
-You can define custom scripts in a `dpk.yaml` file at the root of your project.
+You can define custom scripts in a `dpk.yaml` file at the root of your project. **Note:** A `dpk.yaml` file is required to use dpk.
 
 **`dpk.yaml` example:**
 
 ```yaml
+version: ^X.Y.Z # Required: dpk version constraint
+
 scripts:
   analyze: dart analyze
   test: dart test
@@ -96,11 +104,29 @@ You can set environment variables for scripts using the `env` section:
 
 ```yaml
 scripts:
-  deploy:
-    command: deploy --api-key $API_KEY
+  build:
+    command: dart compile exe bin/main.dart -o build/app
     env:
-      API_KEY: your-secret-key
-      ENVIRONMENT: production
+      DART_VM_OPTIONS: '-Denv=production'
+      LOG_LEVEL: verbose
+```
+
+#### Injected Environment Variables
+
+dpk automatically injects the following environment variables into scripts:
+
+| Variable   | Description                                   | Available In                 |
+| ---------- | --------------------------------------------- | ---------------------------- |
+| `DPK_ROOT` | Absolute path to the workspace root directory | Scripts with `runInPackages` |
+
+**Example using `DPK_ROOT`:**
+
+```yaml
+scripts:
+  check-root:
+    command: echo "Workspace root is $DPK_ROOT"
+    runInPackages:
+      - 'packages/*'
 ```
 
 ### Patching Dependencies
@@ -168,8 +194,19 @@ The `dpk.yaml` file allows for advanced configuration of scripts and workspace s
 ### Complete Configuration Example
 
 ```yaml
+# Required: dpk version constraint
+version: ^X.Y.Z
+
 # Operational mode
 mode: global # or 'project' - see mode section below
+
+# Sort pubspec.yaml keys alphabetically on dpk get
+sortPubspec: true
+
+# Workspace glob patterns (for monorepos)
+workspace:
+  - packages/*
+  - apps/*
 
 # Script definitions
 scripts:
@@ -208,11 +245,10 @@ catalog:
     sdk: '>=3.0.0 <4.0.0'
     flutter: '>=3.10.0' # Optional Flutter SDK constraint
 
-  # Package metadata
-  repository: https://github.com/username/repo
+  # Package metadata (supports template variables - see below)
+  repository: https://github.com/username/repo/tree/main/DPK_PACKAGE_PATH
   issue_tracker: https://github.com/username/repo/issues
-  documentation: https://docs.example.com
-  homepage: https://example.com
+  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
 
   # Publishing configuration
   publish_to: none # or a custom pub server URL
@@ -224,23 +260,27 @@ catalog:
     - package-manager
 
   # Dependency resolution type
-  resolution: hosted # or 'git' for git-based dependencies
+  resolution: workspace # or 'hosted' for standard resolution
 
-  # Shared dependencies across workspace
+  # Shared dependencies across workspace (applies to both dependencies and dev_dependencies)
   dependencies:
     http: ^1.1.0
     path: ^1.9.0
-
-  dev_dependencies:
     lints: ^3.0.0
     test: ^1.24.0
-
-  # Override dependencies at workspace level
-  dependency_overrides:
-    http: ^1.2.0
 ```
 
 ### Configuration Properties
+
+#### `version` (Required)
+
+Specifies the required dpk version constraint. dpk will refuse to run if the installed version doesn't satisfy this constraint.
+
+```yaml
+version: ^X.Y.Z
+```
+
+This ensures all team members use a compatible version of dpk.
 
 #### `mode`
 
@@ -248,6 +288,32 @@ Specifies the operational mode for `dpk`.
 
 - **`global`** (default): Packages are installed using the standard `dart pub get` behavior (to the global pub cache).
 - **`project`**: Packages are installed to the local `pub_packages` directory for patching and local modifications.
+
+#### `sortPubspec`
+
+When set to `true`, dpk will sort `pubspec.yaml` files when running `dpk get`:
+
+- **Top-level keys** are sorted according to a standard order: `name`, `description`, `version`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `topics`, `screenshots`, `funding`, `platforms`, `false_secrets`, `ignored_advisories`, `environment`, `dependencies`, `dev_dependencies`, `dependency_overrides`, `executables`, `flutter`
+- **Unknown keys** not in the standard order are placed after their preceding key from the original file
+- **Package names** within `dependencies`, `dev_dependencies`, and `dependency_overrides` are sorted alphabetically
+- **Comments** (inline and standalone) are preserved
+- **Blank lines** are added between logical groups
+
+```yaml
+sortPubspec: true
+```
+
+#### `workspace`
+
+Defines glob patterns for workspace packages. This is an alternative to defining the `workspace` field directly in `pubspec.yaml`.
+
+```yaml
+workspace:
+  - packages/*
+  - apps/**
+```
+
+dpk will expand these patterns and write the resolved paths to the root `pubspec.yaml`.
 
 #### `scripts`
 
@@ -267,11 +333,10 @@ scripts:
   test:
     command: dart test # Required
     env: # Optional environment variables
-      MY_VAR: 'some_value'
-      API_KEY: 'your-api-key'
+      CI: 'true'
+      LOG_LEVEL: 'verbose'
     runInPackages: # For monorepos - glob patterns
       - 'packages/*'
-      - '!packages/experimental_*' # Exclude pattern
     runHooksFrom: build # Inherit pre/post hooks
 ```
 
@@ -293,18 +358,34 @@ To enable the catalog, the `name` of your root `pubspec.yaml` must be `_`.
 - **`environment`**: SDK constraints for Dart and Flutter
   - `sdk`: Dart SDK version constraint
   - `flutter`: Optional Flutter SDK version constraint
-- **`repository`**: Source code repository URL
+- **`repository`**: Source code repository URL (supports template variables)
 - **`homepage`**: Project homepage URL
-- **`issue_tracker`**: Issue tracker URL
-- **`documentation`**: Documentation website URL
+- **`issue_tracker`**: Issue tracker URL (supports template variables)
+- **`documentation`**: Documentation website URL (supports template variables)
 - **`publish_to`**: Pub server URL or `none` (defaults to `none`)
 - **`topics`**: List of pub.dev categorization topics
-- **`resolution`**: Dependency resolution type (`hosted` or `git`)
-- **`dependencies`**: Shared dependencies across all workspace packages
-- **`dev_dependencies`**: Shared dev dependencies
-- **`dependency_overrides`**: Override specific dependency versions
+- **`resolution`**: Dependency resolution type (`workspace` or `hosted`)
+- **`dependencies`**: Shared dependencies applied to both `dependencies` and `dev_dependencies` in workspace packages (only updates existing dependencies, doesn't add new ones)
 
-When you run `dpk get` in a workspace with a catalog, dpk automatically updates each package's `pubspec.yaml` with the catalog configuration.
+**Template Variables:**
+
+The following template variables can be used in `repository`, `issue_tracker`, and `documentation` fields:
+
+| Variable              | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| `DPK_PACKAGE_PATH`    | Relative path to the package from workspace root |
+| `DPK_PACKAGE_NAME`    | The package name from pubspec.yaml               |
+| `DPK_PACKAGE_VERSION` | The package version from pubspec.yaml            |
+
+**Example with template variables:**
+
+```yaml
+catalog:
+  repository: https://github.com/user/repo/tree/main/DPK_PACKAGE_PATH
+  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
+```
+
+When you run `dpk get` in a workspace with a catalog, dpk automatically updates each package's `pubspec.yaml` with the catalog configuration, replacing template variables with package-specific values.
 
 ## Advanced Features
 
@@ -319,20 +400,6 @@ dpk automatically detects workspace configurations by looking for a `workspace` 
 ### Automatic Workspace Detection
 
 dpk searches up the directory tree to find workspace roots, allowing you to run commands from any subdirectory within a workspace.
-
-### Git Dependency Support
-
-When using `resolution: git` in the catalog, dpk can manage git-based dependencies across your workspace:
-
-```yaml
-catalog:
-  resolution: git
-  dependencies:
-    my_package:
-      git:
-        url: https://github.com/user/repo.git
-        ref: main
-```
 
 ### Complex Script Chaining
 
@@ -352,7 +419,10 @@ scripts:
 
 ### Common Issues
 
-1. **Patches not applying**: Ensure you've run `dpk patch init` first and that the patches directory exists
-2. **Workspace not detected**: Check that parent directories have a valid `pubspec.yaml` with a `workspace` field
-3. **Environment variables not substituting**: Verify the variable is exported in your shell environment
-4. **Scripts not found**: Ensure `dpk.yaml` is in the project root
+1. **"dpk.yaml not found"**: A `dpk.yaml` file is required in your project root (or workspace root for monorepos)
+2. **"'version' is required in dpk.yaml"**: Add a `version` field with a semver constraint (e.g., `version: ^X.Y.Z`)
+3. **"dpk version X.X.X does not satisfy required version constraint"**: Update dpk with `dart install dpk` (Dart 3.10+) or `dart pub global activate dpk`
+4. **Patches not applying**: Ensure you've run `dpk patch init` first and that the patches directory exists
+5. **Workspace not detected**: Check that parent directories have a valid `pubspec.yaml` with a `workspace` field
+6. **Environment variables not substituting**: Verify the variable is exported in your shell environment
+7. **Scripts not found**: Ensure `dpk.yaml` is in the project root
