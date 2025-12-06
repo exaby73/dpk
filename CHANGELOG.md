@@ -1,3 +1,8 @@
+## 0.6.4
+
+- Feat: Add inline comments to catalog-managed dependencies showing `# Configured via catalog` for better visibility
+- Fix: Pubspec sorter now correctly preserves inline comments on complex dependency keys (git, path, sdk)
+
 ## 0.6.3
 
 - Fix: Allow --version and --help to work before dpk.yaml parsing

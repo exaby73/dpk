@@ -351,5 +351,28 @@ dependencies:
       expect(alphaIndex, lessThan(luthorIndex));
     });
 
+    test('preserves inline comments on complex dependency keys', () {
+      const input = '''
+name: my_app
+dependencies:
+  simple_dep: ^1.0.0 # Simple comment
+  complex_dep: # Complex comment
+    git:
+      url: https://github.com/example/repo.git
+      path: packages/pkg
+''';
+
+      final result = sortPubspec(input);
+
+      // Both comments should be preserved
+      expect(result, contains('simple_dep: ^1.0.0 # Simple comment'));
+      expect(result, contains('complex_dep: # Complex comment'));
+
+      // Complex comment should be on the key line, not nested lines
+      final lines = result.split('\n');
+      final complexDepLine = lines.firstWhere((l) => l.trim().startsWith('complex_dep:'));
+      expect(complexDepLine, contains('# Complex comment'));
+    });
+
   });
 }

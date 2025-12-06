@@ -8,6 +8,7 @@ import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
 import 'package:dpk/core/mixins/pub_env_mixin.dart';
+import 'package:dpk/utils/catalog_comment_utils.dart';
 import 'package:dpk/utils/catalog_utils.dart';
 import 'package:dpk/utils/pubspec_sorter.dart';
 import 'package:dpk/utils/globals/global_pub_args.dart';
@@ -136,7 +137,10 @@ final class GetCommand extends Command<int>
 
     final pubspecYamlString = editor.toString();
     originalPubspecFile.writeAsStringSync(pubspecYamlString);
-    _sortPubspecIfEnabled(originalPubspecFile);
+    _sortPubspecIfEnabled(
+      originalPubspecFile,
+      catalog?.dependencies?.keys.toSet(),
+    );
   }
 
   void _applyRootCatalog(
@@ -218,8 +222,12 @@ final class GetCommand extends Command<int>
 
     updateExistingDependencies(editor, originalPubspec, catalog);
 
-    pubspecFile.writeAsStringSync(editor.toString());
-    _sortPubspecIfEnabled(pubspecFile);
+    final yamlContent = editor.toString();
+    pubspecFile.writeAsStringSync(yamlContent);
+    _sortPubspecIfEnabled(
+      pubspecFile,
+      catalog.dependencies?.keys.toSet(),
+    );
   }
 
   DpkWorkspaceEnvironment _createDpkEnv(
@@ -237,11 +245,26 @@ final class GetCommand extends Command<int>
     );
   }
 
-  void _sortPubspecIfEnabled(File pubspecFile) {
-    if (!config.dpkConfig.sortPubspec) return;
-    final content = pubspecFile.readAsStringSync();
-    final sorted = sortPubspec(content);
-    pubspecFile.writeAsStringSync(sorted);
+  void _sortPubspecIfEnabled(
+    File pubspecFile, [
+    Set<String>? catalogDependencyNames,
+  ]) {
+    var content = pubspecFile.readAsStringSync();
+
+    // Add catalog comments first (before sorting)
+    if (catalogDependencyNames != null && catalogDependencyNames.isNotEmpty) {
+      content = addCatalogCommentsToDependencies(
+        content,
+        catalogDependencyNames,
+      );
+    }
+
+    // Then sort if enabled (sorting now properly preserves comments on complex deps)
+    if (config.dpkConfig.sortPubspec) {
+      content = sortPubspec(content);
+    }
+
+    pubspecFile.writeAsStringSync(content);
   }
 
 }

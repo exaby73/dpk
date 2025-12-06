@@ -209,4 +209,105 @@ void main() {
       expect(output, contains('pkg_with_forbidden_fields'));
     });
   });
+
+  group('E2E - Catalog Comments', () {
+    late Directory monorepoRoot;
+    late Directory package1;
+    late Directory package2;
+
+    setUpAll(() {
+      final testDir = Directory.current;
+      monorepoRoot =
+          Directory(path.join(testDir.path, 'examples', 'monorepo'));
+      package1 = Directory(
+        path.join(monorepoRoot.path, 'packages', 'package_1'),
+      );
+      package2 = Directory(
+        path.join(monorepoRoot.path, 'packages', 'package_2'),
+      );
+    });
+
+    test('dpk get adds catalog comments to workspace packages', () async {
+      // Run dpk get from monorepo root
+      final result = await Process.run(
+        'dart',
+        [dpkExecutable, 'get'],
+        workingDirectory: monorepoRoot.path,
+      );
+
+      expect(result.exitCode, equals(0));
+
+      // Check package_1 pubspec for catalog comments
+      final package1Pubspec =
+          File(path.join(package1.path, 'pubspec.yaml'));
+      final package1Content = package1Pubspec.readAsStringSync();
+
+      // Check that dependencies from catalog have comments
+      expect(
+        package1Content,
+        contains('meta: 1.15.0 # Configured via catalog'),
+      );
+      expect(
+        package1Content,
+        contains('luthor: # Configured via catalog'),
+      );
+
+      // Check package_2 pubspec for catalog comments
+      final package2Pubspec =
+          File(path.join(package2.path, 'pubspec.yaml'));
+      final package2Content = package2Pubspec.readAsStringSync();
+
+      // Check that dependencies from catalog have comments
+      expect(
+        package2Content,
+        contains('meta: 1.15.0 # Configured via catalog'),
+      );
+    });
+
+    test('catalog comments survive pubspec sorting', () async {
+      // The monorepo has sortPubspec: true, so this test verifies that
+      // comments are preserved after sorting
+
+      // Run dpk get which will add comments and sort
+      await Process.run(
+        'dart',
+        [dpkExecutable, 'get'],
+        workingDirectory: monorepoRoot.path,
+      );
+
+      // Read the sorted pubspec
+      final package1Pubspec =
+          File(path.join(package1.path, 'pubspec.yaml'));
+      final content = package1Pubspec.readAsStringSync();
+
+      // Verify comments are still present after sorting
+      expect(
+        content,
+        contains('# Configured via catalog'),
+      );
+    });
+
+    test('only catalog dependencies have comments', () async {
+      // Run dpk get
+      await Process.run(
+        'dart',
+        [dpkExecutable, 'get'],
+        workingDirectory: monorepoRoot.path,
+      );
+
+      // Read package_1 pubspec
+      final package1Pubspec =
+          File(path.join(package1.path, 'pubspec.yaml'));
+      final lines = package1Pubspec.readAsLinesSync();
+
+      // Find dependencies that are NOT in catalog (freezed_annotation)
+      final freezedLine = lines.firstWhere(
+        (line) => line.contains('freezed_annotation:'),
+        orElse: () => '',
+      );
+
+      // freezed_annotation should NOT have the catalog comment
+      expect(freezedLine, isNot(contains('Configured via catalog')));
+    });
+  });
 }

@@ -164,13 +164,20 @@ List<KeyEntry> _extractKeyEntries(String content) {
                 _collectNestedLeadingComments(lines, i, nestedEntries);
             final nestedInlineComment = _extractInlineComment(nestedLine);
 
-            // Check if this is a complex value (line ends with just ":")
-            final isComplexValue = nestedLine.trimRight().endsWith(':');
+            // Check if this is a complex value (line ends with just ":" after removing comment)
+            final lineWithoutComment = nestedInlineComment != null
+                ? nestedLine.substring(0, nestedLine.indexOf('#')).trimRight()
+                : nestedLine.trimRight();
+            final isComplexValue = lineWithoutComment.endsWith(':');
             String? rawValueBlock;
 
             if (isComplexValue) {
               // Capture all lines that belong to this complex value
-              final valueLines = <String>[nestedLine];
+              // Strip inline comment from first line since it's stored separately
+              final firstLine = nestedInlineComment != null
+                  ? lineWithoutComment
+                  : nestedLine;
+              final valueLines = <String>[firstLine];
               final keyIndent = nestedLine.indexOf(nestedKeyName);
               i++;
 
@@ -421,7 +428,14 @@ String _buildPlaceholderSkeleton(List<KeyEntry> sortedEntries) {
 
         if (nestedEntry.hasComplexValue) {
           // Use the raw value block to preserve internal comments
-          buffer.writeln(nestedEntry.rawValueBlock);
+          // Add inline comment to the first line if present
+          if (nestedEntry.inlineComment != null) {
+            final lines = nestedEntry.rawValueBlock!.split('\n');
+            lines[0] = '${lines[0].trimRight()} ${nestedEntry.inlineComment}';
+            buffer.writeln(lines.join('\n'));
+          } else {
+            buffer.writeln(nestedEntry.rawValueBlock);
+          }
         } else {
           final comment = nestedEntry.inlineComment != null
               ? ' ${nestedEntry.inlineComment}'
