@@ -54,3 +54,12 @@ scripts:
     runInPackages:
       - "**/*"
   post:build: echo "Build completed successfully"
+
+  pre:only_1:
+    command: 'echo "Pre script: $(pwd)"'
+    runInPackages:
+      - "packages/*"
+  only_1:
+    command: 'echo "Only script: $(pwd)"'
+    runInPackages:
+      - "**/*"

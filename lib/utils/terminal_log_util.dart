@@ -61,7 +61,9 @@ final class TerminalLogUtil {
         if (lastWhitespacePos > indentBytes.length &&
             lastWhitespaceVisibleLength > indentBytes.length) {
           final wrappedLine = currentLine.sublist(0, lastWhitespacePos);
-          final remainingBytes = currentLine.sublist(lastWhitespacePos + 1);
+          final remainingBytes = currentLine.length > lastWhitespacePos + 1
+              ? currentLine.sublist(lastWhitespacePos + 1)
+              : <int>[];
           wrapped.add(wrappedLine);
 
           currentLine = <int>[...indentBytes];

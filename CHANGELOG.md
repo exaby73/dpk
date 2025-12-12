@@ -1,3 +1,7 @@
+## 0.6.5
+
+- Fix: Ensure remainingBytes is an empty list when lastWhitespacePos is at the end of currentLine
+
 ## 0.6.4
 
 - Feat: Add inline comments to catalog-managed dependencies showing `# Configured via catalog` for better visibility
