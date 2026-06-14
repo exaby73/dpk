@@ -19,7 +19,7 @@ environment:
   sdk: ^3.8.0
 '''),
         d.file('dpk.yaml', '''
-version: ^0.6.0
+version: ^0.7.0
 mode: project
 '''),
         d.dir('patches', [

@@ -25,14 +25,14 @@ workflows and adds:
 Create a `dpk.yaml` beside the package `pubspec.yaml`:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 ```
 
 Use project cache mode when dependencies should be stored in a local
 `pub_packages` directory:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 mode: project
 ```
 
@@ -71,7 +71,7 @@ dpk -C packages/my_package get
 Define scripts in `dpk.yaml`:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 scripts:
   analyze: dart analyze
   test: dart test
@@ -98,7 +98,7 @@ Scripts named `pre:<command>` and `post:<command>` run around matching dpk
 commands when configured:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 scripts:
   pre:get: echo "Before get"
   post:get: echo "After get"
@@ -109,7 +109,7 @@ scripts:
 Use `runInPackages` to run a script across matching workspace packages:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 scripts:
   test_all:
     command: dart test
@@ -122,7 +122,7 @@ scripts:
 Patch commands require project cache mode:
 
 ```yaml
-version: ^0.6.0
+version: ^0.7.0
 mode: project
 ```
 

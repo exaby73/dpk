@@ -1,3 +1,13 @@
+## 0.7.0
+
+- Feat: Add `dpk init` to create `dpk.yaml`, with support for `--mode`, `--force`, and `-C`
+- Fix: Make `-C` work reliably for config discovery and `dpk run`
+- Fix: Run pub commands from the resolved target directory without mutating process-wide cwd
+- Fix: Quote forwarded script arguments so shell metacharacters are passed as data
+- Fix: Require `--force` before `patch apply` discards dirty patch cache changes
+- Test: Add descriptor-backed CLI coverage for startup, `dpk run`, `dpk init`, patch safety, and `dpk add --dev`
+- Docs: Add end-user dpk skill guidance and minimal agent instructions
+
 ## 0.6.5
 
 - Fix: Ensure remainingBytes is an empty list when lastWhitespacePos is at the end of currentLine
