@@ -122,14 +122,14 @@ sealed class Pubspec {
 
   /// Build date and time (UTC)
   static final DateTime timestamp = DateTime.utc(
-    2025,
-    12,
-    12,
-    23,
-    52,
-    54,
-    467,
-    201,
+    2026,
+    6,
+    14,
+    15,
+    11,
+    45,
+    758,
+    699,
   );
 
   /// Name
@@ -432,6 +432,7 @@ sealed class Pubspec {
     'lint': r'^2.8.0',
     'pubspec_generator': r'^5.0.0',
     'test': r'^1.25.15',
+    'test_descriptor': r'^2.0.2',
   };
 
   /// Dependency overrides
