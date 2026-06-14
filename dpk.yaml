@@ -1,4 +1,4 @@
-version: ^0.7.0
+version: ^0.8.0
 
 mode: project
 
@@ -7,6 +7,13 @@ scripts:
 
   clean: dart run build_runner clean
 
+  before:
+    scripts:
+      - analyze
+      - get
+      - publish
+    command: dpk run build
+
   pre:build: echo "Cleaning build..." && dpk run clean
   build: dart run build_runner build -d
 
@@ -14,7 +21,4 @@ scripts:
     runHooksFrom: build
     command: dart run build_runner watch -d
 
-  publish:
-    command: |
-      dpk run build
-      dart pub publish
+  publish: dart pub publish

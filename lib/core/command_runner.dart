@@ -7,6 +7,7 @@ import 'package:dpk/commands/init_command.dart';
 import 'package:dpk/commands/parent_commands/patch_command.dart';
 import 'package:dpk/commands/pub_passthrough_command.dart';
 import 'package:dpk/commands/run_command.dart';
+import 'package:dpk/commands/skills_command.dart';
 import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/constants/pubspec.g.dart';
@@ -44,7 +45,9 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
         args.contains('--help') || args.contains('-h') || args.isEmpty;
 
     ConfigData? config;
-    final isConfiglessRequest = _extractTopLevelCommand(args) == 'init';
+    final topLevelCommand = _extractTopLevelCommand(args);
+    final isConfiglessRequest =
+        topLevelCommand == 'init' || topLevelCommand == 'skills';
 
     if (!isHelpRequest && !isConfiglessRequest) {
       final directoryArg = extractDirectoryArg(args);
@@ -87,6 +90,7 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
 
     runner
       ..addCommand(InitCommand())
+      ..addCommand(SkillsCommand())
       ..addCommand(GetCommand())
       ..addCommand(PatchCommand());
 

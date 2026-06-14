@@ -146,6 +146,14 @@ final class PubPassthroughCommand extends Command<int>
       ...parsed.pubArguments,
     ];
 
+    final beforeHookExitCode = await runBeforeHook(
+      commandName: commandName,
+      globalOptions: options.globalOptions,
+    );
+    if (beforeHookExitCode != 0) {
+      return beforeHookExitCode;
+    }
+
     final preHookExitCode = await runPreHook(
       commandName: commandName,
       globalOptions: options.globalOptions,
@@ -171,7 +179,15 @@ final class PubPassthroughCommand extends Command<int>
       commandName: commandName,
       globalOptions: options.globalOptions,
     );
-    return postHookExitCode;
+    if (postHookExitCode != 0) {
+      return postHookExitCode;
+    }
+
+    final afterHookExitCode = await runAfterHook(
+      commandName: commandName,
+      globalOptions: options.globalOptions,
+    );
+    return afterHookExitCode;
   }
 
   ({GlobalPubOptions options, List<String> pubArguments})

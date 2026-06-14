@@ -1,6 +1,6 @@
 name: dpk
 description: An alternative package manager for Dart
-version: 0.7.0
+version: 0.8.0
 repository: https://github.com/zoeh-ai/dpk
 
 environment:

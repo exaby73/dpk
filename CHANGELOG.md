@@ -1,3 +1,9 @@
+## 0.8.0
+
+- Feat: Add `dpk skills` to print detailed end-user CLI guidance for AI agents
+- Feat: Run shared `before`/`after` hooks for pub commands, promote `get` before hooks after `pub get`, and skip recursive hook loops
+- Docs: Expand the dpk skill with command coverage, script chaining, hooks, catalog behavior, project cache mode, and patch workflows
+
 ## 0.7.0
 
 - Feat: Add `dpk init` to create `dpk.yaml`, with support for `--mode`, `--force`, and `-C`

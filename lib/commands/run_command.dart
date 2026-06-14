@@ -18,6 +18,9 @@ import 'package:prompts/prompts.dart' as prompts;
 
 part 'run_command.freezed.dart';
 
+const _hookStackEnvKey = 'DPK_HOOK_STACK';
+const _hookStackSeparator = ',';
+
 final class RunCommand extends Command<int> with ConfigMixin {
   @override
   String get name => 'run';
@@ -147,6 +150,13 @@ final class DpkScriptRunner {
       return 0;
     }
 
+    final scriptName = options.script;
+    if (scriptName != null &&
+        _isHookScriptName(scriptName) &&
+        !_canRunHook(scriptName)) {
+      return 0;
+    }
+
     final targetDirectory =
         options.globalOptions.directory ?? config.workingDirectory;
 
@@ -257,6 +267,10 @@ final class DpkScriptRunner {
 
       // Resolve workspace root for DPK_ROOT env var and package paths
       final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
+      final scriptEnvironment = _buildScriptEnvironment(
+        script,
+        scriptName: options.script,
+      );
 
       if (hasToRunMultiple) {
         final processExitCodesFutures =
@@ -274,7 +288,7 @@ final class DpkScriptRunner {
             _wrapCommandForPty(finalScriptCommand),
             runInShell: false,
             workingDirectory: packagePath,
-            environment: {...?script.env, 'DPK_ROOT': workspaceRoot},
+            environment: {...?scriptEnvironment, 'DPK_ROOT': workspaceRoot},
           );
 
           TerminalLogUtil.setupStreamHandlers(
@@ -328,8 +342,8 @@ final class DpkScriptRunner {
             ? path.join(workspaceRoot, packagesToRunIn.first)
             : targetDirectory,
         environment: packagesToRunIn.isNotEmpty
-            ? {...?script.env, 'DPK_ROOT': workspaceRoot}
-            : script.env,
+            ? {...?scriptEnvironment, 'DPK_ROOT': workspaceRoot}
+            : scriptEnvironment,
         mode: ProcessStartMode.inheritStdio,
       );
 
@@ -364,7 +378,9 @@ final class DpkScriptRunner {
     final afterHooks = <IntCallback>[];
 
     final beforeHook = scriptsMap?['before'];
-    if (beforeHook != null && _hookAppliesTo(beforeHook, commandName)) {
+    if (beforeHook != null &&
+        _hookAppliesTo(beforeHook, commandName) &&
+        _canRunHook('before')) {
       beforeHooks.add(
         () => _runScript(
           config: config,
@@ -375,7 +391,8 @@ final class DpkScriptRunner {
       );
     }
 
-    if (scriptsMap?.containsKey(preHookName) == true) {
+    if (scriptsMap?.containsKey(preHookName) == true &&
+        _canRunHook(preHookName)) {
       beforeHooks.add(
         () => _runScript(
           config: config,
@@ -386,7 +403,8 @@ final class DpkScriptRunner {
       );
     }
 
-    if (scriptsMap?.containsKey(postHookName) == true) {
+    if (scriptsMap?.containsKey(postHookName) == true &&
+        _canRunHook(postHookName)) {
       afterHooks.add(
         () => _runScript(
           config: config,
@@ -398,7 +416,9 @@ final class DpkScriptRunner {
     }
 
     final afterHook = scriptsMap?['after'];
-    if (afterHook != null && _hookAppliesTo(afterHook, commandName)) {
+    if (afterHook != null &&
+        _hookAppliesTo(afterHook, commandName) &&
+        _canRunHook('after')) {
       afterHooks.add(
         () => _runScript(
           config: config,
@@ -410,6 +430,17 @@ final class DpkScriptRunner {
     }
 
     return (before: beforeHooks, after: afterHooks);
+  }
+
+  bool _canRunHook(String hookName) {
+    if (!_currentHookStack().contains(hookName)) {
+      return true;
+    }
+
+    stderr.writeln(
+      'Skipping recursive hook "$hookName" to avoid an infinite hook loop.',
+    );
+    return false;
   }
 
   bool _hookAppliesTo(Script hook, String scriptName) {
@@ -425,5 +456,30 @@ final class DpkScriptRunner {
         scriptName == 'after' ||
         scriptName.startsWith('pre:') ||
         scriptName.startsWith('post:');
+  }
+
+  Map<String, String>? _buildScriptEnvironment(
+    Script script, {
+    required String? scriptName,
+  }) {
+    final environment = {...?script.env};
+
+    if (scriptName != null && _isHookScriptName(scriptName)) {
+      environment[_hookStackEnvKey] = [
+        ..._currentHookStack(),
+        scriptName,
+      ].join(_hookStackSeparator);
+    }
+
+    return environment.isEmpty ? null : environment;
+  }
+
+  List<String> _currentHookStack() {
+    final encodedStack = Platform.environment[_hookStackEnvKey];
+    if (encodedStack == null || encodedStack.isEmpty) {
+      return const [];
+    }
+
+    return encodedStack.split(_hookStackSeparator);
   }
 }

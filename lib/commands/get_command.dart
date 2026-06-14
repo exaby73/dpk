@@ -101,11 +101,27 @@ final class GetCommand extends Command<int>
       return exitCode;
     }
 
+    final promotedBeforeHookExitCode = await runBeforeHook(
+      commandName: 'get',
+      globalOptions: options.globalPubOptions.globalOptions,
+    );
+    if (promotedBeforeHookExitCode != 0) {
+      return promotedBeforeHookExitCode;
+    }
+
     final postHookExitCode = await runPostHook(
       commandName: 'get',
       globalOptions: options.globalPubOptions.globalOptions,
     );
-    return postHookExitCode;
+    if (postHookExitCode != 0) {
+      return postHookExitCode;
+    }
+
+    final afterHookExitCode = await runAfterHook(
+      commandName: 'get',
+      globalOptions: options.globalPubOptions.globalOptions,
+    );
+    return afterHookExitCode;
   }
 
   Future<void> _generateDependencyOverrides(String targetDirectory) async {

@@ -34,7 +34,7 @@ environment:
 
       test('Then it creates dpk.yaml with the default version constraint', () {
         expect(result.exitCode, equals(0));
-        expect(configFile.readAsStringSync(), equals('version: ^0.7.0\n'));
+        expect(configFile.readAsStringSync(), equals('version: ^0.8.0\n'));
       });
 
       test('Then it prints the created file path', () {
@@ -59,7 +59,7 @@ environment:
         expect(result.exitCode, equals(0));
         expect(
           configFile.readAsStringSync(),
-          equals('version: ^0.7.0\nmode: project\n'),
+          equals('version: ^0.8.0\nmode: project\n'),
         );
       });
     });
@@ -130,7 +130,7 @@ environment:
 
       test('Then it overwrites the existing config', () {
         expect(result.exitCode, equals(0));
-        expect(configFile.readAsStringSync(), equals('version: ^0.7.0\n'));
+        expect(configFile.readAsStringSync(), equals('version: ^0.8.0\n'));
       });
     });
   });

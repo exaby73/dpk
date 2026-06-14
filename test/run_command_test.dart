@@ -19,7 +19,7 @@ environment:
   sdk: ^3.8.0
 '''),
         d.file('dpk.yaml', '''
-version: ^0.7.0
+version: ^0.8.0
 scripts:
   cwd: dart tool/print_cwd.dart
   echo_args: dart tool/echo_args.dart
@@ -177,7 +177,7 @@ void main(List<String> args) {
       setUp(() async {
         final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
         dpkYaml.writeAsStringSync('''
-version: ^0.7.0
+version: ^0.8.0
 scripts:
   before:
     command: dart tool/append_hook.dart before_all
@@ -206,6 +206,68 @@ scripts:
           hookLog.readAsLinesSync(),
           equals(['before_all', 'test', 'after_all']),
         );
+      });
+    });
+
+    group('When a before hook recursively invokes a matching script', () {
+      late ProcessResult result;
+      late File hookLog;
+
+      setUp(() async {
+        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
+        dpkYaml.writeAsStringSync('''
+version: ^0.8.0
+scripts:
+  before:
+    command: dart $dpkExecutable run build
+    all: true
+  build: dart tool/append_hook.dart build
+  test: dart tool/append_hook.dart test
+''');
+        hookLog = File(path.join(projectPath, 'hook.log'));
+        result = await runDpk(dpkExecutable, [
+          '-C',
+          projectPath,
+          'run',
+          'test',
+        ]);
+      });
+
+      test('Then the recursive before hook is skipped', () {
+        expect(result.exitCode, equals(0));
+        expect(hookLog.readAsLinesSync(), equals(['build', 'test']));
+        expect(result.stderr.toString(), contains('recursive hook "before"'));
+      });
+    });
+
+    group('When an after hook recursively invokes a matching script', () {
+      late ProcessResult result;
+      late File hookLog;
+
+      setUp(() async {
+        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
+        dpkYaml.writeAsStringSync('''
+version: ^0.8.0
+scripts:
+  after:
+    command: dart $dpkExecutable run report
+    all: true
+  report: dart tool/append_hook.dart report
+  test: dart tool/append_hook.dart test
+''');
+        hookLog = File(path.join(projectPath, 'hook.log'));
+        result = await runDpk(dpkExecutable, [
+          '-C',
+          projectPath,
+          'run',
+          'test',
+        ]);
+      });
+
+      test('Then the recursive after hook is skipped', () {
+        expect(result.exitCode, equals(0));
+        expect(hookLog.readAsLinesSync(), equals(['test', 'report']));
+        expect(result.stderr.toString(), contains('recursive hook "after"'));
       });
     });
   });
