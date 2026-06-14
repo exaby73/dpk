@@ -57,6 +57,28 @@ dpk --verbose get
 dpk --debug run build
 ```
 
+Check the installed CLI version:
+
+```bash
+dpk --version
+```
+
+Initialize dpk configuration:
+
+```bash
+dpk init
+dpk init --mode project
+dpk init --version-constraint '^0.8.0'
+dpk init --force
+```
+
+`dpk init` writes `dpk.yaml` only when `pubspec.yaml` exists in the target
+directory. Use `--force` to overwrite an existing config file.
+
+For configured commands, dpk starts from the current directory or `-C` target
+and searches upward for `dpk.yaml`. In a Dart workspace, discovery stops at the
+workspace root.
+
 ## Command Map
 
 Dedicated dpk commands:
@@ -108,8 +130,12 @@ Fetch dependencies:
 
 ```bash
 dpk get
+dpk get --dry-run
 dpk get --offline
 dpk get --enforce-lockfile
+dpk get --precompile
+dpk get --color
+dpk get --no-color
 ```
 
 Upgrade, downgrade, inspect, or remove dependencies:
@@ -175,6 +201,15 @@ scripts:
 
 When `runInPackages` is used, dpk runs the command in each matching workspace
 package and sets `DPK_ROOT` to the workspace root.
+
+Object-form script fields are:
+
+- `command`: shell command to run.
+- `env`: environment variables for the command.
+- `runInPackages`: workspace package globs to run in.
+- `runHooksFrom`: script or command name whose hooks should be used.
+- `scripts`: hook target list for `before` and `after` hooks.
+- `all`: when `true` on `before` or `after`, match every hookable command.
 
 ## Calling dpk Scripts From Other dpk Scripts
 
@@ -279,7 +314,40 @@ scripts:
   analyze: dart analyze
 ```
 
+Use `runHooksFrom` when one script should run with another script's hook set.
+The script still runs its own command, but dpk resolves `before`, `after`,
+`pre:<name>`, and `post:<name>` hooks using the referenced script name:
+
+```yaml
+version: ^0.8.0
+scripts:
+  before:
+    scripts:
+      - build
+    command: dpk run clean
+  pre:build: echo "Preparing build"
+  build: dart run build_runner build -d
+  watch:
+    runHooksFrom: build
+    command: dart run build_runner watch -d
+```
+
+In this example, `dpk run watch` runs hooks as if the command name were
+`build`, then runs the `watch` command.
+
 ## Workspace Scripts
+
+Define workspace package globs in `dpk.yaml` when the root package should
+manage multiple packages:
+
+```yaml
+version: ^0.8.0
+workspace:
+  - packages/*
+```
+
+dpk expands these globs to directories containing `pubspec.yaml` and writes the
+expanded list to the root `pubspec.yaml` workspace field.
 
 Use `runInPackages` to run a script across matching workspace packages:
 
@@ -296,27 +364,44 @@ Package-level `dpk.yaml` files can define package-specific scripts. Root
 scripts are inherited by workspace packages, and package scripts take precedence
 when names conflict.
 
+Package-level `dpk.yaml` files may only define scripts. Fields such as
+`catalog`, `mode`, and `dependency_overrides` are only valid at the workspace
+root.
+
 ## Catalog and Pubspec Updates
 
 Use the catalog when dependencies should be managed centrally. During `dpk get`,
 dpk can update matching dependency entries in root and workspace
-`pubspec.yaml` files before running pub.
+`pubspec.yaml` files before running pub. A catalog dependency updates matching
+entries in both `dependencies` and `dev_dependencies`; the package must already
+exist in the pubspec for dpk to update it.
 
 Example:
 
 ```yaml
 version: ^0.8.0
 catalog:
+  environment:
+    sdk: ^3.8.0
+  resolution: workspace
+  publish_to: none
+  repository: https://github.com/example/repo/tree/main/DPK_PACKAGE_PATH
+  issue_tracker: https://github.com/example/repo/issues
+  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
+  topics:
+    - dpk
   dependencies:
     collection: ^1.19.1
-  dev_dependencies:
-    test: ^1.25.15
 sortPubspec: true
 ```
 
 Catalog-managed dependency comments may use placeholders such as
 `DPK_PACKAGE_NAME`, `DPK_PACKAGE_VERSION`, and `DPK_PACKAGE_PATH` in configured
 repository, issue tracker, or documentation links.
+
+Catalog dependency values support the same shapes as pubspec dependencies:
+version strings, hosted dependencies, SDK dependencies, path dependencies, and
+Git dependencies.
 
 ## Project Cache Mode
 
@@ -350,12 +435,25 @@ dpk patch generate
 dpk patch apply
 ```
 
-Use `--force` with `patch apply` only when it is acceptable to discard local
-changes in the patch cache before applying saved patches:
+Patch command options:
 
 ```bash
+dpk patch init --force
+dpk patch generate --force
+dpk patch generate --patch-dir patches
+dpk patch apply --patch-dir patches
 dpk patch apply --force
 ```
+
+Use `--patch-dir` or `-p` to choose the patch directory. Use `--force` with
+`patch init` to reinitialize the patch cache, with `patch generate` to skip the
+confirmation prompt before replacing patch files, and with `patch apply` only
+when it is acceptable to discard local changes in the patch cache before
+applying saved patches.
+
+Generated patch files are written under `hosted/` and `git/` inside the patch
+directory. Untracked files in the package cache are reported but not converted
+to patch files.
 
 ## Agent Workflow
 

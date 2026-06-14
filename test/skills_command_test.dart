@@ -30,13 +30,18 @@ void main() {
 
       test('Then it prints detailed usage guidance', () {
         final output = result.stdout.toString();
+        final skill = File(
+          path.join(Directory.current.path, 'skills', 'dpk', 'SKILL.md'),
+        ).readAsStringSync();
         expect(output, contains('# dpk Skill'));
         expect(output, contains('dpk skills'));
         expect(output, contains('dpk run <script>'));
         expect(output, contains('dpk patch apply --force'));
         expect(output, contains('before'));
         expect(output, contains('after'));
+        expect(output, contains('runHooksFrom'));
         expect(output, contains('dpk run clean'));
+        expect(output.trimRight(), equals(skill.trimRight()));
       });
     });
   });

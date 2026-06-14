@@ -57,33 +57,11 @@ final class SkillsCommand extends Command<int> {
 }
 
 const _fallbackSkillText = '''
----
-name: dpk
-description: Use dpk to manage Dart pub workflows, scripts, hooks, project caches, catalogs, patches, and dpk-specific CLI behavior.
----
-
 # dpk Skill
 
-Use this skill when an AI agent needs to operate the `dpk` CLI for an end user.
+The bundled `skills/dpk/SKILL.md` file could not be found, so dpk cannot print
+the full agent guide from this installation.
 
-Run `dpk skills` to print this guide from the CLI. The command is configless, so it works outside a configured dpk workspace.
-
-## Core Commands
-
-- `dpk init` creates `dpk.yaml`.
-- `dpk skills` prints detailed CLI guidance for agents.
-- `dpk get` runs the dpk-aware dependency fetch flow.
-- `dpk run <script>` runs a configured script.
-- `dpk patch init`, `dpk patch generate`, and `dpk patch apply` manage package patches in project cache mode.
-- `dpk add`, `dpk remove`, `dpk upgrade`, `dpk downgrade`, `dpk outdated`, and other supported pub commands pass through to `dart pub`.
-
-## Scripts and Hooks
-
-Define scripts in `dpk.yaml` under `scripts`. Run scripts with `dpk run <name>`. To call one dpk script from another, write `dpk run <other-script>` inside the script command.
-
-Use `pre:<command>` and `post:<command>` to wrap specific commands. Use `before` and `after` script definitions with either `scripts: [...]` or `all: true` to run shared hooks around matching scripts. For `dpk get`, matching `before` hooks run after `pub get` succeeds so build-style hooks have dependencies available. Recursive before/after hooks are skipped to avoid infinite hook loops.
-
-## Project Cache and Patches
-
-Set `mode: project` in `dpk.yaml` to use a local `pub_packages` cache. Patch commands require project cache mode. Use `dpk patch apply --force` only when it is acceptable to discard dirty package-cache changes before applying saved patches.
+Check that the installed package includes `skills/dpk/SKILL.md`, or run
+`dpk skills` from a source checkout that contains that file.
 ''';
