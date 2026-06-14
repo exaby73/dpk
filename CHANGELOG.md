@@ -8,6 +8,7 @@
 - Fix: Run pub commands from the resolved target directory without mutating process-wide cwd
 - Fix: Quote forwarded script arguments so shell metacharacters are passed as data
 - Fix: Require `--force` before `patch apply` discards dirty patch cache changes
+- Test: Rewrite utility and workspace tests with Given/When/Then structure
 - Test: Add descriptor-backed CLI coverage for startup, `dpk run`, `dpk init`, patch safety, and `dpk add --dev`
 - Docs: Add end-user dpk skill guidance and minimal agent instructions
 
