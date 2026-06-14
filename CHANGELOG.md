@@ -1,3 +1,9 @@
+## 0.8.1
+
+- Feat: Embed the dpk skill content so installed CLI binaries can print the full guide
+- Feat: Add detailed `dpk --version` output with Dart SDK metadata
+- Docs: Document the full dpk CLI surface in the bundled skill guide
+
 ## 0.8.0
 
 - Feat: Add `dpk skills` to print detailed end-user CLI guidance for AI agents

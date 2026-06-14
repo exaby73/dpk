@@ -10,13 +10,12 @@ import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/commands/skills_command.dart';
 import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
-import 'package:dpk/constants/pubspec.g.dart';
+import 'package:dpk/constants/pubspec.dart';
 import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:dpk/utils/terminal_title.dart';
 import 'package:dpk/utils/version_output.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 final class DpkCommandRunner extends CompletionCommandRunner<int> {
   final ConfigData? config;
@@ -117,11 +116,10 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
 
     if (topLevelResults.flag('help') == false && config != null) {
       final requiredVersion = config!.dpkConfig.version;
-      final currentVersion = Version.parse(Pubspec.version.canonical);
-      if (!requiredVersion.allows(currentVersion)) {
+      if (!requiredVersion.allows(dpkVersion)) {
         // ignore: avoid_print
         print(
-          'Error: dpk version ${Pubspec.version.canonical} does not satisfy '
+          'Error: dpk version ${pubspec.version} does not satisfy '
           'required version constraint "$requiredVersion" in dpk.yaml',
         );
         return 1;

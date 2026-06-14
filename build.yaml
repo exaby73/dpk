@@ -5,7 +5,3 @@ targets:
       - lib/**
       - pubspec.yaml
       - skills/**
-    builders:
-      pubspec_generator:
-        options:
-          output: lib/constants/pubspec.g.dart

@@ -1,15 +1,14 @@
 import 'dart:io';
 
-import 'package:dpk/constants/pubspec.g.dart';
+import 'package:dpk/constants/pubspec.dart';
 
 String renderVersionOutput() {
   final dartVersion = Platform.version.split(' ').first;
 
   return '''
 dpk
-  Version:    ${Pubspec.version.representation}
-  Dart SDK:   $dartVersion
-  Repository: ${Pubspec.repository}
+  Version:  ${pubspec.version}
+  Dart SDK: $dartVersion
 '''
       .trimRight();
 }

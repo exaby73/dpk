@@ -42,9 +42,9 @@ void main() {
       test('Then it prints detailed version information', () {
         final output = result.stdout.toString();
         expect(output, contains('dpk'));
-        expect(output, contains('Version:    0.8.0'));
-        expect(output, contains('Dart SDK:'));
-        expect(output, contains('Repository: https://github.com/zoeh-ai/dpk'));
+        expect(output, contains('Version:  0.8.1'));
+        expect(output, contains('Dart SDK: '));
+        expect(output, isNot(contains('Repository:')));
       });
     });
 

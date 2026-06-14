@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/constants/pubspec.g.dart';
+import 'package:dpk/constants/pubspec.dart';
 import 'package:dpk/core/constants.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -39,7 +39,7 @@ final class InitCommand extends Command<int> {
   }
 
   static String get defaultVersionConstraint =>
-      '^${Pubspec.version.major}.${Pubspec.version.minor}.0';
+      '^${dpkVersion.major}.${dpkVersion.minor}.0';
 
   @override
   Future<int> run() async {
