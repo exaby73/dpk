@@ -2,15 +2,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:dpk/commands/add_command.dart';
-import 'package:dpk/commands/downgrade_command.dart';
 import 'package:dpk/commands/get_command.dart';
 import 'package:dpk/commands/init_command.dart';
 import 'package:dpk/commands/parent_commands/patch_command.dart';
 import 'package:dpk/commands/pub_passthrough_command.dart';
-import 'package:dpk/commands/remove_command.dart';
 import 'package:dpk/commands/run_command.dart';
-import 'package:dpk/commands/upgrade_command.dart';
 import 'package:dpk/config/config.dart';
 import 'package:dpk/config/data/config_data.dart';
 import 'package:dpk/constants/pubspec.g.dart';
@@ -91,74 +87,12 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
 
     runner
       ..addCommand(InitCommand())
-      ..addCommand(AddCommand())
-      ..addCommand(DowngradeCommand())
       ..addCommand(GetCommand())
-      ..addCommand(RemoveCommand())
-      ..addCommand(UpgradeCommand())
-      ..addCommand(PatchCommand())
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'cache',
-          commandDescription: 'Work with the system cache',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'deps',
-          commandDescription: 'Print package dependencies',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'global',
-          commandDescription: 'Work with global packages',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'login',
-          commandDescription: 'Log into pub.dev',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'logout',
-          commandDescription: 'Log out of pub.dev',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'outdated',
-          commandDescription: 'Analyze dependency versions',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'publish',
-          commandDescription: 'Publish the current package',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'token',
-          commandDescription:
-              'Manage authentication tokens for hosted pub repositories',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'unpack',
-          commandDescription:
-              'Download a package without adding it as a dependency',
-        ),
-      )
-      ..addCommand(
-        PubPassthroughCommand(
-          commandName: 'workspace',
-          commandDescription: 'Work with the current workspace',
-        ),
-      );
+      ..addCommand(PatchCommand());
+
+    for (final definition in pubPassthroughCommandDefinitions) {
+      runner.addCommand(PubPassthroughCommand.fromDefinition(definition));
+    }
 
     // RunCommand accesses config in its constructor, so only add it when config is available
     if (runner.config != null) {

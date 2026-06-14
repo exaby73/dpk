@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dpk/commands/pub_passthrough_command.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -33,8 +34,11 @@ version: ^0.7.0
 
       test('Then passthrough pub commands are listed', () {
         expect(result.exitCode, equals(0));
+        expect(result.stdout.toString(), contains('add'));
+        expect(result.stdout.toString(), contains('bump'));
         expect(result.stdout.toString(), contains('deps'));
         expect(result.stdout.toString(), contains('publish'));
+        expect(result.stdout.toString(), contains('remove'));
         expect(result.stdout.toString(), contains('workspace'));
       });
     });
@@ -57,6 +61,46 @@ version: ^0.7.0
         expect(result.stdout.toString(), contains('passthrough_sample'));
       });
     });
+
+    group(
+      'When running a passthrough command with command-local dpk options',
+      () {
+        late ProcessResult result;
+
+        setUp(() async {
+          result = await runDpk(dpkExecutable, [
+            'deps',
+            '-C',
+            projectPath,
+            '--style',
+            'list',
+          ]);
+        });
+
+        test(
+          'Then dpk options are consumed before pub arguments are forwarded',
+          () {
+            expect(result.exitCode, equals(0));
+            expect(result.stdout.toString(), contains('passthrough_sample'));
+          },
+        );
+      },
+    );
+  });
+
+  group('Given pub passthrough command validation', () {
+    test(
+      'When an unsupported pub command is registered then it is rejected',
+      () {
+        expect(
+          () => PubPassthroughCommand(
+            commandName: 'not-a-pub-command',
+            commandDescription: 'Invalid command',
+          ),
+          throwsArgumentError,
+        );
+      },
+    );
   });
 }
 
