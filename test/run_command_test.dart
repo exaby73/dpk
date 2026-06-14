@@ -23,6 +23,18 @@ version: ^0.7.0
 scripts:
   cwd: dart tool/print_cwd.dart
   echo_args: dart tool/echo_args.dart
+  before:
+    command: dart tool/append_hook.dart before
+    scripts:
+      - build
+  pre:build: dart tool/append_hook.dart pre
+  build: dart tool/append_hook.dart build
+  post:build: dart tool/append_hook.dart post
+  after:
+    command: dart tool/append_hook.dart after
+    scripts:
+      - build
+  test: dart tool/append_hook.dart test
 '''),
         d.dir('tool', [
           d.file('print_cwd.dart', '''
@@ -39,6 +51,16 @@ import 'dart:io';
 void main(List<String> args) {
   print(jsonEncode(args));
   File('injected').writeAsStringSync('created by script');
+}
+'''),
+          d.file('append_hook.dart', '''
+import 'dart:io';
+
+void main(List<String> args) {
+  File('hook.log').writeAsStringSync(
+    '\${args.single}\\n',
+    mode: FileMode.append,
+  );
 }
 '''),
         ]),
@@ -102,6 +124,88 @@ void main(List<String> args) {
 
       test('Then the shell does not execute the argument', () {
         expect(injectedByShell.existsSync(), isFalse);
+      });
+    });
+
+    group('When running a script with targeted before and after hooks', () {
+      late ProcessResult result;
+      late File hookLog;
+
+      setUp(() async {
+        hookLog = File(path.join(projectPath, 'hook.log'));
+        result = await runDpk(dpkExecutable, [
+          '-C',
+          projectPath,
+          'run',
+          'build',
+        ]);
+      });
+
+      test('Then the targeted hooks wrap the exact hooks', () {
+        expect(result.exitCode, equals(0));
+        expect(
+          hookLog.readAsLinesSync(),
+          equals(['before', 'pre', 'build', 'post', 'after']),
+        );
+      });
+    });
+
+    group('When running a script outside a targeted before and after list', () {
+      late ProcessResult result;
+      late File hookLog;
+
+      setUp(() async {
+        hookLog = File(path.join(projectPath, 'hook.log'));
+        result = await runDpk(dpkExecutable, [
+          '-C',
+          projectPath,
+          'run',
+          'test',
+        ]);
+      });
+
+      test('Then the targeted hooks are skipped', () {
+        expect(result.exitCode, equals(0));
+        expect(hookLog.readAsLinesSync(), equals(['test']));
+      });
+    });
+
+    group('When all is true on a hook script', () {
+      late ProcessResult result;
+      late File hookLog;
+
+      setUp(() async {
+        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
+        dpkYaml.writeAsStringSync('''
+version: ^0.7.0
+scripts:
+  before:
+    command: dart tool/append_hook.dart before_all
+    scripts:
+      - ignored
+    all: true
+  after:
+    command: dart tool/append_hook.dart after_all
+    scripts:
+      - ignored
+    all: true
+  test: dart tool/append_hook.dart test
+''');
+        hookLog = File(path.join(projectPath, 'hook.log'));
+        result = await runDpk(dpkExecutable, [
+          '-C',
+          projectPath,
+          'run',
+          'test',
+        ]);
+      });
+
+      test('Then scripts is ignored and the hook applies', () {
+        expect(result.exitCode, equals(0));
+        expect(
+          hookLog.readAsLinesSync(),
+          equals(['before_all', 'test', 'after_all']),
+        );
       });
     });
   });

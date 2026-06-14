@@ -284,7 +284,7 @@ as Map<String, Script>,
 /// @nodoc
 mixin _$Script {
 
- String get name; String get command; List<String>? get runInPackages; String? get runHooksFrom; Map<String, String>? get env;
+ String get name; String get command; List<String>? get runInPackages; String? get runHooksFrom; List<String>? get scripts; bool get all; Map<String, String>? get env;
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,16 +297,16 @@ $ScriptCopyWith<Script> get copyWith => _$ScriptCopyWithImpl<Script>(this as Scr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Script&&(identical(other.name, name) || other.name == name)&&(identical(other.command, command) || other.command == command)&&const DeepCollectionEquality().equals(other.runInPackages, runInPackages)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom)&&const DeepCollectionEquality().equals(other.env, env));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Script&&(identical(other.name, name) || other.name == name)&&(identical(other.command, command) || other.command == command)&&const DeepCollectionEquality().equals(other.runInPackages, runInPackages)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom)&&const DeepCollectionEquality().equals(other.scripts, scripts)&&(identical(other.all, all) || other.all == all)&&const DeepCollectionEquality().equals(other.env, env));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,command,const DeepCollectionEquality().hash(runInPackages),runHooksFrom,const DeepCollectionEquality().hash(env));
+int get hashCode => Object.hash(runtimeType,name,command,const DeepCollectionEquality().hash(runInPackages),runHooksFrom,const DeepCollectionEquality().hash(scripts),all,const DeepCollectionEquality().hash(env));
 
 @override
 String toString() {
-  return 'Script(name: $name, command: $command, runInPackages: $runInPackages, runHooksFrom: $runHooksFrom, env: $env)';
+  return 'Script(name: $name, command: $command, runInPackages: $runInPackages, runHooksFrom: $runHooksFrom, scripts: $scripts, all: $all, env: $env)';
 }
 
 
@@ -317,7 +317,7 @@ abstract mixin class $ScriptCopyWith<$Res>  {
   factory $ScriptCopyWith(Script value, $Res Function(Script) _then) = _$ScriptCopyWithImpl;
 @useResult
 $Res call({
- String name, String command, List<String>? runInPackages, String? runHooksFrom, Map<String, String>? env
+ String name, String command, List<String>? runInPackages, String? runHooksFrom, List<String>? scripts, bool all, Map<String, String>? env
 });
 
 
@@ -334,13 +334,15 @@ class _$ScriptCopyWithImpl<$Res>
 
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? command = null,Object? runInPackages = freezed,Object? runHooksFrom = freezed,Object? env = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? command = null,Object? runInPackages = freezed,Object? runHooksFrom = freezed,Object? scripts = freezed,Object? all = null,Object? env = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,command: null == command ? _self.command : command // ignore: cast_nullable_to_non_nullable
 as String,runInPackages: freezed == runInPackages ? _self.runInPackages : runInPackages // ignore: cast_nullable_to_non_nullable
 as List<String>?,runHooksFrom: freezed == runHooksFrom ? _self.runHooksFrom : runHooksFrom // ignore: cast_nullable_to_non_nullable
-as String?,env: freezed == env ? _self.env : env // ignore: cast_nullable_to_non_nullable
+as String?,scripts: freezed == scripts ? _self.scripts : scripts // ignore: cast_nullable_to_non_nullable
+as List<String>?,all: null == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool,env: freezed == env ? _self.env : env // ignore: cast_nullable_to_non_nullable
 as Map<String, String>?,
   ));
 }
@@ -426,10 +428,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  Map<String, String>? env)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  List<String>? scripts,  bool all,  Map<String, String>? env)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Script() when $default != null:
-return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.env);case _:
+return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.scripts,_that.all,_that.env);case _:
   return orElse();
 
 }
@@ -447,10 +449,10 @@ return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  Map<String, String>? env)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  List<String>? scripts,  bool all,  Map<String, String>? env)  $default,) {final _that = this;
 switch (_that) {
 case _Script():
-return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.env);case _:
+return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.scripts,_that.all,_that.env);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -467,10 +469,10 @@ return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  Map<String, String>? env)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String command,  List<String>? runInPackages,  String? runHooksFrom,  List<String>? scripts,  bool all,  Map<String, String>? env)?  $default,) {final _that = this;
 switch (_that) {
 case _Script() when $default != null:
-return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.env);case _:
+return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,_that.scripts,_that.all,_that.env);case _:
   return null;
 
 }
@@ -482,7 +484,7 @@ return $default(_that.name,_that.command,_that.runInPackages,_that.runHooksFrom,
 @JsonSerializable()
 
 class _Script implements Script {
-  const _Script({required this.name, required this.command, final  List<String>? runInPackages, required this.runHooksFrom, final  Map<String, String>? env}): _runInPackages = runInPackages,_env = env;
+  const _Script({required this.name, required this.command, final  List<String>? runInPackages, required this.runHooksFrom, final  List<String>? scripts, this.all = false, final  Map<String, String>? env}): _runInPackages = runInPackages,_scripts = scripts,_env = env;
   factory _Script.fromJson(Map<String, dynamic> json) => _$ScriptFromJson(json);
 
 @override final  String name;
@@ -497,6 +499,16 @@ class _Script implements Script {
 }
 
 @override final  String? runHooksFrom;
+ final  List<String>? _scripts;
+@override List<String>? get scripts {
+  final value = _scripts;
+  if (value == null) return null;
+  if (_scripts is EqualUnmodifiableListView) return _scripts;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override@JsonKey() final  bool all;
  final  Map<String, String>? _env;
 @override Map<String, String>? get env {
   final value = _env;
@@ -520,16 +532,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Script&&(identical(other.name, name) || other.name == name)&&(identical(other.command, command) || other.command == command)&&const DeepCollectionEquality().equals(other._runInPackages, _runInPackages)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom)&&const DeepCollectionEquality().equals(other._env, _env));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Script&&(identical(other.name, name) || other.name == name)&&(identical(other.command, command) || other.command == command)&&const DeepCollectionEquality().equals(other._runInPackages, _runInPackages)&&(identical(other.runHooksFrom, runHooksFrom) || other.runHooksFrom == runHooksFrom)&&const DeepCollectionEquality().equals(other._scripts, _scripts)&&(identical(other.all, all) || other.all == all)&&const DeepCollectionEquality().equals(other._env, _env));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,command,const DeepCollectionEquality().hash(_runInPackages),runHooksFrom,const DeepCollectionEquality().hash(_env));
+int get hashCode => Object.hash(runtimeType,name,command,const DeepCollectionEquality().hash(_runInPackages),runHooksFrom,const DeepCollectionEquality().hash(_scripts),all,const DeepCollectionEquality().hash(_env));
 
 @override
 String toString() {
-  return 'Script(name: $name, command: $command, runInPackages: $runInPackages, runHooksFrom: $runHooksFrom, env: $env)';
+  return 'Script(name: $name, command: $command, runInPackages: $runInPackages, runHooksFrom: $runHooksFrom, scripts: $scripts, all: $all, env: $env)';
 }
 
 
@@ -540,7 +552,7 @@ abstract mixin class _$ScriptCopyWith<$Res> implements $ScriptCopyWith<$Res> {
   factory _$ScriptCopyWith(_Script value, $Res Function(_Script) _then) = __$ScriptCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String command, List<String>? runInPackages, String? runHooksFrom, Map<String, String>? env
+ String name, String command, List<String>? runInPackages, String? runHooksFrom, List<String>? scripts, bool all, Map<String, String>? env
 });
 
 
@@ -557,13 +569,15 @@ class __$ScriptCopyWithImpl<$Res>
 
 /// Create a copy of Script
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? command = null,Object? runInPackages = freezed,Object? runHooksFrom = freezed,Object? env = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? command = null,Object? runInPackages = freezed,Object? runHooksFrom = freezed,Object? scripts = freezed,Object? all = null,Object? env = freezed,}) {
   return _then(_Script(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,command: null == command ? _self.command : command // ignore: cast_nullable_to_non_nullable
 as String,runInPackages: freezed == runInPackages ? _self._runInPackages : runInPackages // ignore: cast_nullable_to_non_nullable
 as List<String>?,runHooksFrom: freezed == runHooksFrom ? _self.runHooksFrom : runHooksFrom // ignore: cast_nullable_to_non_nullable
-as String?,env: freezed == env ? _self._env : env // ignore: cast_nullable_to_non_nullable
+as String?,scripts: freezed == scripts ? _self._scripts : scripts // ignore: cast_nullable_to_non_nullable
+as List<String>?,all: null == all ? _self.all : all // ignore: cast_nullable_to_non_nullable
+as bool,env: freezed == env ? _self._env : env // ignore: cast_nullable_to_non_nullable
 as Map<String, String>?,
   ));
 }

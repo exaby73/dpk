@@ -1,6 +1,8 @@
 ## 0.7.0
 
 - Feat: Add `dpk init` to create `dpk.yaml`, with support for `--mode`, `--force`, and `-C`
+- Feat: Add passthrough wrappers for the remaining `dart pub` commands
+- Feat: Add `before` and `after` script hooks with `scripts` filters and `all` matching
 - Fix: Make `-C` work reliably for config discovery and `dpk run`
 - Fix: Run pub commands from the resolved target directory without mutating process-wide cwd
 - Fix: Quote forwarded script arguments so shell metacharacters are passed as data

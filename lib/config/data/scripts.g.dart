@@ -23,6 +23,10 @@ _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
       ?.map((e) => e as String)
       .toList(),
   runHooksFrom: json['runHooksFrom'] as String?,
+  scripts: (json['scripts'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  all: json['all'] as bool? ?? false,
   env: (json['env'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, e as String),
   ),
@@ -33,5 +37,7 @@ Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
   'command': instance.command,
   'runInPackages': instance.runInPackages,
   'runHooksFrom': instance.runHooksFrom,
+  'scripts': instance.scripts,
+  'all': instance.all,
   'env': instance.env,
 };

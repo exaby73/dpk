@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/config/data/config_data.dart';
+import 'package:dpk/config/data/scripts.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/shell.dart';
 import 'package:dpk/core/types.dart';
@@ -149,21 +150,25 @@ final class DpkScriptRunner {
     final targetDirectory =
         options.globalOptions.directory ?? config.workingDirectory;
 
-    IntCallback? preHook;
-    IntCallback? postHook;
+    var beforeHooks = <IntCallback>[];
+    var afterHooks = <IntCallback>[];
 
     if (scriptExists) {
-      (preHook, postHook) = _getHooks(
+      final hooks = _getHooks(
         config: config,
         options: options,
         arguments: arguments,
         targetDirectory: targetDirectory,
       );
+      beforeHooks = hooks.before;
+      afterHooks = hooks.after;
     }
 
-    final preHookExitCode = await preHook?.call();
-    if (preHookExitCode != null && preHookExitCode != 0) {
-      return preHookExitCode;
+    for (final hook in beforeHooks) {
+      final hookExitCode = await hook();
+      if (hookExitCode != 0) {
+        return hookExitCode;
+      }
     }
 
     final exitCode = await _runScript(
@@ -177,8 +182,14 @@ final class DpkScriptRunner {
       return exitCode;
     }
 
-    final postHookExitCode = await postHook?.call();
-    return postHookExitCode ?? 0;
+    for (final hook in afterHooks) {
+      final hookExitCode = await hook();
+      if (hookExitCode != 0) {
+        return hookExitCode;
+      }
+    }
+
+    return 0;
   }
 
   List<String> _wrapCommandForPty(String command) {
@@ -333,7 +344,7 @@ final class DpkScriptRunner {
     );
   }
 
-  (IntCallback?, IntCallback?) _getHooks({
+  ({List<IntCallback> before, List<IntCallback> after}) _getHooks({
     required ConfigData config,
     required RunOptions options,
     required List<String> arguments,
@@ -342,34 +353,77 @@ final class DpkScriptRunner {
     final script = config.scripts?.scriptsMap[options.script];
     final commandName = script?.runHooksFrom ?? options.script;
 
-    if (commandName == null) {
-      return (null, null);
+    if (commandName == null || _isHookScriptName(commandName)) {
+      return (before: [], after: []);
     }
 
+    final scriptsMap = config.scripts?.scriptsMap;
     final preHookName = 'pre:$commandName';
     final postHookName = 'post:$commandName';
+    final beforeHooks = <IntCallback>[];
+    final afterHooks = <IntCallback>[];
 
-    IntCallback? preHookCallback;
-    IntCallback? postHookCallback;
-
-    if (config.scripts?.scriptsMap.containsKey(preHookName) == true) {
-      preHookCallback = () => _runScript(
-        config: config,
-        options: options.copyWith(script: preHookName),
-        arguments: [],
-        targetDirectory: targetDirectory,
+    final beforeHook = scriptsMap?['before'];
+    if (beforeHook != null && _hookAppliesTo(beforeHook, commandName)) {
+      beforeHooks.add(
+        () => _runScript(
+          config: config,
+          options: options.copyWith(script: 'before'),
+          arguments: [],
+          targetDirectory: targetDirectory,
+        ),
       );
     }
 
-    if (config.scripts?.scriptsMap.containsKey(postHookName) == true) {
-      postHookCallback = () => _runScript(
-        config: config,
-        options: options.copyWith(script: postHookName),
-        arguments: [],
-        targetDirectory: targetDirectory,
+    if (scriptsMap?.containsKey(preHookName) == true) {
+      beforeHooks.add(
+        () => _runScript(
+          config: config,
+          options: options.copyWith(script: preHookName),
+          arguments: [],
+          targetDirectory: targetDirectory,
+        ),
       );
     }
 
-    return (preHookCallback, postHookCallback);
+    if (scriptsMap?.containsKey(postHookName) == true) {
+      afterHooks.add(
+        () => _runScript(
+          config: config,
+          options: options.copyWith(script: postHookName),
+          arguments: [],
+          targetDirectory: targetDirectory,
+        ),
+      );
+    }
+
+    final afterHook = scriptsMap?['after'];
+    if (afterHook != null && _hookAppliesTo(afterHook, commandName)) {
+      afterHooks.add(
+        () => _runScript(
+          config: config,
+          options: options.copyWith(script: 'after'),
+          arguments: [],
+          targetDirectory: targetDirectory,
+        ),
+      );
+    }
+
+    return (before: beforeHooks, after: afterHooks);
+  }
+
+  bool _hookAppliesTo(Script hook, String scriptName) {
+    if (hook.all) {
+      return true;
+    }
+
+    return hook.scripts?.contains(scriptName) == true;
+  }
+
+  bool _isHookScriptName(String scriptName) {
+    return scriptName == 'before' ||
+        scriptName == 'after' ||
+        scriptName.startsWith('pre:') ||
+        scriptName.startsWith('post:');
   }
 }

@@ -30,6 +30,8 @@ abstract class Script with _$Script {
     required String command,
     List<String>? runInPackages,
     required String? runHooksFrom,
+    List<String>? scripts,
+    @Default(false) bool all,
     Map<String, String>? env,
   }) = _Script;
 
@@ -45,6 +47,8 @@ abstract class Script with _$Script {
     final command = yaml['command'] as String;
     final runHooksFrom = yaml['runHooksFrom'] as String?;
     final runInPackages = (yaml['runInPackages'] as YamlList?)?.cast<String>();
+    final scripts = (yaml['scripts'] as YamlList?)?.cast<String>();
+    final all = yaml['all'] as bool? ?? false;
     final env = (yaml['env'] as YamlMap?)?.cast<String, String>();
 
     return Script(
@@ -52,6 +56,8 @@ abstract class Script with _$Script {
       command: command,
       runInPackages: runInPackages,
       runHooksFrom: runHooksFrom,
+      scripts: scripts,
+      all: all,
       env: env,
     );
   }
