@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PubAddOptions {
 
- GlobalPubOptions get globalPubOptions; bool get offline; bool get dryRun; bool get precompile;
+ GlobalPubOptions get globalPubOptions; bool get dev; bool get offline; bool get dryRun; bool get precompile;
 /// Create a copy of PubAddOptions
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PubAddOptionsCopyWith<PubAddOptions> get copyWith => _$PubAddOptionsCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PubAddOptions&&(identical(other.globalPubOptions, globalPubOptions) || other.globalPubOptions == globalPubOptions)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.dryRun, dryRun) || other.dryRun == dryRun)&&(identical(other.precompile, precompile) || other.precompile == precompile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PubAddOptions&&(identical(other.globalPubOptions, globalPubOptions) || other.globalPubOptions == globalPubOptions)&&(identical(other.dev, dev) || other.dev == dev)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.dryRun, dryRun) || other.dryRun == dryRun)&&(identical(other.precompile, precompile) || other.precompile == precompile));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,globalPubOptions,offline,dryRun,precompile);
+int get hashCode => Object.hash(runtimeType,globalPubOptions,dev,offline,dryRun,precompile);
 
 @override
 String toString() {
-  return 'PubAddOptions(globalPubOptions: $globalPubOptions, offline: $offline, dryRun: $dryRun, precompile: $precompile)';
+  return 'PubAddOptions(globalPubOptions: $globalPubOptions, dev: $dev, offline: $offline, dryRun: $dryRun, precompile: $precompile)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PubAddOptionsCopyWith<$Res>  {
   factory $PubAddOptionsCopyWith(PubAddOptions value, $Res Function(PubAddOptions) _then) = _$PubAddOptionsCopyWithImpl;
 @useResult
 $Res call({
- GlobalPubOptions globalPubOptions, bool offline, bool dryRun, bool precompile
+ GlobalPubOptions globalPubOptions, bool dev, bool offline, bool dryRun, bool precompile
 });
 
 
@@ -62,10 +62,11 @@ class _$PubAddOptionsCopyWithImpl<$Res>
 
 /// Create a copy of PubAddOptions
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? globalPubOptions = null,Object? offline = null,Object? dryRun = null,Object? precompile = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? globalPubOptions = null,Object? dev = null,Object? offline = null,Object? dryRun = null,Object? precompile = null,}) {
   return _then(_self.copyWith(
 globalPubOptions: null == globalPubOptions ? _self.globalPubOptions : globalPubOptions // ignore: cast_nullable_to_non_nullable
-as GlobalPubOptions,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
+as GlobalPubOptions,dev: null == dev ? _self.dev : dev // ignore: cast_nullable_to_non_nullable
+as bool,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
 as bool,dryRun: null == dryRun ? _self.dryRun : dryRun // ignore: cast_nullable_to_non_nullable
 as bool,precompile: null == precompile ? _self.precompile : precompile // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GlobalPubOptions globalPubOptions,  bool offline,  bool dryRun,  bool precompile)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GlobalPubOptions globalPubOptions,  bool dev,  bool offline,  bool dryRun,  bool precompile)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PubAddOptions() when $default != null:
-return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompile);case _:
+return $default(_that.globalPubOptions,_that.dev,_that.offline,_that.dryRun,_that.precompile);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GlobalPubOptions globalPubOptions,  bool offline,  bool dryRun,  bool precompile)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GlobalPubOptions globalPubOptions,  bool dev,  bool offline,  bool dryRun,  bool precompile)  $default,) {final _that = this;
 switch (_that) {
 case _PubAddOptions():
-return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompile);case _:
+return $default(_that.globalPubOptions,_that.dev,_that.offline,_that.dryRun,_that.precompile);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GlobalPubOptions globalPubOptions,  bool offline,  bool dryRun,  bool precompile)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GlobalPubOptions globalPubOptions,  bool dev,  bool offline,  bool dryRun,  bool precompile)?  $default,) {final _that = this;
 switch (_that) {
 case _PubAddOptions() when $default != null:
-return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompile);case _:
+return $default(_that.globalPubOptions,_that.dev,_that.offline,_that.dryRun,_that.precompile);case _:
   return null;
 
 }
@@ -218,10 +219,11 @@ return $default(_that.globalPubOptions,_that.offline,_that.dryRun,_that.precompi
 
 
 class _PubAddOptions implements PubAddOptions {
-  const _PubAddOptions({required this.globalPubOptions, required this.offline, required this.dryRun, required this.precompile});
+  const _PubAddOptions({required this.globalPubOptions, required this.dev, required this.offline, required this.dryRun, required this.precompile});
   
 
 @override final  GlobalPubOptions globalPubOptions;
+@override final  bool dev;
 @override final  bool offline;
 @override final  bool dryRun;
 @override final  bool precompile;
@@ -236,16 +238,16 @@ _$PubAddOptionsCopyWith<_PubAddOptions> get copyWith => __$PubAddOptionsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PubAddOptions&&(identical(other.globalPubOptions, globalPubOptions) || other.globalPubOptions == globalPubOptions)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.dryRun, dryRun) || other.dryRun == dryRun)&&(identical(other.precompile, precompile) || other.precompile == precompile));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PubAddOptions&&(identical(other.globalPubOptions, globalPubOptions) || other.globalPubOptions == globalPubOptions)&&(identical(other.dev, dev) || other.dev == dev)&&(identical(other.offline, offline) || other.offline == offline)&&(identical(other.dryRun, dryRun) || other.dryRun == dryRun)&&(identical(other.precompile, precompile) || other.precompile == precompile));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,globalPubOptions,offline,dryRun,precompile);
+int get hashCode => Object.hash(runtimeType,globalPubOptions,dev,offline,dryRun,precompile);
 
 @override
 String toString() {
-  return 'PubAddOptions(globalPubOptions: $globalPubOptions, offline: $offline, dryRun: $dryRun, precompile: $precompile)';
+  return 'PubAddOptions(globalPubOptions: $globalPubOptions, dev: $dev, offline: $offline, dryRun: $dryRun, precompile: $precompile)';
 }
 
 
@@ -256,7 +258,7 @@ abstract mixin class _$PubAddOptionsCopyWith<$Res> implements $PubAddOptionsCopy
   factory _$PubAddOptionsCopyWith(_PubAddOptions value, $Res Function(_PubAddOptions) _then) = __$PubAddOptionsCopyWithImpl;
 @override @useResult
 $Res call({
- GlobalPubOptions globalPubOptions, bool offline, bool dryRun, bool precompile
+ GlobalPubOptions globalPubOptions, bool dev, bool offline, bool dryRun, bool precompile
 });
 
 
@@ -273,10 +275,11 @@ class __$PubAddOptionsCopyWithImpl<$Res>
 
 /// Create a copy of PubAddOptions
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? globalPubOptions = null,Object? offline = null,Object? dryRun = null,Object? precompile = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? globalPubOptions = null,Object? dev = null,Object? offline = null,Object? dryRun = null,Object? precompile = null,}) {
   return _then(_PubAddOptions(
 globalPubOptions: null == globalPubOptions ? _self.globalPubOptions : globalPubOptions // ignore: cast_nullable_to_non_nullable
-as GlobalPubOptions,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
+as GlobalPubOptions,dev: null == dev ? _self.dev : dev // ignore: cast_nullable_to_non_nullable
+as bool,offline: null == offline ? _self.offline : offline // ignore: cast_nullable_to_non_nullable
 as bool,dryRun: null == dryRun ? _self.dryRun : dryRun // ignore: cast_nullable_to_non_nullable
 as bool,precompile: null == precompile ? _self.precompile : precompile // ignore: cast_nullable_to_non_nullable
 as bool,

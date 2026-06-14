@@ -1,12 +1,25 @@
 import 'dart:io';
 
-import 'package:path/path.dart';
-
 String getShell() {
-  final shellPath = Platform.environment['SHELL'];
-  if (shellPath == null) {
-    return 'bash';
+  if (Platform.isWindows) {
+    return Platform.environment['COMSPEC'] ?? 'cmd.exe';
   }
 
-  return basename(shellPath);
+  return Platform.environment['SHELL'] ?? '/bin/sh';
+}
+
+List<String> getShellCommandArgs(String command) {
+  if (Platform.isWindows) {
+    return ['/C', command];
+  }
+
+  return ['-c', command];
+}
+
+String shellQuote(String value) {
+  if (value.isEmpty) {
+    return "''";
+  }
+
+  return "'${value.replaceAll("'", "'\"'\"'")}'";
 }

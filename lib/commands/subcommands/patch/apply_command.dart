@@ -51,45 +51,14 @@ final class PatchApplyCommand extends Command<int>
       return 1;
     }
 
-    final patchDir = Directory(options.globalPatchOptions.patchDir);
+    final patchDir = Directory(
+      resolveProjectPath(options.globalPatchOptions.patchDir),
+    );
     if (!patchDir.existsSync()) {
       stderr.writeln(
         'Patch directory does not exist. Did you run `$kExecutableName patch generate`?',
       );
       return 1;
-    }
-
-    final checkoutResult = await Process.run('git', [
-      'checkout',
-      '.',
-    ], workingDirectory: resolvedCacheDir);
-
-    if (checkoutResult.exitCode != 0) {
-      stderr.writeln(
-        'Failed to apply. Did you run `$kExecutableName patch init`?',
-      );
-      return 1;
-    }
-
-    final gitDepsDir = Directory(join(resolvedCacheDir, 'git'));
-    if (gitDepsDir.existsSync()) {
-      for (final gitDep in gitDepsDir.listSync()) {
-        if (basename(gitDep.path) == 'cache') {
-          continue;
-        }
-
-        final result = await Process.run('git', [
-          'checkout',
-          '.',
-        ], workingDirectory: gitDep.path);
-
-        if (result.exitCode != 0) {
-          stderr.writeln(
-            'Failed to apply git dependency ${basename(gitDep.path)}:\n${result.stderr}',
-          );
-          return 1;
-        }
-      }
     }
 
     final hostedPatchesDir = Directory(join(patchDir.path, 'hosted'));
@@ -105,6 +74,15 @@ final class PatchApplyCommand extends Command<int>
     if (hostedPatches.isEmpty && gitPatches.isEmpty) {
       stderr.writeln('No patches to apply');
       return 0;
+    }
+
+    final resetCacheExitCode = await _resetGitWorktree(
+      workingDirectory: resolvedCacheDir,
+      label: basename(resolvedCacheDir),
+      force: options.force,
+    );
+    if (resetCacheExitCode != 0) {
+      return resetCacheExitCode;
     }
 
     for (final patch in hostedPatches) {
@@ -128,16 +106,13 @@ final class PatchApplyCommand extends Command<int>
         basenameWithoutExtension(patch.path),
       );
 
-      final checkoutResult = await Process.run('git', [
-        'checkout',
-        '.',
-      ], workingDirectory: workingDir);
-
-      if (checkoutResult.exitCode != 0) {
-        stderr.writeln(
-          'Failed to apply patch ${patch.path}:\n${checkoutResult.stderr}',
-        );
-        return 1;
+      final resetExitCode = await _resetGitWorktree(
+        workingDirectory: workingDir,
+        label: basenameWithoutExtension(patch.path),
+        force: options.force,
+      );
+      if (resetExitCode != 0) {
+        return resetExitCode;
       }
 
       final result = await Process.run('git', [
@@ -151,6 +126,46 @@ final class PatchApplyCommand extends Command<int>
         );
         return 1;
       }
+    }
+
+    return 0;
+  }
+
+  Future<int> _resetGitWorktree({
+    required String workingDirectory,
+    required String label,
+    required bool force,
+  }) async {
+    final statusResult = await Process.run('git', [
+      'status',
+      '--short',
+    ], workingDirectory: workingDirectory);
+
+    if (statusResult.exitCode != 0) {
+      stderr.writeln(
+        'Failed to inspect patch cache $label:\n${statusResult.stderr}',
+      );
+      return 1;
+    }
+
+    if ((statusResult.stdout as String).trim().isNotEmpty && !force) {
+      stderr.writeln(
+        'Patch cache $label has local changes. Re-run with --force to '
+        'discard cache changes before applying patches.',
+      );
+      return 1;
+    }
+
+    final checkoutResult = await Process.run('git', [
+      'checkout',
+      '.',
+    ], workingDirectory: workingDirectory);
+
+    if (checkoutResult.exitCode != 0) {
+      stderr.writeln(
+        'Failed to reset patch cache $label:\n${checkoutResult.stderr}',
+      );
+      return 1;
     }
 
     return 0;

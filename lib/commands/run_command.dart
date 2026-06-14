@@ -148,7 +148,6 @@ final class DpkScriptRunner {
 
     final targetDirectory =
         options.globalOptions.directory ?? config.workingDirectory;
-    Directory.current = targetDirectory;
 
     IntCallback? preHook;
     IntCallback? postHook;
@@ -158,6 +157,7 @@ final class DpkScriptRunner {
         config: config,
         options: options,
         arguments: arguments,
+        targetDirectory: targetDirectory,
       );
     }
 
@@ -170,6 +170,7 @@ final class DpkScriptRunner {
       config: config,
       options: options,
       arguments: arguments,
+      targetDirectory: targetDirectory,
       skipIfMissing: skipIfMissing,
     );
     if (exitCode != 0) {
@@ -181,13 +182,14 @@ final class DpkScriptRunner {
   }
 
   List<String> _wrapCommandForPty(String command) {
-    return ['-c', command];
+    return getShellCommandArgs(command);
   }
 
   Future<int> _runScript({
     required ConfigData config,
     required RunOptions options,
     required List<String> arguments,
+    required String targetDirectory,
     bool skipIfMissing = false,
   }) async {
     final script = config.scripts?.scriptsMap[options.script];
@@ -236,7 +238,11 @@ final class DpkScriptRunner {
 
       final command = script.command.trim();
 
-      final finalScript = [command, if (arguments.isNotEmpty) ...arguments];
+      final finalScript = [
+        command,
+        if (arguments.isNotEmpty) ...arguments.map(shellQuote),
+      ];
+      final finalScriptCommand = finalScript.join(' ');
 
       // Resolve workspace root for DPK_ROOT env var and package paths
       final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
@@ -254,8 +260,8 @@ final class DpkScriptRunner {
 
           final process = await Process.start(
             getShell(),
-            _wrapCommandForPty(finalScript.join(' ')),
-            runInShell: true,
+            _wrapCommandForPty(finalScriptCommand),
+            runInShell: false,
             workingDirectory: packagePath,
             environment: {...?script.env, 'DPK_ROOT': workspaceRoot},
           );
@@ -305,11 +311,11 @@ final class DpkScriptRunner {
 
       final process = await Process.start(
         getShell(),
-        ['-c', finalScript.join(' ')],
-        runInShell: true,
+        getShellCommandArgs(finalScriptCommand),
+        runInShell: false,
         workingDirectory: packagesToRunIn.isNotEmpty
             ? path.join(workspaceRoot, packagesToRunIn.first)
-            : options.globalOptions.directory,
+            : targetDirectory,
         environment: packagesToRunIn.isNotEmpty
             ? {...?script.env, 'DPK_ROOT': workspaceRoot}
             : script.env,
@@ -331,6 +337,7 @@ final class DpkScriptRunner {
     required ConfigData config,
     required RunOptions options,
     required List<String> arguments,
+    required String targetDirectory,
   }) {
     final script = config.scripts?.scriptsMap[options.script];
     final commandName = script?.runHooksFrom ?? options.script;
@@ -350,6 +357,7 @@ final class DpkScriptRunner {
         config: config,
         options: options.copyWith(script: preHookName),
         arguments: [],
+        targetDirectory: targetDirectory,
       );
     }
 
@@ -358,6 +366,7 @@ final class DpkScriptRunner {
         config: config,
         options: options.copyWith(script: postHookName),
         arguments: [],
+        targetDirectory: targetDirectory,
       );
     }
 

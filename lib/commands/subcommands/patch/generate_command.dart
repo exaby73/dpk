@@ -43,7 +43,9 @@ final class PatchGenerateCommand extends Command<int>
       options.globalPatchOptions.cacheDir,
     );
     final cacheDir = Directory(resolvedCacheDir);
-    final patchDir = Directory(options.globalPatchOptions.patchDir);
+    final patchDir = Directory(
+      resolveProjectPath(options.globalPatchOptions.patchDir),
+    );
 
     if (!cacheDir.existsSync()) {
       stderr.writeln(

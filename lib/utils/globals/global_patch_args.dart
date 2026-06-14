@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:path/path.dart';
 
 part 'global_patch_args.freezed.dart';
 
@@ -22,7 +19,7 @@ abstract class GlobalPatchOptions with _$GlobalPatchOptions {
     return GlobalPatchOptions.internal(
       globalOptions: globalOptions,
       cacheDir: cacheDir,
-      patchDir: _initializePatchDir(patchDir, globalOptions.directory),
+      patchDir: patchDir,
     );
   }
   const factory GlobalPatchOptions.internal({
@@ -37,20 +34,5 @@ abstract class GlobalPatchOptions with _$GlobalPatchOptions {
       cacheDir: results.option('cache-dir')!,
       patchDir: results.option('patch-dir')!,
     );
-  }
-
-  static String _initializePatchDir(String patchDir, String? directory) {
-    if (patchDir.startsWith('/')) {
-      return patchDir;
-    }
-
-    late String currentDirPath;
-    if (directory != null) {
-      currentDirPath = Directory(directory).absolute.path;
-    } else {
-      currentDirPath = Directory.current.absolute.path;
-    }
-
-    return join(currentDirPath, patchDir);
   }
 }

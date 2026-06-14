@@ -23,6 +23,11 @@ final class AddCommand extends Command<int>
   AddCommand() {
     addGlobalPubArgs(argParser);
     argParser.addFlag(
+      'dev',
+      help: 'Add packages as dev dependencies',
+      negatable: false,
+    );
+    argParser.addFlag(
       'offline',
       help: 'Use cached packages instead of accessing the network',
     );
@@ -44,11 +49,15 @@ final class AddCommand extends Command<int>
       'pub',
       ...buildGlobalArgs(options.globalPubOptions),
       'add',
+      if (options.dev) '--dev',
       if (options.offline) '--offline',
       if (options.dryRun) '--dry-run',
       if (options.precompile) '--precompile',
       ...argResults!.rest,
     ];
+    final targetDirectory =
+        options.globalPubOptions.globalOptions.directory ??
+        config.workingDirectory;
 
     final preHookExitCode = await runPreHook(
       commandName: 'add',
@@ -64,6 +73,7 @@ final class AddCommand extends Command<int>
 
     final exitCode = await runDartProcess(
       arguments: arguments,
+      workingDirectory: targetDirectory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
@@ -83,6 +93,7 @@ final class AddCommand extends Command<int>
 abstract class PubAddOptions with _$PubAddOptions {
   const factory PubAddOptions({
     required GlobalPubOptions globalPubOptions,
+    required bool dev,
     required bool offline,
     required bool dryRun,
     required bool precompile,
@@ -91,6 +102,7 @@ abstract class PubAddOptions with _$PubAddOptions {
   factory PubAddOptions.fromArgResults(ArgResults results) {
     return PubAddOptions(
       globalPubOptions: GlobalPubOptions.fromArgResults(results),
+      dev: results.flag('dev'),
       offline: results.flag('offline'),
       dryRun: results.flag('dry-run'),
       precompile: results.flag('precompile'),

@@ -42,22 +42,12 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     required List<String> args,
   }) async {
     // Skip config loading for help requests
-    final isHelpRequest = args.contains('--help') ||
-        args.contains('-h') ||
-        args.isEmpty;
+    final isHelpRequest =
+        args.contains('--help') || args.contains('-h') || args.isEmpty;
 
     ConfigData? config;
     if (!isHelpRequest) {
-      // Create a temporary arg parser to parse directory flag
-      final tempParser = ArgParser();
-      final globalRawArgs = [
-        for (final arg in args)
-          if (tempParser.options.containsKey(arg)) arg,
-      ];
-      addGlobalArgs(tempParser);
-      final argResults = tempParser.parse(globalRawArgs);
-      final directoryArg = argResults['directory'] as String?;
-
+      final directoryArg = extractDirectoryArg(args);
       final startDirectory = directoryArg != null
           ? Directory(directoryArg)
           : Directory.current;

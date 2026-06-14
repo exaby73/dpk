@@ -73,6 +73,9 @@ final class UpgradeCommand extends Command<int>
       if (options.majorVersions) '--major-versions',
       ...argResults!.rest,
     ];
+    final targetDirectory =
+        options.globalPubOptions.globalOptions.directory ??
+        config.workingDirectory;
 
     final preHookExitCode = await runPreHook(
       commandName: 'upgrade',
@@ -88,6 +91,7 @@ final class UpgradeCommand extends Command<int>
 
     final exitCode = await runDartProcess(
       arguments: arguments,
+      workingDirectory: targetDirectory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 

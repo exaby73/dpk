@@ -15,6 +15,14 @@ base mixin PubEnvMixin on ConfigMixin {
     return path.join(config.workingDirectory, cacheDir);
   }
 
+  String resolveProjectPath(String value) {
+    if (value.startsWith('/')) {
+      return value;
+    }
+
+    return path.join(config.workingDirectory, value);
+  }
+
   Map<String, String> getCacheEnv(String cacheDir) {
     final resolvedCacheDir = resolveCacheDir(cacheDir);
     return {

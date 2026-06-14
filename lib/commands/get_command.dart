@@ -63,7 +63,6 @@ final class GetCommand extends Command<int>
     final targetDirectory =
         options.globalPubOptions.globalOptions.directory ??
         config.workingDirectory;
-    Directory.current = targetDirectory;
 
     final arguments = [
       'pub',
@@ -89,11 +88,12 @@ final class GetCommand extends Command<int>
     }
 
     if (config.pubspec.name == '_') {
-      await _generateDependencyOverrides(options, arguments);
+      await _generateDependencyOverrides(targetDirectory);
     }
 
     final exitCode = await runDartProcess(
       arguments: arguments,
+      workingDirectory: targetDirectory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 
@@ -108,15 +108,11 @@ final class GetCommand extends Command<int>
     return postHookExitCode;
   }
 
-  Future<void> _generateDependencyOverrides(
-    PubGetOptions options,
-    List<String> arguments,
-  ) async {
+  Future<void> _generateDependencyOverrides(String targetDirectory) async {
     final catalog = config.dpkConfig.catalog;
     final workspaces = config.pubspec.workspace;
 
-
-    final originalPubspecFile = File('pubspec.yaml');
+    final originalPubspecFile = File(join(targetDirectory, 'pubspec.yaml'));
     final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
     final originalPubspec = pubspec_parse.Pubspec.parse(
       originalPubspecYamlString,
@@ -131,7 +127,7 @@ final class GetCommand extends Command<int>
       _applyRootCatalog(editor, originalPubspec, catalog);
 
       for (final workspace in workspaces ?? <String>[]) {
-        _editPubspecOfWorkspace(workspace, catalog);
+        _editPubspecOfWorkspace(targetDirectory, workspace, catalog);
       }
     }
 
@@ -160,8 +156,12 @@ final class GetCommand extends Command<int>
     updateExistingDependencies(editor, pubspec, catalog);
   }
 
-  void _editPubspecOfWorkspace(String workspace, Catalog catalog) {
-    final pubspecFile = File(join(workspace, 'pubspec.yaml'));
+  void _editPubspecOfWorkspace(
+    String targetDirectory,
+    String workspace,
+    Catalog catalog,
+  ) {
+    final pubspecFile = File(join(targetDirectory, workspace, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
       throw StateError('pubspec.yaml not found in $workspace');
     }
@@ -224,10 +224,7 @@ final class GetCommand extends Command<int>
 
     final yamlContent = editor.toString();
     pubspecFile.writeAsStringSync(yamlContent);
-    _sortPubspecIfEnabled(
-      pubspecFile,
-      catalog.dependencies?.keys.toSet(),
-    );
+    _sortPubspecIfEnabled(pubspecFile, catalog.dependencies?.keys.toSet());
   }
 
   DpkWorkspaceEnvironment _createDpkEnv(
@@ -266,7 +263,6 @@ final class GetCommand extends Command<int>
 
     pubspecFile.writeAsStringSync(content);
   }
-
 }
 
 @freezed

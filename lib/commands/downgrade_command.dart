@@ -52,6 +52,9 @@ final class DowngradeCommand extends Command<int>
       if (options.tighten) '--tighten',
       ...argResults!.rest,
     ];
+    final targetDirectory =
+        options.globalPubOptions.globalOptions.directory ??
+        config.workingDirectory;
 
     final preHookExitCode = await runPreHook(
       commandName: 'downgrade',
@@ -67,6 +70,7 @@ final class DowngradeCommand extends Command<int>
 
     final exitCode = await runDartProcess(
       arguments: arguments,
+      workingDirectory: targetDirectory,
       environment: getCacheEnv(options.globalPubOptions.cacheDir),
     );
 

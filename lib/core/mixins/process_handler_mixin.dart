@@ -13,7 +13,7 @@ mixin ProcessHandlerMixin {
       'dart',
       arguments,
       workingDirectory: wd,
-      runInShell: true,
+      runInShell: false,
       environment: environment,
     );
 

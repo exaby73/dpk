@@ -34,6 +34,29 @@ void addGlobalArgs(ArgParser parser) {
   );
 }
 
+String? extractDirectoryArg(List<String> args) {
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg == '--') {
+      return null;
+    }
+
+    if (arg == '--directory' || arg == '-C') {
+      return i + 1 < args.length ? args[i + 1] : null;
+    }
+
+    if (arg.startsWith('--directory=')) {
+      return arg.substring('--directory='.length);
+    }
+
+    if (arg.startsWith('-C') && arg.length > 2) {
+      return arg.substring(2);
+    }
+  }
+
+  return null;
+}
+
 @freezed
 abstract class GlobalOptions with _$GlobalOptions {
   factory GlobalOptions({
