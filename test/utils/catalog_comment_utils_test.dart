@@ -35,8 +35,7 @@ dependencies:
       expect(result, contains('freezed: ^3.0.0'));
       // Ensure freezed doesn't have a comment by checking the exact line
       final lines = result.split('\n');
-      final freezedLine =
-          lines.firstWhere((line) => line.contains('freezed:'));
+      final freezedLine = lines.firstWhere((line) => line.contains('freezed:'));
       expect(freezedLine, isNot(contains('#')));
     });
 
@@ -55,12 +54,8 @@ dependencies:
 dev_dependencies:
   build_runner: 2.4.15
 ''';
-      final result =
-          addCatalogCommentsToDependencies(yaml, {'build_runner'});
-      expect(
-        result,
-        contains('build_runner: 2.4.15 # Configured via catalog'),
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {'build_runner'});
+      expect(result, contains('build_runner: 2.4.15 # Configured via catalog'));
     });
 
     test('handles quoted strings containing #', () {
@@ -131,19 +126,15 @@ dependencies:
   build_runner: 2.4.15
   freezed: ^3.0.0
 ''';
-      final result = addCatalogCommentsToDependencies(
-        yaml,
-        {'meta', 'build_runner'},
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {
+        'meta',
+        'build_runner',
+      });
       expect(result, contains('meta: 1.15.0 # Configured via catalog'));
-      expect(
-        result,
-        contains('build_runner: 2.4.15 # Configured via catalog'),
-      );
+      expect(result, contains('build_runner: 2.4.15 # Configured via catalog'));
       // Freezed should not have a comment
       final lines = result.split('\n');
-      final freezedLine =
-          lines.firstWhere((line) => line.contains('freezed:'));
+      final freezedLine = lines.firstWhere((line) => line.contains('freezed:'));
       expect(freezedLine, isNot(contains('#')));
     });
 
@@ -155,15 +146,12 @@ dependencies:
 dev_dependencies:
   build_runner: 2.4.15
 ''';
-      final result = addCatalogCommentsToDependencies(
-        yaml,
-        {'meta', 'build_runner'},
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {
+        'meta',
+        'build_runner',
+      });
       expect(result, contains('meta: 1.15.0 # Configured via catalog'));
-      expect(
-        result,
-        contains('build_runner: 2.4.15 # Configured via catalog'),
-      );
+      expect(result, contains('build_runner: 2.4.15 # Configured via catalog'));
     });
 
     test('does not add comments to dependency_overrides', () {
@@ -181,9 +169,9 @@ dependency_overrides:
       final overrideIndex = lines.indexWhere(
         (line) => line.contains('dependency_overrides:'),
       );
-      final overrideMetaLine = lines.skip(overrideIndex + 1).firstWhere(
-            (line) => line.contains('meta:'),
-          );
+      final overrideMetaLine = lines
+          .skip(overrideIndex + 1)
+          .firstWhere((line) => line.contains('meta:'));
       expect(overrideMetaLine, isNot(contains('Configured via catalog')));
     });
 
@@ -205,15 +193,12 @@ dependencies:
 
   build_runner: 2.4.15
 ''';
-      final result = addCatalogCommentsToDependencies(
-        yaml,
-        {'meta', 'build_runner'},
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {
+        'meta',
+        'build_runner',
+      });
       expect(result, contains('meta: 1.15.0 # Configured via catalog'));
-      expect(
-        result,
-        contains('build_runner: 2.4.15 # Configured via catalog'),
-      );
+      expect(result, contains('build_runner: 2.4.15 # Configured via catalog'));
       // Should preserve empty line
       expect(result.split('\n').where((line) => line.isEmpty).length, 2);
     });
@@ -241,10 +226,10 @@ dependencies:
   my_package: 1.0.0
   my-other-package: 2.0.0
 ''';
-      final result = addCatalogCommentsToDependencies(
-        yaml,
-        {'my_package', 'my-other-package'},
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {
+        'my_package',
+        'my-other-package',
+      });
       expect(result, contains('my_package: 1.0.0 # Configured via catalog'));
       expect(
         result,
@@ -259,10 +244,11 @@ dependencies:
   build_runner: ^2.4.15
   freezed: "2.0.0"
 ''';
-      final result = addCatalogCommentsToDependencies(
-        yaml,
-        {'meta', 'build_runner', 'freezed'},
-      );
+      final result = addCatalogCommentsToDependencies(yaml, {
+        'meta',
+        'build_runner',
+        'freezed',
+      });
       expect(
         result,
         contains('meta: ">=1.15.0 <2.0.0" # Configured via catalog'),

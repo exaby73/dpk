@@ -80,8 +80,9 @@ dev_dependencies:
       final result = sortPubspec(input);
       final lines = result.split('\n');
 
-      final buildRunnerIndex =
-          lines.indexWhere((l) => l.contains('build_runner:'));
+      final buildRunnerIndex = lines.indexWhere(
+        (l) => l.contains('build_runner:'),
+      );
       final lintsIndex = lines.indexWhere((l) => l.contains('lints:'));
       final testIndex = lines.indexWhere((l) => l.contains('test:'));
 
@@ -129,7 +130,9 @@ version: 1.0.0
 
       // custom_field should stay after name (its predecessor in original)
       final nameIndex = lines.indexWhere((l) => l.startsWith('name:'));
-      final customIndex = lines.indexWhere((l) => l.startsWith('custom_field:'));
+      final customIndex = lines.indexWhere(
+        (l) => l.startsWith('custom_field:'),
+      );
       final versionIndex = lines.indexWhere((l) => l.startsWith('version:'));
 
       expect(nameIndex, lessThan(customIndex));
@@ -267,8 +270,9 @@ name: my_app
       final versionIndex = lines.indexWhere((l) => l.startsWith('version:'));
       final envIndex = lines.indexWhere((l) => l.startsWith('environment:'));
       final depsIndex = lines.indexWhere((l) => l.startsWith('dependencies:'));
-      final devDepsIndex =
-          lines.indexWhere((l) => l.startsWith('dev_dependencies:'));
+      final devDepsIndex = lines.indexWhere(
+        (l) => l.startsWith('dev_dependencies:'),
+      );
       final flutterIndex = lines.indexWhere((l) => l.startsWith('flutter:'));
 
       expect(nameIndex, lessThan(descIndex));
@@ -370,9 +374,10 @@ dependencies:
 
       // Complex comment should be on the key line, not nested lines
       final lines = result.split('\n');
-      final complexDepLine = lines.firstWhere((l) => l.trim().startsWith('complex_dep:'));
+      final complexDepLine = lines.firstWhere(
+        (l) => l.trim().startsWith('complex_dep:'),
+      );
       expect(complexDepLine, contains('# Complex comment'));
     });
-
   });
 }

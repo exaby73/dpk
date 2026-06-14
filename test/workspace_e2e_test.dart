@@ -14,8 +14,9 @@ void main() {
     // Get the test fixtures directory
     final testDir = Directory.current;
     final fixturesDir = Directory(path.join(testDir.path, 'test', 'fixtures'));
-    testWorkspaceRoot =
-        Directory(path.join(fixturesDir.path, 'test_workspace'));
+    testWorkspaceRoot = Directory(
+      path.join(fixturesDir.path, 'test_workspace'),
+    );
     pkgWithDpk = Directory(
       path.join(testWorkspaceRoot.path, 'packages', 'pkg_with_dpk'),
     );
@@ -23,7 +24,11 @@ void main() {
       path.join(testWorkspaceRoot.path, 'packages', 'pkg_without_dpk'),
     );
     pkgWithForbiddenFields = Directory(
-      path.join(testWorkspaceRoot.path, 'packages', 'pkg_with_forbidden_fields'),
+      path.join(
+        testWorkspaceRoot.path,
+        'packages',
+        'pkg_with_forbidden_fields',
+      ),
     );
 
     // Path to dpk executable
@@ -32,22 +37,22 @@ void main() {
 
   group('E2E - Workspace Script Execution', () {
     test('package can execute root script', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'root_script'],
-        workingDirectory: pkgWithDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'root_script',
+      ], workingDirectory: pkgWithDpk.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('from root'));
     });
 
     test('package executes overridden script from package dpk.yaml', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'shared_script'],
-        workingDirectory: pkgWithDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'shared_script',
+      ], workingDirectory: pkgWithDpk.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('shared from package'));
@@ -55,76 +60,79 @@ void main() {
     });
 
     test('package can execute package-specific script', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'pkg_script'],
-        workingDirectory: pkgWithDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'pkg_script',
+      ], workingDirectory: pkgWithDpk.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('package only'));
     });
 
     test('package without dpk.yaml executes root scripts', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'root_script'],
-        workingDirectory: pkgWithoutDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'root_script',
+      ], workingDirectory: pkgWithoutDpk.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('from root'));
     });
 
     test('package without dpk.yaml executes shared script from root', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'shared_script'],
-        workingDirectory: pkgWithoutDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'shared_script',
+      ], workingDirectory: pkgWithoutDpk.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('shared from root'));
     });
 
-    test('package without dpk.yaml cannot execute package-specific script', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'pkg_script'],
-        workingDirectory: pkgWithoutDpk.path,
-      );
+    test(
+      'package without dpk.yaml cannot execute package-specific script',
+      () async {
+        final result = await Process.run('dart', [
+          dpkExecutable,
+          'run',
+          'pkg_script',
+        ], workingDirectory: pkgWithoutDpk.path);
 
-      expect(result.exitCode, isNot(equals(0)));
-    });
+        expect(result.exitCode, isNot(equals(0)));
+      },
+    );
 
     test('workspace root executes its own scripts', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'root_script'],
-        workingDirectory: testWorkspaceRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'root_script',
+      ], workingDirectory: testWorkspaceRoot.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('from root'));
     });
 
     test('workspace root executes shared script (not overridden)', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'shared_script'],
-        workingDirectory: testWorkspaceRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'shared_script',
+      ], workingDirectory: testWorkspaceRoot.path);
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('shared from root'));
     });
 
     test('workspace root cannot execute package-specific script', () async {
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'pkg_script'],
-        workingDirectory: testWorkspaceRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'pkg_script',
+      ], workingDirectory: testWorkspaceRoot.path);
 
       expect(result.exitCode, isNot(equals(0)));
     });
@@ -133,11 +141,11 @@ void main() {
   group('E2E - Workspace Validation', () {
     test('fails when package dpk.yaml contains forbidden fields', () async {
       // Try to run any command in the package with forbidden fields
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'some_script'],
-        workingDirectory: pkgWithForbiddenFields.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'some_script',
+      ], workingDirectory: pkgWithForbiddenFields.path);
 
       expect(result.exitCode, isNot(equals(0)));
       expect(
@@ -150,11 +158,11 @@ void main() {
   group('E2E - Script Availability', () {
     test('package-specific script not available at workspace root', () async {
       // Attempt to run package-specific script from workspace root
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'pkg_script'],
-        workingDirectory: testWorkspaceRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'pkg_script',
+      ], workingDirectory: testWorkspaceRoot.path);
 
       // Should fail because pkg_script is not defined at workspace root
       expect(result.exitCode, isNot(equals(0)));
@@ -162,11 +170,11 @@ void main() {
 
     test('package-specific script not available in other packages', () async {
       // Attempt to run pkg_script from package without dpk.yaml
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'pkg_script'],
-        workingDirectory: pkgWithoutDpk.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'pkg_script',
+      ], workingDirectory: pkgWithoutDpk.path);
 
       // Should fail because pkg_script is only in pkg_with_dpk
       expect(result.exitCode, isNot(equals(0)));
@@ -176,11 +184,11 @@ void main() {
   group('E2E - Scripts with runInPackages', () {
     test('root script with runInPackages runs from workspace root', () async {
       // Run multi_package script from workspace root
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'multi_package'],
-        workingDirectory: testWorkspaceRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'run',
+        'multi_package',
+      ], workingDirectory: testWorkspaceRoot.path);
 
       expect(result.exitCode, equals(0));
       final output = result.stdout.toString();
@@ -191,23 +199,26 @@ void main() {
       expect(output, contains('pkg_with_forbidden_fields'));
     });
 
-    test('root script with runInPackages runs from package directory', () async {
-      // Run multi_package script from package directory
-      // Should run in all workspace packages (not just the current one)
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'run', 'multi_package'],
-        workingDirectory: pkgWithDpk.path,
-      );
+    test(
+      'root script with runInPackages runs from package directory',
+      () async {
+        // Run multi_package script from package directory
+        // Should run in all workspace packages (not just the current one)
+        final result = await Process.run('dart', [
+          dpkExecutable,
+          'run',
+          'multi_package',
+        ], workingDirectory: pkgWithDpk.path);
 
-      expect(result.exitCode, equals(0));
-      final output = result.stdout.toString();
+        expect(result.exitCode, equals(0));
+        final output = result.stdout.toString();
 
-      // Should run in all workspace packages, not throw an error
-      expect(output, contains('pkg_with_dpk'));
-      expect(output, contains('pkg_without_dpk'));
-      expect(output, contains('pkg_with_forbidden_fields'));
-    });
+        // Should run in all workspace packages, not throw an error
+        expect(output, contains('pkg_with_dpk'));
+        expect(output, contains('pkg_without_dpk'));
+        expect(output, contains('pkg_with_forbidden_fields'));
+      },
+    );
   });
 
   group('E2E - Catalog Comments', () {
@@ -217,8 +228,7 @@ void main() {
 
     setUpAll(() {
       final testDir = Directory.current;
-      monorepoRoot =
-          Directory(path.join(testDir.path, 'examples', 'monorepo'));
+      monorepoRoot = Directory(path.join(testDir.path, 'examples', 'monorepo'));
       package1 = Directory(
         path.join(monorepoRoot.path, 'packages', 'package_1'),
       );
@@ -229,17 +239,15 @@ void main() {
 
     test('dpk get adds catalog comments to workspace packages', () async {
       // Run dpk get from monorepo root
-      final result = await Process.run(
-        'dart',
-        [dpkExecutable, 'get'],
-        workingDirectory: monorepoRoot.path,
-      );
+      final result = await Process.run('dart', [
+        dpkExecutable,
+        'get',
+      ], workingDirectory: monorepoRoot.path);
 
       expect(result.exitCode, equals(0));
 
       // Check package_1 pubspec for catalog comments
-      final package1Pubspec =
-          File(path.join(package1.path, 'pubspec.yaml'));
+      final package1Pubspec = File(path.join(package1.path, 'pubspec.yaml'));
       final package1Content = package1Pubspec.readAsStringSync();
 
       // Check that dependencies from catalog have comments
@@ -247,14 +255,10 @@ void main() {
         package1Content,
         contains('meta: 1.15.0 # Configured via catalog'),
       );
-      expect(
-        package1Content,
-        contains('luthor: # Configured via catalog'),
-      );
+      expect(package1Content, contains('luthor: # Configured via catalog'));
 
       // Check package_2 pubspec for catalog comments
-      final package2Pubspec =
-          File(path.join(package2.path, 'pubspec.yaml'));
+      final package2Pubspec = File(path.join(package2.path, 'pubspec.yaml'));
       final package2Content = package2Pubspec.readAsStringSync();
 
       // Check that dependencies from catalog have comments
@@ -269,35 +273,28 @@ void main() {
       // comments are preserved after sorting
 
       // Run dpk get which will add comments and sort
-      await Process.run(
-        'dart',
-        [dpkExecutable, 'get'],
-        workingDirectory: monorepoRoot.path,
-      );
+      await Process.run('dart', [
+        dpkExecutable,
+        'get',
+      ], workingDirectory: monorepoRoot.path);
 
       // Read the sorted pubspec
-      final package1Pubspec =
-          File(path.join(package1.path, 'pubspec.yaml'));
+      final package1Pubspec = File(path.join(package1.path, 'pubspec.yaml'));
       final content = package1Pubspec.readAsStringSync();
 
       // Verify comments are still present after sorting
-      expect(
-        content,
-        contains('# Configured via catalog'),
-      );
+      expect(content, contains('# Configured via catalog'));
     });
 
     test('only catalog dependencies have comments', () async {
       // Run dpk get
-      await Process.run(
-        'dart',
-        [dpkExecutable, 'get'],
-        workingDirectory: monorepoRoot.path,
-      );
+      await Process.run('dart', [
+        dpkExecutable,
+        'get',
+      ], workingDirectory: monorepoRoot.path);
 
       // Read package_1 pubspec
-      final package1Pubspec =
-          File(path.join(package1.path, 'pubspec.yaml'));
+      final package1Pubspec = File(path.join(package1.path, 'pubspec.yaml'));
       final lines = package1Pubspec.readAsLinesSync();
 
       // Find dependencies that are NOT in catalog (freezed_annotation)

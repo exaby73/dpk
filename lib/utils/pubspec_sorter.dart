@@ -33,8 +33,7 @@ const List<String?> _pubspecKeyOrder = [
 ];
 
 /// Known keys from the order list (excluding null markers)
-final Set<String> _knownKeys =
-    _pubspecKeyOrder.whereType<String>().toSet();
+final Set<String> _knownKeys = _pubspecKeyOrder.whereType<String>().toSet();
 
 /// Sections that contain package dependencies (to be sorted alphabetically)
 const Set<String> _dependencySections = {
@@ -63,7 +62,8 @@ class NestedKeyEntry {
   final String keyName;
   final String leadingComments;
   final String? inlineComment;
-  final String? rawValueBlock; // For complex values (maps), stores the full raw text
+  final String?
+  rawValueBlock; // For complex values (maps), stores the full raw text
 
   const NestedKeyEntry({
     required this.keyName,
@@ -160,8 +160,11 @@ List<KeyEntry> _extractKeyEntries(String content) {
           final nestedMatch = nestedKeyPattern.firstMatch(nestedLine);
           if (nestedMatch != null) {
             final nestedKeyName = nestedMatch.group(1)!;
-            final nestedLeadingComments =
-                _collectNestedLeadingComments(lines, i, nestedEntries);
+            final nestedLeadingComments = _collectNestedLeadingComments(
+              lines,
+              i,
+              nestedEntries,
+            );
             final nestedInlineComment = _extractInlineComment(nestedLine);
 
             // Check if this is a complex value (line ends with just ":" after removing comment)
@@ -200,12 +203,14 @@ List<KeyEntry> _extractKeyEntries(String content) {
               i++;
             }
 
-            nestedEntries.add(NestedKeyEntry(
-              keyName: nestedKeyName,
-              leadingComments: nestedLeadingComments,
-              inlineComment: nestedInlineComment,
-              rawValueBlock: rawValueBlock,
-            ));
+            nestedEntries.add(
+              NestedKeyEntry(
+                keyName: nestedKeyName,
+                leadingComments: nestedLeadingComments,
+                inlineComment: nestedInlineComment,
+                rawValueBlock: rawValueBlock,
+              ),
+            );
           } else {
             i++;
           }
@@ -218,12 +223,14 @@ List<KeyEntry> _extractKeyEntries(String content) {
         }
       }
 
-      entries.add(KeyEntry(
-        keyName: keyName,
-        leadingComments: leadingComments,
-        inlineComment: inlineComment,
-        nestedEntries: nestedEntries,
-      ));
+      entries.add(
+        KeyEntry(
+          keyName: keyName,
+          leadingComments: leadingComments,
+          inlineComment: inlineComment,
+          nestedEntries: nestedEntries,
+        ),
+      );
     } else {
       i++;
     }
@@ -398,7 +405,9 @@ String _buildPlaceholderSkeleton(List<KeyEntry> sortedEntries) {
 
     // Add blank line when transitioning to a new group (except for first entry)
     // Unknown keys (group -1) inherit their predecessor's group
-    if (i > 0 && currentGroupIndex != -1 && currentGroupIndex != lastGroupIndex) {
+    if (i > 0 &&
+        currentGroupIndex != -1 &&
+        currentGroupIndex != lastGroupIndex) {
       buffer.writeln();
     }
 
@@ -445,8 +454,9 @@ String _buildPlaceholderSkeleton(List<KeyEntry> sortedEntries) {
       }
     } else {
       // All other keys get a single PLACEHOLDER
-      final comment =
-          entry.inlineComment != null ? ' ${entry.inlineComment}' : '';
+      final comment = entry.inlineComment != null
+          ? ' ${entry.inlineComment}'
+          : '';
       buffer.writeln('${entry.keyName}: PLACEHOLDER$comment');
     }
   }

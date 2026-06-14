@@ -16,8 +16,7 @@ void main() {
     // Get the test fixtures directory
     final testDir = Directory.current;
     fixturesDir = Directory(path.join(testDir.path, 'test', 'fixtures'));
-    workspaceRoot =
-        Directory(path.join(fixturesDir.path, 'test_workspace'));
+    workspaceRoot = Directory(path.join(fixturesDir.path, 'test_workspace'));
     pkgWithDpk = Directory(
       path.join(workspaceRoot.path, 'packages', 'pkg_with_dpk'),
     );
@@ -219,7 +218,7 @@ void main() {
     test('validatePackageDpkYaml allows scripts', () {
       expect(
         () => validatePackageDpkYaml({
-          'scripts': {'test': 'dart test'}
+          'scripts': {'test': 'dart test'},
         }),
         returnsNormally,
       );
