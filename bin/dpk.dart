@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:dpk/constants/pubspec.g.dart';
 import 'package:dpk/core/command_runner.dart';
+import 'package:dpk/utils/version_output.dart';
 
 Future<void> main(List<String> arguments) async {
   try {
     if (arguments.contains('--version')) {
       // ignore: avoid_print
-      print('dpk ${Pubspec.version.representation}');
+      print(renderVersionOutput());
       exit(0);
     }
 

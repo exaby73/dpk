@@ -4,6 +4,7 @@ targets:
       - $package$
       - lib/**
       - pubspec.yaml
+      - skills/**
     builders:
       pubspec_generator:
         options:

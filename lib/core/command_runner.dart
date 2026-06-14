@@ -14,6 +14,7 @@ import 'package:dpk/constants/pubspec.g.dart';
 import 'package:dpk/core/injection_container.dart';
 import 'package:dpk/utils/globals/global_args.dart';
 import 'package:dpk/utils/terminal_title.dart';
+import 'package:dpk/utils/version_output.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -110,7 +111,7 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
   Future<int?> runCommand(ArgResults topLevelResults) async {
     if (topLevelResults.flag('version')) {
       // ignore: avoid_print
-      print('dpk ${Pubspec.version.representation}');
+      print(renderVersionOutput());
       return 0;
     }
 

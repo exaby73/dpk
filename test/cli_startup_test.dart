@@ -28,6 +28,26 @@ void main() {
       });
     });
 
+    group('When version is requested', () {
+      late ProcessResult result;
+
+      setUp(() async {
+        result = await Process.run('dart', [dpkExecutable, '--version']);
+      });
+
+      test('Then it exits successfully', () {
+        expect(result.exitCode, equals(0));
+      });
+
+      test('Then it prints detailed version information', () {
+        final output = result.stdout.toString();
+        expect(output, contains('dpk'));
+        expect(output, contains('Version:    0.8.0'));
+        expect(output, contains('Dart SDK:'));
+        expect(output, contains('Repository: https://github.com/zoeh-ai/dpk'));
+      });
+    });
+
     group('When parsing fails', () {
       late ProcessResult result;
 

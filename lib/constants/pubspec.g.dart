@@ -126,10 +126,10 @@ sealed class Pubspec {
     6,
     14,
     17,
-    1,
-    53,
-    921,
-    933,
+    29,
+    41,
+    416,
+    835,
   );
 
   /// Name
@@ -410,6 +410,7 @@ sealed class Pubspec {
     'args': r'^2.7.0',
     'cli_completion': r'^0.5.1',
     'collection': r'^1.19.1',
+    'embed_annotation': r'^1.2.3',
     'freezed_annotation': r'^3.0.0',
     'get_it': r'^9.1.1',
     'glob': r'^2.1.3',
@@ -426,7 +427,8 @@ sealed class Pubspec {
 
   /// Developer dependencies
   static const Map<String, Object> devDependencies = <String, Object>{
-    'build_runner': r'^2.4.15',
+    'build_runner': r'^2.15.0',
+    'embed': r'^1.6.4',
     'freezed': r'^3.0.4',
     'json_serializable': r'^6.9.4',
     'lint': r'^2.8.0',
