@@ -5,6 +5,7 @@ import 'package:cli_completion/cli_completion.dart';
 import 'package:dpk/commands/add_command.dart';
 import 'package:dpk/commands/downgrade_command.dart';
 import 'package:dpk/commands/get_command.dart';
+import 'package:dpk/commands/init_command.dart';
 import 'package:dpk/commands/parent_commands/patch_command.dart';
 import 'package:dpk/commands/remove_command.dart';
 import 'package:dpk/commands/run_command.dart';
@@ -46,7 +47,9 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
         args.contains('--help') || args.contains('-h') || args.isEmpty;
 
     ConfigData? config;
-    if (!isHelpRequest) {
+    final isConfiglessRequest = _extractTopLevelCommand(args) == 'init';
+
+    if (!isHelpRequest && !isConfiglessRequest) {
       final directoryArg = extractDirectoryArg(args);
       final startDirectory = directoryArg != null
           ? Directory(directoryArg)
@@ -86,6 +89,7 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     }
 
     runner
+      ..addCommand(InitCommand())
       ..addCommand(AddCommand())
       ..addCommand(DowngradeCommand())
       ..addCommand(GetCommand())
@@ -139,4 +143,37 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
   Future<int?> runDpk() {
     return super.run(args);
   }
+}
+
+String? _extractTopLevelCommand(List<String> args) {
+  for (var i = 0; i < args.length; i++) {
+    final arg = args[i];
+    if (arg == '--') {
+      return null;
+    }
+
+    if (arg == '--directory' ||
+        arg == '--cache-dir' ||
+        arg == '-C' ||
+        arg == '-d') {
+      i++;
+      continue;
+    }
+
+    if (arg.startsWith('--directory=') || arg.startsWith('--cache-dir=')) {
+      continue;
+    }
+
+    if ((arg.startsWith('-C') || arg.startsWith('-d')) && arg.length > 2) {
+      continue;
+    }
+
+    if (arg.startsWith('-')) {
+      continue;
+    }
+
+    return arg;
+  }
+
+  return null;
 }

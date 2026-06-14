@@ -59,6 +59,19 @@ void main(List<String> args) {
       });
     });
 
+    group('When running a script through run -C from another directory', () {
+      late ProcessResult result;
+
+      setUp(() async {
+        result = await runDpk(dpkExecutable, ['run', '-C', projectPath, 'cwd']);
+      });
+
+      test('Then the script runs in the target project directory', () {
+        expect(result.exitCode, equals(0));
+        expect(result.stdout.toString(), contains(projectPath));
+      });
+    });
+
     group('When forwarding a shell metacharacter argument to a script', () {
       late ProcessResult result;
       late File injectedByShell;
