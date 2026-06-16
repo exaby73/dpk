@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:dpk/config/config.dart';
+import 'package:dpk/config/data/scripts.dart';
 import 'package:dpk/utils/workspace.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   group('Given workspace fixture directories', () {
@@ -156,6 +158,23 @@ void main() {
         expect(config.scripts, isNotNull);
       },
     );
+
+    test('When parsing script metadata then description is retained', () {
+      final yaml =
+          loadYaml('''
+documented:
+  command: dart test
+  description: Run documented script
+''')
+              as YamlMap;
+
+      final scripts = Scripts.fromYaml(yaml);
+
+      expect(
+        scripts.scriptsMap['documented']!.description,
+        equals('Run documented script'),
+      );
+    });
 
     test('When loading forbidden package config then validation fails', () {
       expect(

@@ -239,6 +239,7 @@ scripts:
   # Advanced format with all options
   test:
     command: dart test
+    description: Run unit tests
     env:
       TEST_ENV: integration
       API_URL: http://localhost:8080
@@ -354,6 +355,7 @@ scripts:
 scripts:
   test:
     command: dart test # Required
+    description: Run unit tests # Optional help/documentation text
     env: # Optional environment variables
       CI: 'true'
       LOG_LEVEL: 'verbose'
@@ -365,9 +367,12 @@ scripts:
 **Script Options:**
 
 - **`command`** (Required): The shell command to execute
+- **`description`**: Optional help text for documenting the script
 - **`env`**: Environment variables to set before running the script
 - **`runInPackages`**: Glob patterns for workspace packages where the script should run
 - **`runHooksFrom`**: Name of another script to inherit hooks from
+- **`scripts`**: Hook target list for `before` and `after`
+- **`all`**: When `true` on `before` or `after`, match every hookable command
 
 #### `catalog`
 

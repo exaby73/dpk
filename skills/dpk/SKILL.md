@@ -191,6 +191,7 @@ version: ^0.8.0
 scripts:
   test:
     command: dart test
+    description: Run unit tests
     env:
       CI: "true"
   test_all:
@@ -205,6 +206,7 @@ package and sets `DPK_ROOT` to the workspace root.
 Object-form script fields are:
 
 - `command`: shell command to run.
+- `description`: optional help text for documenting the script.
 - `env`: environment variables for the command.
 - `runInPackages`: workspace package globs to run in.
 - `runHooksFrom`: script or command name whose hooks should be used.

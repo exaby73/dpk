@@ -28,6 +28,7 @@ abstract class Script with _$Script {
   const factory Script({
     required String name,
     required String command,
+    String? description,
     List<String>? runInPackages,
     required String? runHooksFrom,
     List<String>? scripts,
@@ -45,6 +46,7 @@ abstract class Script with _$Script {
     }
 
     final command = yaml['command'] as String;
+    final description = yaml['description'] as String?;
     final runHooksFrom = yaml['runHooksFrom'] as String?;
     final runInPackages = (yaml['runInPackages'] as YamlList?)?.cast<String>();
     final scripts = (yaml['scripts'] as YamlList?)?.cast<String>();
@@ -54,6 +56,7 @@ abstract class Script with _$Script {
     return Script(
       name: name,
       command: command,
+      description: description,
       runInPackages: runInPackages,
       runHooksFrom: runHooksFrom,
       scripts: scripts,

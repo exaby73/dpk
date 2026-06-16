@@ -19,6 +19,7 @@ Map<String, dynamic> _$ScriptsToJson(_Scripts instance) => <String, dynamic>{
 _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
   name: json['name'] as String,
   command: json['command'] as String,
+  description: json['description'] as String?,
   runInPackages: (json['runInPackages'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
@@ -35,6 +36,7 @@ _Script _$ScriptFromJson(Map<String, dynamic> json) => _Script(
 Map<String, dynamic> _$ScriptToJson(_Script instance) => <String, dynamic>{
   'name': instance.name,
   'command': instance.command,
+  'description': instance.description,
   'runInPackages': instance.runInPackages,
   'runHooksFrom': instance.runHooksFrom,
   'scripts': instance.scripts,
