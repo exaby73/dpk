@@ -1,3 +1,8 @@
+## 0.8.2
+
+- Feat: Support `description` metadata on dpk script objects
+- Docs: Document every dpk script object option in README and the bundled skill
+
 ## 0.8.1
 
 - Feat: Embed the dpk skill content so installed CLI binaries can print the full guide
