@@ -1,7 +1,7 @@
 version: ^0.8.0
 
 mode: project
-sortPubspec: true
+sort_pubspec: true
 
 workspace:
   - packages/*
@@ -10,12 +10,20 @@ catalog:
   environment:
     sdk: ^3.6.0
 
+  version: 1.2.3
   resolution: workspace
   publish_to: none
+  homepage: https://example.com/DPK_PACKAGE_NAME
   repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/DPK_PACKAGE_PATH
+  issue_tracker: https://github.com/exaby73/dpk/issues
   documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
   topics:
     - dpk
+  funding:
+    - https://github.com/sponsors/DPK_PACKAGE_NAME
+  platforms:
+    linux:
+    macos:
 
   dependencies:
     build_runner: 2.4.15

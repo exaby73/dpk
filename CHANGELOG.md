@@ -1,3 +1,9 @@
+## 0.8.3
+
+- Feat: Add catalog support for `homepage`, `version`, `funding`, and `platforms`
+- Feat: Rename `sortPubspec` to `sort_pubspec` and migrate legacy keys during `dpk get`
+- Docs: Clarify catalog field behavior and template variable expansion
+
 ## 0.8.2
 
 - Feat: Support `description` metadata on dpk script objects

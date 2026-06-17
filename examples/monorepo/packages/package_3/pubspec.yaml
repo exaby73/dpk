@@ -1,12 +1,20 @@
 name: package_3
 description: A starting point for Dart libraries or applications.
-version: 2.0.0
-publish_to: none
-repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_3
-documentation: https://pub.dev/documentation/package_3/2.0.0/
+version: 1.2.3
 resolution: workspace
+publish_to: none
+homepage: https://example.com/package_3
+repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_3
+issue_tracker: https://github.com/exaby73/dpk/issues
+documentation: https://pub.dev/documentation/package_3/1.2.3/
 topics:
   - dpk
+funding:
+  - https://github.com/sponsors/package_3
+
+platforms:
+  linux: null
+  macos: null
 
 environment:
   sdk: ^3.6.0

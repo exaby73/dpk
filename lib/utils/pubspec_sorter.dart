@@ -6,6 +6,7 @@ const List<String?> _pubspecKeyOrder = [
   'name',
   'description',
   'version',
+  'resolution',
   'publish_to',
   'homepage',
   'repository',

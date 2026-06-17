@@ -32,7 +32,8 @@ abstract class DpkConfig with _$DpkConfig {
     final catalog = catalogYaml != null ? Catalog.fromYaml(catalogYaml) : null;
     final workspaceYaml = map['workspace'] as YamlList?;
     final workspace = workspaceYaml?.cast<String>();
-    final sortPubspec = map['sortPubspec'] as bool? ?? false;
+    final sortPubspec =
+        map['sort_pubspec'] as bool? ?? map['sortPubspec'] as bool? ?? false;
 
     return DpkConfig(
       mode: DpkMode.values.firstWhere(

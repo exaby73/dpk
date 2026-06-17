@@ -262,6 +262,40 @@ void main() {
         expect(package1Content, contains('# Configured via catalog'));
       });
 
+      test('Then catalog package metadata is applied', () {
+        expect(package1Content, contains('version: 1.2.3'));
+        expect(package1Content, contains('resolution: workspace'));
+        expect(package1Content, contains('publish_to: none'));
+        expect(
+          package1Content,
+          contains('homepage: https://example.com/package_1'),
+        );
+        expect(
+          package1Content,
+          contains(
+            'repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_1',
+          ),
+        );
+        expect(
+          package1Content,
+          contains('issue_tracker: https://github.com/exaby73/dpk/issues'),
+        );
+        expect(
+          package1Content,
+          contains(
+            'documentation: https://pub.dev/documentation/package_1/1.2.3/',
+          ),
+        );
+        expect(
+          package1Content,
+          contains('funding:\n  - https://github.com/sponsors/package_1'),
+        );
+        expect(
+          package1Content,
+          contains('platforms:\n  linux: null\n  macos: null'),
+        );
+      });
+
       test('Then non-catalog dependencies do not receive comments', () {
         final lines = package1Content.split('\n');
         final freezedLine = lines.firstWhere(

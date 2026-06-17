@@ -1,12 +1,20 @@
 name: package_1
 description: A starting point for Dart libraries or applications.
-version: 1.0.0
+version: 1.2.3
 resolution: workspace
 publish_to: none
+homepage: https://example.com/package_1
 repository: https://github.com/exaby73/dpk/tree/main/examples/monorepo/packages/package_1
-documentation: https://pub.dev/documentation/package_1/1.0.0/
+issue_tracker: https://github.com/exaby73/dpk/issues
+documentation: https://pub.dev/documentation/package_1/1.2.3/
 topics:
   - dpk
+funding:
+  - https://github.com/sponsors/package_1
+
+platforms:
+  linux: null
+  macos: null
 
 environment:
   sdk: ^3.6.0

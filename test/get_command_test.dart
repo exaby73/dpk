@@ -69,6 +69,47 @@ void main(List<String> args) {
         );
       });
     });
+
+    group('When dpk.yaml uses the legacy sortPubspec key', () {
+      late ProcessResult result;
+      late File configFile;
+
+      setUp(() async {
+        configFile = File(path.join(projectPath, 'dpk.yaml'));
+        configFile.writeAsStringSync('''
+version: ^0.8.0
+sortPubspec: true
+''');
+        result = await runDpk(dpkExecutable, ['-C', projectPath, 'get']);
+      });
+
+      test('Then dpk get migrates it to sort_pubspec', () {
+        expect(result.exitCode, equals(0));
+        expect(configFile.readAsStringSync(), contains('sort_pubspec: true'));
+        expect(configFile.readAsStringSync(), isNot(contains('sortPubspec')));
+      });
+    });
+
+    group('When nested dpk config uses the legacy sortPubspec key', () {
+      late ProcessResult result;
+      late File configFile;
+
+      setUp(() async {
+        configFile = File(path.join(projectPath, 'dpk.yaml'));
+        configFile.writeAsStringSync('''
+version: ^0.8.0
+dpk:
+  sortPubspec: true
+''');
+        result = await runDpk(dpkExecutable, ['-C', projectPath, 'get']);
+      });
+
+      test('Then dpk get migrates it to nested sort_pubspec', () {
+        expect(result.exitCode, equals(0));
+        expect(configFile.readAsStringSync(), contains('sort_pubspec: true'));
+        expect(configFile.readAsStringSync(), isNot(contains('sortPubspec')));
+      });
+    });
   });
 }
 

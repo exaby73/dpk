@@ -223,7 +223,7 @@ version: ^X.Y.Z
 mode: global # or 'project' - see mode section below
 
 # Sort pubspec.yaml keys on dpk get
-sortPubspec: true
+sort_pubspec: true
 
 # Workspace glob patterns (for monorepos)
 workspace:
@@ -268,10 +268,16 @@ catalog:
     sdk: '>=3.0.0 <4.0.0'
     flutter: '>=3.10.0' # Optional Flutter SDK constraint
 
+  # Package version applied to workspace packages
+  version: 1.2.3
+
   # Package metadata (supports template variables - see below)
+  homepage: https://example.com/DPK_PACKAGE_NAME
   repository: https://github.com/username/repo/tree/main/DPK_PACKAGE_PATH
   issue_tracker: https://github.com/username/repo/issues
   documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
+  funding:
+    - https://github.com/sponsors/DPK_PACKAGE_NAME
 
   # Publishing configuration
   publish_to: none # or a custom pub server URL
@@ -281,6 +287,11 @@ catalog:
     - dart
     - cli
     - package-manager
+
+  # Supported platforms for pub.dev
+  platforms:
+    linux:
+    macos:
 
   # Dependency resolution type
   resolution: workspace # or 'hosted' for standard resolution
@@ -312,19 +323,23 @@ Specifies the operational mode for `dpk`.
 - **`global`** (default): Packages are installed using the standard `dart pub get` behavior (to the global pub cache).
 - **`project`**: Packages are installed to the local `pub_packages` directory for patching and local modifications.
 
-#### `sortPubspec`
+#### `sort_pubspec`
 
 When set to `true`, dpk will sort `pubspec.yaml` files when running `dpk get`:
 
-- **Top-level keys** are sorted according to a standard order: `name`, `description`, `version`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `topics`, `screenshots`, `funding`, `platforms`, `false_secrets`, `ignored_advisories`, `environment`, `dependencies`, `dev_dependencies`, `dependency_overrides`, `executables`, `flutter`
+- **Top-level keys** are sorted according to a standard order: `name`, `description`, `version`, `resolution`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `topics`, `screenshots`, `funding`, `platforms`, `false_secrets`, `ignored_advisories`, `environment`, `dependencies`, `dev_dependencies`, `dependency_overrides`, `executables`, `flutter`
 - **Unknown keys** not in the standard order are placed after their preceding key from the original file
 - **Package names** within `dependencies`, `dev_dependencies`, and `dependency_overrides` are sorted alphabetically
 - **Comments** (inline and standalone) are preserved
 - **Blank lines** are added between logical groups
 
 ```yaml
-sortPubspec: true
+sort_pubspec: true
 ```
+
+If `dpk get` finds the old `sortPubspec` key, it rewrites it to
+`sort_pubspec`. During parsing, both keys are accepted so older config keeps
+working until migration runs.
 
 #### `workspace`
 
@@ -380,36 +395,62 @@ The `catalog` property is a powerful feature for managing monorepos. It allows y
 
 To enable the catalog, the `name` of your root `pubspec.yaml` must be `_`.
 
+`dpk get` applies catalog values to pubspec files. The workspace root package
+only receives `environment` and dependency updates. Workspace packages receive
+the full package metadata set.
+
 **Catalog Properties:**
 
-- **`environment`**: SDK constraints for Dart and Flutter
-  - `sdk`: Dart SDK version constraint
-  - `flutter`: Optional Flutter SDK version constraint
-- **`repository`**: Source code repository URL (supports template variables)
-- **`homepage`**: Project homepage URL
-- **`issue_tracker`**: Issue tracker URL (supports template variables)
-- **`documentation`**: Documentation website URL (supports template variables)
-- **`publish_to`**: Pub server URL or `none` (defaults to `none`)
-- **`topics`**: List of pub.dev categorization topics
-- **`resolution`**: Dependency resolution type (`workspace` or `hosted`)
-- **`dependencies`**: Shared dependencies applied to both `dependencies` and `dev_dependencies` in workspace packages (only updates existing dependencies, doesn't add new ones)
+- **`environment`**: Replaces the `environment` section. Supports keys such as `sdk` and `flutter`.
+- **`version`**: Sets the workspace package `version`.
+- **`publish_to`**: Sets `publish_to`, for example `none` or a custom pub server URL.
+- **`homepage`**: Sets `homepage`. Supports template variables.
+- **`repository`**: Sets `repository`. Supports template variables.
+- **`issue_tracker`**: Sets `issue_tracker`. Supports template variables.
+- **`documentation`**: Sets `documentation`. Supports template variables.
+- **`topics`**: Ensures listed topics exist. Existing package topics are preserved and missing catalog topics are appended.
+- **`funding`**: Sets the `funding` URL list. Supports template variables.
+- **`platforms`**: Sets the `platforms` map, using standard pubspec platform keys such as `android`, `ios`, `linux`, `macos`, `web`, and `windows`.
+- **`resolution`**: Sets the pub workspace resolution, usually `workspace`.
+- **`dependencies`**: Updates matching existing entries in both `dependencies` and `dev_dependencies`. Missing dependencies are not added.
+
+Catalog does not currently manage `name`, `description`, `screenshots`,
+`false_secrets`, `ignored_advisories`, `executables`, `flutter`,
+`dependency_overrides`, or a separate `dev_dependencies` catalog section.
 
 **Template Variables:**
 
-The following template variables can be used in `repository`, `issue_tracker`, and `documentation` fields:
+The following template variables can be used in `homepage`, `repository`,
+`issue_tracker`, `documentation`, and `funding` fields:
 
-| Variable              | Description                                      |
-| --------------------- | ------------------------------------------------ |
-| `DPK_PACKAGE_PATH`    | Relative path to the package from workspace root |
-| `DPK_PACKAGE_NAME`    | The package name from pubspec.yaml               |
-| `DPK_PACKAGE_VERSION` | The package version from pubspec.yaml            |
+Template variables are expanded separately for each workspace package during
+`dpk get`:
+
+| Variable              | Expands to                                                                 |
+| --------------------- | -------------------------------------------------------------------------- |
+| `DPK_PACKAGE_PATH`    | The workspace package path relative to the workspace root, such as `packages/core` |
+| `DPK_PACKAGE_NAME`    | The package `name` from that package's `pubspec.yaml`, such as `core`      |
+| `DPK_PACKAGE_VERSION` | The catalog `version` when one is configured; otherwise the package's existing pubspec version |
+
+Variables can also be written with a shell-style `$` prefix, such as
+`$DPK_PACKAGE_NAME`.
 
 **Example with template variables:**
 
 ```yaml
 catalog:
+  version: 1.2.3
+  homepage: https://example.com/DPK_PACKAGE_NAME
   repository: https://github.com/user/repo/tree/main/DPK_PACKAGE_PATH
   documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
+```
+
+For a package at `packages/core` with `name: core`, this expands to:
+
+```yaml
+homepage: https://example.com/core
+repository: https://github.com/user/repo/tree/main/packages/core
+documentation: https://pub.dev/documentation/core/1.2.3/
 ```
 
 When you run `dpk get` in a workspace with a catalog, dpk automatically updates each package's `pubspec.yaml` with the catalog configuration, replacing template variables with package-specific values.

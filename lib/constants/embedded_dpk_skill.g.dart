@@ -394,25 +394,64 @@ version: ^0.8.0
 catalog:
   environment:
     sdk: ^3.8.0
+  version: 1.2.3
   resolution: workspace
   publish_to: none
+  homepage: https://example.com/DPK_PACKAGE_NAME
   repository: https://github.com/example/repo/tree/main/DPK_PACKAGE_PATH
   issue_tracker: https://github.com/example/repo/issues
   documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
   topics:
     - dpk
+  funding:
+    - https://github.com/sponsors/DPK_PACKAGE_NAME
+  platforms:
+    linux:
+    macos:
   dependencies:
     collection: ^1.19.1
-sortPubspec: true
+sort_pubspec: true
 ```
 
-Catalog-managed dependency comments may use placeholders such as
-`DPK_PACKAGE_NAME`, `DPK_PACKAGE_VERSION`, and `DPK_PACKAGE_PATH` in configured
-repository, issue tracker, or documentation links.
+Catalog fields parsed by dpk:
+
+- `environment`: replaces `environment`; root and workspace packages.
+- `version`: sets workspace package `version`.
+- `publish_to`: sets workspace package `publish_to`.
+- `homepage`: sets workspace package `homepage`; supports template variables.
+- `repository`: sets workspace package `repository`; supports template variables.
+- `issue_tracker`: sets workspace package `issue_tracker`; supports template variables.
+- `documentation`: sets workspace package `documentation`; supports template variables.
+- `topics`: appends missing catalog topics without removing existing topics.
+- `funding`: sets workspace package funding URLs; supports template variables.
+- `platforms`: sets workspace package `platforms`.
+- `resolution`: sets workspace package `resolution`.
+- `dependencies`: updates existing matching entries in both `dependencies` and
+  `dev_dependencies`; missing dependencies are not added.
+
+Template variables expand per workspace package during `dpk get`:
+
+- `DPK_PACKAGE_PATH`: package path relative to workspace root, such as
+  `packages/core`.
+- `DPK_PACKAGE_NAME`: package `name` from that package's `pubspec.yaml`, such
+  as `core`.
+- `DPK_PACKAGE_VERSION`: catalog `version` when configured; otherwise that
+  package's existing pubspec version.
+
+Variables can also use `$` prefix, such as `$DPK_PACKAGE_NAME`. Use template
+variables in `homepage`, `repository`, `issue_tracker`, `documentation`, and
+`funding`.
 
 Catalog dependency values support the same shapes as pubspec dependencies:
 version strings, hosted dependencies, SDK dependencies, path dependencies, and
 Git dependencies.
+
+Catalog does not manage `name`, `description`, `screenshots`, `false_secrets`,
+`ignored_advisories`, `executables`, `flutter`, `dependency_overrides`, or a
+separate `dev_dependencies` catalog section.
+
+Use `sort_pubspec: true` to sort pubspec files during `dpk get`. If dpk finds
+old `sortPubspec`, `dpk get` migrates it to `sort_pubspec`.
 
 ## Project Cache Mode
 

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Catalog {
 
- Map<String, VersionConstraint?>? get environment; String? get publishTo; Uri? get repository; Uri? get issueTracker; List<String>? get topics; String? get documentation; String? get resolution; Map<String, Dependency>? get dependencies;
+ Map<String, VersionConstraint?>? get environment; Version? get version; String? get publishTo; Uri? get homepage; Uri? get repository; Uri? get issueTracker; List<String>? get topics; String? get documentation; List<String>? get funding; Map<String, Object?>? get platforms; String? get resolution; Map<String, Dependency>? get dependencies;
 /// Create a copy of Catalog
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CatalogCopyWith<Catalog> get copyWith => _$CatalogCopyWithImpl<Catalog>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Catalog&&const DeepCollectionEquality().equals(other.environment, environment)&&(identical(other.publishTo, publishTo) || other.publishTo == publishTo)&&(identical(other.repository, repository) || other.repository == repository)&&(identical(other.issueTracker, issueTracker) || other.issueTracker == issueTracker)&&const DeepCollectionEquality().equals(other.topics, topics)&&(identical(other.documentation, documentation) || other.documentation == documentation)&&(identical(other.resolution, resolution) || other.resolution == resolution)&&const DeepCollectionEquality().equals(other.dependencies, dependencies));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Catalog&&const DeepCollectionEquality().equals(other.environment, environment)&&(identical(other.version, version) || other.version == version)&&(identical(other.publishTo, publishTo) || other.publishTo == publishTo)&&(identical(other.homepage, homepage) || other.homepage == homepage)&&(identical(other.repository, repository) || other.repository == repository)&&(identical(other.issueTracker, issueTracker) || other.issueTracker == issueTracker)&&const DeepCollectionEquality().equals(other.topics, topics)&&(identical(other.documentation, documentation) || other.documentation == documentation)&&const DeepCollectionEquality().equals(other.funding, funding)&&const DeepCollectionEquality().equals(other.platforms, platforms)&&(identical(other.resolution, resolution) || other.resolution == resolution)&&const DeepCollectionEquality().equals(other.dependencies, dependencies));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(environment),publishTo,repository,issueTracker,const DeepCollectionEquality().hash(topics),documentation,resolution,const DeepCollectionEquality().hash(dependencies));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(environment),version,publishTo,homepage,repository,issueTracker,const DeepCollectionEquality().hash(topics),documentation,const DeepCollectionEquality().hash(funding),const DeepCollectionEquality().hash(platforms),resolution,const DeepCollectionEquality().hash(dependencies));
 
 @override
 String toString() {
-  return 'Catalog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies)';
+  return 'Catalog(environment: $environment, version: $version, publishTo: $publishTo, homepage: $homepage, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, funding: $funding, platforms: $platforms, resolution: $resolution, dependencies: $dependencies)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CatalogCopyWith<$Res>  {
   factory $CatalogCopyWith(Catalog value, $Res Function(Catalog) _then) = _$CatalogCopyWithImpl;
 @useResult
 $Res call({
- Map<String, VersionConstraint?>? environment, String? publishTo, Uri? repository, Uri? issueTracker, List<String>? topics, String? documentation, String? resolution, Map<String, Dependency>? dependencies
+ Map<String, VersionConstraint?>? environment, Version? version, String? publishTo, Uri? homepage, Uri? repository, Uri? issueTracker, List<String>? topics, String? documentation, List<String>? funding, Map<String, Object?>? platforms, String? resolution, Map<String, Dependency>? dependencies
 });
 
 
@@ -62,15 +62,19 @@ class _$CatalogCopyWithImpl<$Res>
 
 /// Create a copy of Catalog
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? environment = freezed,Object? publishTo = freezed,Object? repository = freezed,Object? issueTracker = freezed,Object? topics = freezed,Object? documentation = freezed,Object? resolution = freezed,Object? dependencies = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? environment = freezed,Object? version = freezed,Object? publishTo = freezed,Object? homepage = freezed,Object? repository = freezed,Object? issueTracker = freezed,Object? topics = freezed,Object? documentation = freezed,Object? funding = freezed,Object? platforms = freezed,Object? resolution = freezed,Object? dependencies = freezed,}) {
   return _then(_self.copyWith(
 environment: freezed == environment ? _self.environment : environment // ignore: cast_nullable_to_non_nullable
-as Map<String, VersionConstraint?>?,publishTo: freezed == publishTo ? _self.publishTo : publishTo // ignore: cast_nullable_to_non_nullable
-as String?,repository: freezed == repository ? _self.repository : repository // ignore: cast_nullable_to_non_nullable
+as Map<String, VersionConstraint?>?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as Version?,publishTo: freezed == publishTo ? _self.publishTo : publishTo // ignore: cast_nullable_to_non_nullable
+as String?,homepage: freezed == homepage ? _self.homepage : homepage // ignore: cast_nullable_to_non_nullable
+as Uri?,repository: freezed == repository ? _self.repository : repository // ignore: cast_nullable_to_non_nullable
 as Uri?,issueTracker: freezed == issueTracker ? _self.issueTracker : issueTracker // ignore: cast_nullable_to_non_nullable
 as Uri?,topics: freezed == topics ? _self.topics : topics // ignore: cast_nullable_to_non_nullable
 as List<String>?,documentation: freezed == documentation ? _self.documentation : documentation // ignore: cast_nullable_to_non_nullable
-as String?,resolution: freezed == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
+as String?,funding: freezed == funding ? _self.funding : funding // ignore: cast_nullable_to_non_nullable
+as List<String>?,platforms: freezed == platforms ? _self.platforms : platforms // ignore: cast_nullable_to_non_nullable
+as Map<String, Object?>?,resolution: freezed == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
 as String?,dependencies: freezed == dependencies ? _self.dependencies : dependencies // ignore: cast_nullable_to_non_nullable
 as Map<String, Dependency>?,
   ));
@@ -157,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Map<String, VersionConstraint?>? environment,  String? publishTo,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  String? resolution,  Map<String, Dependency>? dependencies)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Map<String, VersionConstraint?>? environment,  Version? version,  String? publishTo,  Uri? homepage,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  List<String>? funding,  Map<String, Object?>? platforms,  String? resolution,  Map<String, Dependency>? dependencies)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Catalog() when $default != null:
-return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.resolution,_that.dependencies);case _:
+return $default(_that.environment,_that.version,_that.publishTo,_that.homepage,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.funding,_that.platforms,_that.resolution,_that.dependencies);case _:
   return orElse();
 
 }
@@ -178,10 +182,10 @@ return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Map<String, VersionConstraint?>? environment,  String? publishTo,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  String? resolution,  Map<String, Dependency>? dependencies)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Map<String, VersionConstraint?>? environment,  Version? version,  String? publishTo,  Uri? homepage,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  List<String>? funding,  Map<String, Object?>? platforms,  String? resolution,  Map<String, Dependency>? dependencies)  $default,) {final _that = this;
 switch (_that) {
 case _Catalog():
-return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.resolution,_that.dependencies);case _:
+return $default(_that.environment,_that.version,_that.publishTo,_that.homepage,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.funding,_that.platforms,_that.resolution,_that.dependencies);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +202,10 @@ return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Map<String, VersionConstraint?>? environment,  String? publishTo,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  String? resolution,  Map<String, Dependency>? dependencies)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Map<String, VersionConstraint?>? environment,  Version? version,  String? publishTo,  Uri? homepage,  Uri? repository,  Uri? issueTracker,  List<String>? topics,  String? documentation,  List<String>? funding,  Map<String, Object?>? platforms,  String? resolution,  Map<String, Dependency>? dependencies)?  $default,) {final _that = this;
 switch (_that) {
 case _Catalog() when $default != null:
-return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.resolution,_that.dependencies);case _:
+return $default(_that.environment,_that.version,_that.publishTo,_that.homepage,_that.repository,_that.issueTracker,_that.topics,_that.documentation,_that.funding,_that.platforms,_that.resolution,_that.dependencies);case _:
   return null;
 
 }
@@ -213,7 +217,7 @@ return $default(_that.environment,_that.publishTo,_that.repository,_that.issueTr
 
 
 class _Catalog implements Catalog {
-  const _Catalog({final  Map<String, VersionConstraint?>? environment, this.publishTo, this.repository, this.issueTracker, final  List<String>? topics, this.documentation, this.resolution, final  Map<String, Dependency>? dependencies}): _environment = environment,_topics = topics,_dependencies = dependencies;
+  const _Catalog({final  Map<String, VersionConstraint?>? environment, this.version, this.publishTo, this.homepage, this.repository, this.issueTracker, final  List<String>? topics, this.documentation, final  List<String>? funding, final  Map<String, Object?>? platforms, this.resolution, final  Map<String, Dependency>? dependencies}): _environment = environment,_topics = topics,_funding = funding,_platforms = platforms,_dependencies = dependencies;
   
 
  final  Map<String, VersionConstraint?>? _environment;
@@ -225,7 +229,9 @@ class _Catalog implements Catalog {
   return EqualUnmodifiableMapView(value);
 }
 
+@override final  Version? version;
 @override final  String? publishTo;
+@override final  Uri? homepage;
 @override final  Uri? repository;
 @override final  Uri? issueTracker;
  final  List<String>? _topics;
@@ -238,6 +244,24 @@ class _Catalog implements Catalog {
 }
 
 @override final  String? documentation;
+ final  List<String>? _funding;
+@override List<String>? get funding {
+  final value = _funding;
+  if (value == null) return null;
+  if (_funding is EqualUnmodifiableListView) return _funding;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+ final  Map<String, Object?>? _platforms;
+@override Map<String, Object?>? get platforms {
+  final value = _platforms;
+  if (value == null) return null;
+  if (_platforms is EqualUnmodifiableMapView) return _platforms;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 @override final  String? resolution;
  final  Map<String, Dependency>? _dependencies;
 @override Map<String, Dependency>? get dependencies {
@@ -259,16 +283,16 @@ _$CatalogCopyWith<_Catalog> get copyWith => __$CatalogCopyWithImpl<_Catalog>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Catalog&&const DeepCollectionEquality().equals(other._environment, _environment)&&(identical(other.publishTo, publishTo) || other.publishTo == publishTo)&&(identical(other.repository, repository) || other.repository == repository)&&(identical(other.issueTracker, issueTracker) || other.issueTracker == issueTracker)&&const DeepCollectionEquality().equals(other._topics, _topics)&&(identical(other.documentation, documentation) || other.documentation == documentation)&&(identical(other.resolution, resolution) || other.resolution == resolution)&&const DeepCollectionEquality().equals(other._dependencies, _dependencies));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Catalog&&const DeepCollectionEquality().equals(other._environment, _environment)&&(identical(other.version, version) || other.version == version)&&(identical(other.publishTo, publishTo) || other.publishTo == publishTo)&&(identical(other.homepage, homepage) || other.homepage == homepage)&&(identical(other.repository, repository) || other.repository == repository)&&(identical(other.issueTracker, issueTracker) || other.issueTracker == issueTracker)&&const DeepCollectionEquality().equals(other._topics, _topics)&&(identical(other.documentation, documentation) || other.documentation == documentation)&&const DeepCollectionEquality().equals(other._funding, _funding)&&const DeepCollectionEquality().equals(other._platforms, _platforms)&&(identical(other.resolution, resolution) || other.resolution == resolution)&&const DeepCollectionEquality().equals(other._dependencies, _dependencies));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_environment),publishTo,repository,issueTracker,const DeepCollectionEquality().hash(_topics),documentation,resolution,const DeepCollectionEquality().hash(_dependencies));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_environment),version,publishTo,homepage,repository,issueTracker,const DeepCollectionEquality().hash(_topics),documentation,const DeepCollectionEquality().hash(_funding),const DeepCollectionEquality().hash(_platforms),resolution,const DeepCollectionEquality().hash(_dependencies));
 
 @override
 String toString() {
-  return 'Catalog(environment: $environment, publishTo: $publishTo, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, resolution: $resolution, dependencies: $dependencies)';
+  return 'Catalog(environment: $environment, version: $version, publishTo: $publishTo, homepage: $homepage, repository: $repository, issueTracker: $issueTracker, topics: $topics, documentation: $documentation, funding: $funding, platforms: $platforms, resolution: $resolution, dependencies: $dependencies)';
 }
 
 
@@ -279,7 +303,7 @@ abstract mixin class _$CatalogCopyWith<$Res> implements $CatalogCopyWith<$Res> {
   factory _$CatalogCopyWith(_Catalog value, $Res Function(_Catalog) _then) = __$CatalogCopyWithImpl;
 @override @useResult
 $Res call({
- Map<String, VersionConstraint?>? environment, String? publishTo, Uri? repository, Uri? issueTracker, List<String>? topics, String? documentation, String? resolution, Map<String, Dependency>? dependencies
+ Map<String, VersionConstraint?>? environment, Version? version, String? publishTo, Uri? homepage, Uri? repository, Uri? issueTracker, List<String>? topics, String? documentation, List<String>? funding, Map<String, Object?>? platforms, String? resolution, Map<String, Dependency>? dependencies
 });
 
 
@@ -296,15 +320,19 @@ class __$CatalogCopyWithImpl<$Res>
 
 /// Create a copy of Catalog
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? environment = freezed,Object? publishTo = freezed,Object? repository = freezed,Object? issueTracker = freezed,Object? topics = freezed,Object? documentation = freezed,Object? resolution = freezed,Object? dependencies = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? environment = freezed,Object? version = freezed,Object? publishTo = freezed,Object? homepage = freezed,Object? repository = freezed,Object? issueTracker = freezed,Object? topics = freezed,Object? documentation = freezed,Object? funding = freezed,Object? platforms = freezed,Object? resolution = freezed,Object? dependencies = freezed,}) {
   return _then(_Catalog(
 environment: freezed == environment ? _self._environment : environment // ignore: cast_nullable_to_non_nullable
-as Map<String, VersionConstraint?>?,publishTo: freezed == publishTo ? _self.publishTo : publishTo // ignore: cast_nullable_to_non_nullable
-as String?,repository: freezed == repository ? _self.repository : repository // ignore: cast_nullable_to_non_nullable
+as Map<String, VersionConstraint?>?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as Version?,publishTo: freezed == publishTo ? _self.publishTo : publishTo // ignore: cast_nullable_to_non_nullable
+as String?,homepage: freezed == homepage ? _self.homepage : homepage // ignore: cast_nullable_to_non_nullable
+as Uri?,repository: freezed == repository ? _self.repository : repository // ignore: cast_nullable_to_non_nullable
 as Uri?,issueTracker: freezed == issueTracker ? _self.issueTracker : issueTracker // ignore: cast_nullable_to_non_nullable
 as Uri?,topics: freezed == topics ? _self._topics : topics // ignore: cast_nullable_to_non_nullable
 as List<String>?,documentation: freezed == documentation ? _self.documentation : documentation // ignore: cast_nullable_to_non_nullable
-as String?,resolution: freezed == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
+as String?,funding: freezed == funding ? _self._funding : funding // ignore: cast_nullable_to_non_nullable
+as List<String>?,platforms: freezed == platforms ? _self._platforms : platforms // ignore: cast_nullable_to_non_nullable
+as Map<String, Object?>?,resolution: freezed == resolution ? _self.resolution : resolution // ignore: cast_nullable_to_non_nullable
 as String?,dependencies: freezed == dependencies ? _self._dependencies : dependencies // ignore: cast_nullable_to_non_nullable
 as Map<String, Dependency>?,
   ));

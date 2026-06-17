@@ -6,4 +6,4 @@ part of 'pubspec.dart';
 // LiteralEmbeddingGenerator
 // **************************************************************************
 
-const _$pubspec = (version: "0.8.2");
+const _$pubspec = (version: "0.8.3");

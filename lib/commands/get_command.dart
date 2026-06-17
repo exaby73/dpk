@@ -4,6 +4,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dpk/config/data/catalog.dart';
 import 'package:dpk/config/data/dpk_workspace_environment.dart';
+import 'package:dpk/core/constants.dart';
 import 'package:dpk/core/mixins/config_mixin.dart';
 import 'package:dpk/core/mixins/hook_runner_mixin.dart';
 import 'package:dpk/core/mixins/process_handler_mixin.dart';
@@ -16,6 +17,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
+import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
 part 'get_command.freezed.dart';
@@ -86,6 +88,8 @@ final class GetCommand extends Command<int>
     if (options.globalPubOptions.globalOptions.isVerbose) {
       logger.info('Running: dart ${arguments.join(' ')}');
     }
+
+    _migrateSortPubspecKey(targetDirectory);
 
     if (config.pubspec.name == '_') {
       await _generateDependencyOverrides(targetDirectory);
@@ -185,7 +189,11 @@ final class GetCommand extends Command<int>
     final originalPubspec = pubspec_parse.Pubspec.parse(
       pubspecFile.readAsStringSync(),
     );
-    final env = _createDpkEnv(originalPubspec, workspace);
+    final env = _createDpkEnv(
+      originalPubspec,
+      workspace,
+      catalogVersion: catalog.version?.toString(),
+    );
     final editor = YamlEditor(pubspecFile.readAsStringSync());
 
     if (catalog.environment != null) {
@@ -199,6 +207,14 @@ final class GetCommand extends Command<int>
 
     if (catalog.publishTo != null) {
       editor.update(['publish_to'], catalog.publishTo);
+    }
+
+    if (catalog.version != null) {
+      editor.update(['version'], catalog.version.toString());
+    }
+
+    if (catalog.homepage != null) {
+      editor.update(['homepage'], env.replace(catalog.homepage!.toString()));
     }
 
     if (catalog.repository != null) {
@@ -232,6 +248,14 @@ final class GetCommand extends Command<int>
       editor.update(['documentation'], env.replace(catalog.documentation!));
     }
 
+    if (catalog.funding != null) {
+      editor.update(['funding'], catalog.funding!.map(env.replace).toList());
+    }
+
+    if (catalog.platforms != null) {
+      editor.update(['platforms'], catalog.platforms);
+    }
+
     if (catalog.resolution != null) {
       editor.update(['resolution'], catalog.resolution);
     }
@@ -245,8 +269,9 @@ final class GetCommand extends Command<int>
 
   DpkWorkspaceEnvironment _createDpkEnv(
     pubspec_parse.Pubspec pubspec,
-    String workspacePath,
-  ) {
+    String workspacePath, {
+    String? catalogVersion,
+  }) {
     final packagePath = workspacePath;
     final packageName = pubspec.name;
     final packageVersion = pubspec.version;
@@ -254,7 +279,7 @@ final class GetCommand extends Command<int>
     return DpkWorkspaceEnvironment(
       dpkPackagePath: packagePath,
       dpkPackageName: packageName,
-      dpkPackageVersion: packageVersion?.toString(),
+      dpkPackageVersion: catalogVersion ?? packageVersion?.toString(),
     );
   }
 
@@ -278,6 +303,44 @@ final class GetCommand extends Command<int>
     }
 
     pubspecFile.writeAsStringSync(content);
+  }
+
+  void _migrateSortPubspecKey(String targetDirectory) {
+    final configFile = File(join(targetDirectory, kConfigFileName));
+    if (!configFile.existsSync()) {
+      return;
+    }
+
+    final content = configFile.readAsStringSync();
+    final yaml = loadYaml(content);
+    if (yaml is! YamlMap) {
+      return;
+    }
+
+    final editor = YamlEditor(content);
+    var changed = false;
+
+    void migrateAt(YamlMap map, List<Object> path) {
+      if (!map.containsKey('sortPubspec')) {
+        return;
+      }
+
+      if (!map.containsKey('sort_pubspec')) {
+        editor.update([...path, 'sort_pubspec'], map['sortPubspec']);
+      }
+      editor.remove([...path, 'sortPubspec']);
+      changed = true;
+    }
+
+    migrateAt(yaml, const []);
+    final nestedDpk = yaml['dpk'];
+    if (nestedDpk is YamlMap) {
+      migrateAt(nestedDpk, const ['dpk']);
+    }
+
+    if (changed) {
+      configFile.writeAsStringSync(editor.toString());
+    }
   }
 }
 
