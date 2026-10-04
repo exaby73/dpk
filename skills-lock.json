@@ -36,6 +36,12 @@
       "sourceType": "local",
       "computedHash": "1e3694527c5b7ec56e4143821bc9aad5e39c203258b533312bd5b708ce9eacad"
     },
+    "git-committer": {
+      "source": "hexsis-llc/skills",
+      "sourceType": "github",
+      "skillPath": "skills/git-committer/SKILL.md",
+      "computedHash": "567c78a095db2c4ab5a130b94454a6606f3bf2ed123a8a4b54b56162f35be869"
+    },
     "grill-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -54,11 +60,23 @@
       "skillPath": "skills/productivity/grilling/SKILL.md",
       "computedHash": "4dd886b0196bf43729d954ae326016f2bd9f5f79d892500b407c33a753362f14"
     },
+    "gwt-tester": {
+      "source": "hexsis-llc/skills",
+      "sourceType": "github",
+      "skillPath": "skills/gwt-tester/SKILL.md",
+      "computedHash": "12ce9ebb74def9c2dcc5677b9a2d113643bd51db28b6234fb3c5d26ec07422bf"
+    },
     "handoff": {
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/productivity/handoff/SKILL.md",
       "computedHash": "20e5f4afdef502637510bc5c64d27645d3c85c88df9cb006824bbb0980166319"
+    },
+    "how": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/how/SKILL.md",
+      "computedHash": "a81bf6a7aec190f01acf26df059899fc7bf655fa3e6873ee7449e7e802c47144"
     },
     "implement": {
       "source": "mattpocock/skills",
@@ -78,6 +96,12 @@
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "ac2c94885f34ff8492dc12aa4543182f661f32ea1722b8d6b6c2c7045af33ae3"
     },
+    "no-comments": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/no-comments/SKILL.md",
+      "computedHash": "0104443baedded93b3419249c9449bd50d0e0c9e4135a059210661923c295bf4"
+    },
     "pr": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -89,6 +113,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/prototype/SKILL.md",
       "computedHash": "d3fc74689bd993e39c44bfae510d014eecffbeec2922764b065377fd1327c0f6"
+    },
+    "pub-package-explorer": {
+      "source": "hexsis-llc/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pub-package-explorer/SKILL.md",
+      "computedHash": "9a3a32e38426f724ca4b0337db54574a67ebd363b6f25e38c05620f9d3c6f47f"
     },
     "research": {
       "source": "mattpocock/skills",
@@ -120,6 +150,12 @@
       "skillPath": "skills/productivity/teach/SKILL.md",
       "computedHash": "b8a69574c7a019bed84e84313dc8bf02e1d1bf925ba43057d433217c63863206"
     },
+    "technical-writing": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/technical-writing/SKILL.md",
+      "computedHash": "d8ecca1f5bfa2d531f5ead6da72001b320d293eebd4435a2e3e11f79fa3f6949"
+    },
     "to-questionnaire": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -144,6 +180,12 @@
       "skillPath": "skills/engineering/triage/SKILL.md",
       "computedHash": "a683e69163e23630f39c05a50fb9d83a3795a6a6fbd317357669e082cd43a158"
     },
+    "unslop": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/unslop/SKILL.md",
+      "computedHash": "6018ca8c329ba87c6b4298207f58d6b773fe23e44ff52a00a9a4d160c19bedc0"
+    },
     "wait-what": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -155,6 +197,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/wayfinder/SKILL.md",
       "computedHash": "fa790eb4255b13d24d7e33ff4891ccd3d621558cc0ab87ae226777538ea16a8f"
+    },
+    "why": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/why/SKILL.md",
+      "computedHash": "0e1f6acfce6fc2c54f059b16d1e2273639f59f828b59c57a6644f895c22d68b2"
     },
     "wizard": {
       "source": "mattpocock/skills",
