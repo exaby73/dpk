@@ -21,7 +21,6 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  freezed_annotation: ^3.1.0
   luthor: # Configured via catalog
     git:
       url: https://github.com/exaby73/luthor.git
@@ -29,7 +28,5 @@ dependencies:
   meta: 1.19.0 # Configured via catalog
 
 dev_dependencies:
-  build_runner: 2.15.1 # Configured via catalog
-  freezed: ^3.2.5
-  lints: ^6.1.0
-  test: ^1.31.1
+  lints: ^6.1.0 # Configured via catalog
+  test: ^1.32.0 # Configured via catalog

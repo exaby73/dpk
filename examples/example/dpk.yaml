@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/exaby73/dpk/main/schema/dpk.schema.json
+version: ^1.0.0
+
+scripts:
+  analyze:
+    command: dart analyze
+    description: Analyze the code.
+  run:
+    command: dart run lib/example.dart
+    description: Run the example.
+    depends_on: [analyze]

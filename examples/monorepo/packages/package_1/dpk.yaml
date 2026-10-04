@@ -1,0 +1,3 @@
+# A workspace package's dpk.yaml can add scripts and override root scripts.
+scripts:
+  greet: echo "package_1 overrides the root greet script"
