@@ -138,6 +138,7 @@ final class RunCommand extends DpkCommand {
       ],
       '',
       argParser.usage,
+      '',
       usageFooter.trimLeft(),
     ].join('\n');
   }
