@@ -14,3 +14,9 @@ test/
 
 # Build configuration
 build.yaml
+
+# Local agent skills
+.agents/
+.claude/
+skills-lock.json
+tool/

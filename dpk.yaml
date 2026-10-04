@@ -22,3 +22,9 @@ scripts:
     command: dart run build_runner watch
 
   publish: dart pub publish
+
+  post:get:
+    description: Install the bundled dpk skill for local agents
+    command: >-
+      npx -y skills@1.7.0 add ./skills/dpk -y -a claude-code codex &&
+      dart run tool/normalize_skills_lock.dart

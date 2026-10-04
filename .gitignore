@@ -8,3 +8,7 @@ patches/
 .idea/
 /dpk.iml
 .asdf/
+
+# dpk skill is reinstalled by post:get from skills/dpk
+.agents/skills/dpk
+.claude/skills/dpk
