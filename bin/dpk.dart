@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:dpk/core/command_runner.dart';
+import 'package:dpk/core/self_command.dart';
 
 Future<void> main(List<String> arguments) async {
   try {
-    exitCode = await runDpk(arguments);
+    exitCode = await runDpk(arguments, dpkCommand: currentDpkCommand());
   } catch (error, stackTrace) {
     stderr
       ..writeln('Unexpected error: $error')

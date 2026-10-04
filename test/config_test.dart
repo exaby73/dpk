@@ -46,6 +46,22 @@ void main() {
         'scripts:\n  build:\n    command: echo b\n    scripts: [x]\n',
         '"scripts" only applies to the shared hooks "before" and "after".',
       ),
+      'depends_on naming a missing script': (
+        'scripts:\n  test:\n    command: dart test\n    depends_on: [biuld]\n  build: echo b\n',
+        'scripts.test.depends_on: no script named "biuld". Did you mean "build"?',
+      ),
+      'depends_on naming a hook': (
+        'scripts:\n  pre:test: echo p\n  test:\n    command: dart test\n    depends_on: [pre:test]\n',
+        '"pre:test" is a hook.',
+      ),
+      'depends_on on a hook': (
+        'scripts:\n  build: echo b\n  pre:test:\n    command: echo p\n    depends_on: [build]\n',
+        '"depends_on" does not apply to hooks.',
+      ),
+      'depends_on forming a cycle': (
+        'scripts:\n  a:\n    command: echo a\n    depends_on: [b]\n  b:\n    command: echo b\n    depends_on: [a]\n',
+        'depends_on forms a cycle: a -> b -> a.',
+      ),
       'the legacy nested dpk mapping': (
         'dpk:\n  mode: project\n',
         'The nested "dpk:" mapping is no longer supported.',
@@ -258,6 +274,22 @@ void main() {
         );
       });
     });
+
+    test(
+      'When a package script depends on a root script then the reference resolves',
+      () async {
+        await d
+            .file(
+              'repo/packages/a/dpk.yaml',
+              'scripts:\n  pkg:\n    command: echo p\n    depends_on: [root_only]\n    run_hooks_from: root_only\n',
+            )
+            .create();
+
+        final project = Project.load(d.path('repo/packages/a'));
+
+        expect(project.scripts['pkg']!.dependsOn, equals(['root_only']));
+      },
+    );
 
     test(
       'When the package config sets mode then the error points to the root',

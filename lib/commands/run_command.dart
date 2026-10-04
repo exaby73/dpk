@@ -105,7 +105,11 @@ final class RunCommand extends DpkCommand {
       final scope = script.runInPackages == null
           ? ''
           : console.dim(' (in ${script.runInPackages!.join(', ')})');
-      return '  ${console.bold(script.name.padRight(width))}  $summary$scope';
+      final needs = script.dependsOn.isEmpty
+          ? ''
+          : console.dim(' (depends on ${script.dependsOn.join(', ')})');
+      return '  ${console.bold(script.name.padRight(width))}  '
+          '$summary$scope$needs';
     }
 
     String hookLine(Script hook) {
@@ -173,18 +177,13 @@ final class ScriptCommand extends Command<int> {
     return withTerminalTitle(
       context.console,
       'dpk run ${script.name}',
-      () => context.withHooks(
-        script.name,
-        hooksFrom: script.runHooksFrom,
-        (stack) => context.runScript(
-          script,
-          stack: stack,
-          arguments: arguments,
-          filters: selection.filters,
-          concurrency: selection.concurrency,
-          failFast: selection.failFast,
-          dependencyOrder: selection.dependencyOrder,
-        ),
+      () => context.runScriptTarget(
+        script,
+        arguments: arguments,
+        filters: selection.filters,
+        concurrency: selection.concurrency,
+        failFast: selection.failFast,
+        dependencyOrder: selection.dependencyOrder,
       ),
     );
   }

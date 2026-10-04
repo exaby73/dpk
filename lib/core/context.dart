@@ -8,6 +8,7 @@ import 'package:dpk/core/console.dart';
 import 'package:dpk/core/errors.dart';
 import 'package:dpk/core/invocation.dart';
 import 'package:dpk/core/process_runner.dart';
+import 'package:dpk/core/self_command.dart';
 import 'package:dpk/core/shell.dart';
 import 'package:dpk/scripts/hook_lifecycle.dart';
 import 'package:dpk/scripts/run_plan.dart';
@@ -24,6 +25,7 @@ final class DpkContext {
     required this.workingDirectory,
     required this.environment,
     this.project,
+    this.dpkCommand,
   });
 
   final Invocation invocation;
@@ -38,6 +40,27 @@ final class DpkContext {
 
   /// The project, or `null` for commands that work without one.
   final Project? project;
+
+  /// The command line that starts this dpk. When set, scripts get a `dpk`
+  /// launcher for it first on `PATH`, so `dpk` in a script is this dpk.
+  final List<String>? dpkCommand;
+
+  /// The environment for a script's processes: [variables] with `PATH`
+  /// starting at the `dpk` launcher when [dpkCommand] is set.
+  Map<String, String> scriptEnvironment(Map<String, String> variables) {
+    final command = dpkCommand;
+    if (command == null) {
+      return variables;
+    }
+    final path =
+        variables['PATH'] ??
+        environment['PATH'] ??
+        Platform.environment['PATH'];
+    return {
+      ...variables,
+      'PATH': prependToPath(writeDpkLauncher(command), path),
+    };
+  }
 
   /// The project. Only call this from commands that need one; dpk loads the
   /// project before running them.
@@ -55,7 +78,25 @@ final class DpkContext {
         p.absolute(p.join(workingDirectory, invocation.directory ?? '.')),
       );
 
-  HookStack get hookStack => HookStack.fromEnvironment(environment);
+  /// Hooks and `depends_on` dependencies that already ran in this tree of
+  /// dpk processes. Nested dpk processes inherit it.
+  HookStack get hookStack {
+    final inherited = HookStack.fromEnvironment(environment);
+    final project = this.project;
+    if (project == null || _startedDependencies.isEmpty) {
+      return inherited;
+    }
+    return inherited.adding(
+      project.rootPath,
+      _startedDependencies.map(_dependencyKey),
+    );
+  }
+
+  /// `depends_on` entries started by this process, such as `build` or
+  /// `^build`.
+  final Set<String> _startedDependencies = {};
+
+  static String _dependencyKey(String dependency) => 'dep:$dependency';
 
   /// Runs `dart` with [arguments] in [workingDirectory], with output going to
   /// the user. In project mode, pub uses the project cache unless
@@ -107,21 +148,98 @@ final class DpkContext {
     return lifecycle.run(target, action, hooksFrom: hooksFrom, order: order);
   }
 
-  /// Runs [script] in the packages it selects, without its hooks.
-  Future<int> runScript(
+  /// Runs [script] like `dpk run` does: its `depends_on` scripts first, then
+  /// the script between its hooks.
+  Future<int> runScriptTarget(
     Script script, {
-    required HookStack stack,
     List<String> arguments = const [],
     List<String> filters = const [],
     int? concurrency,
     bool? failFast,
     bool? dependencyOrder,
-  }) {
+  }) async {
+    final plan = planFor(
+      script,
+      filters: filters,
+      concurrency: concurrency,
+      failFast: failFast,
+      dependencyOrder: dependencyOrder,
+    );
+    return _runWithDependencies(script, plan, arguments: arguments);
+  }
+
+  Future<int> _runWithDependencies(
+    Script script,
+    RunPlan plan, {
+    List<String> arguments = const [],
+  }) async {
+    for (final dependency in script.dependsOn) {
+      final exitCode = await _runDependency(dependency, plan);
+      if (exitCode != 0) {
+        return exitCode;
+      }
+    }
+    return withHooks(
+      script.name,
+      hooksFrom: script.runHooksFrom,
+      (stack) =>
+          runScript(script, stack: stack, arguments: arguments, plan: plan),
+    );
+  }
+
+  /// Runs one `depends_on` entry of a script planned as [dependentPlan], once
+  /// per tree of dpk processes.
+  Future<int> _runDependency(String dependency, RunPlan dependentPlan) async {
     final project = requireProject;
+    if (hookStack.contains(project.rootPath, _dependencyKey(dependency))) {
+      console.detail('Skipping dependency "$dependency": it already ran.');
+      return 0;
+    }
+    _startedDependencies.add(dependency);
+
+    final upstream = dependency.startsWith('^');
+    final script =
+        project.scripts[upstream ? dependency.substring(1) : dependency]!;
+    if (!upstream) {
+      return _runWithDependencies(script, planFor(script));
+    }
+
+    final packages = workspaceDependenciesOf(
+      project.workspace,
+      dependentPlan.packages,
+    );
+    if (packages.isEmpty) {
+      console.detail(
+        'Skipping dependency "$dependency": no workspace package depends on '
+        'another.',
+      );
+      return 0;
+    }
     final RunPlan plan;
     try {
-      plan = planRun(
-        workspace: project.workspace,
+      plan = planPackages(
+        packages,
+        concurrency: script.concurrency,
+        failFast: script.failFast ?? false,
+        dependencyOrder: true,
+      );
+    } on RunPlanException catch (e) {
+      throw DpkException('Dependency "$dependency": ${e.message}');
+    }
+    return _runWithDependencies(script, plan);
+  }
+
+  /// The packages [script] runs in, from its config and the run options.
+  RunPlan planFor(
+    Script script, {
+    List<String> filters = const [],
+    int? concurrency,
+    bool? failFast,
+    bool? dependencyOrder,
+  }) {
+    try {
+      return planRun(
+        workspace: requireProject.workspace,
         runInPackages: script.runInPackages,
         filters: filters,
         concurrency: concurrency ?? script.concurrency,
@@ -131,6 +249,18 @@ final class DpkContext {
     } on RunPlanException catch (e) {
       throw DpkException('Script "${script.name}": ${e.message}');
     }
+  }
+
+  /// Runs [script] without its hooks or dependencies, in the packages of
+  /// [plan], or of its own config when [plan] is null.
+  Future<int> runScript(
+    Script script, {
+    required HookStack stack,
+    List<String> arguments = const [],
+    RunPlan? plan,
+  }) {
+    final project = requireProject;
+    plan ??= planFor(script);
 
     final command = withArguments(script.command.trim(), arguments);
     final where = plan.isSingle ? '' : ' in ${plan.packages.length} packages';
@@ -143,12 +273,12 @@ final class DpkContext {
     ).execute(
       plan,
       command,
-      environment: {
+      environment: scriptEnvironment({
         ...project.pubEnvironment,
         ..._envFile(script, project),
         ...script.env,
         ...stack.toEnvironment(),
-      },
+      }),
     );
   }
 

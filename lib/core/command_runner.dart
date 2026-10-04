@@ -4,6 +4,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:dpk/commands/catalog_command.dart';
+import 'package:dpk/commands/clean_command.dart';
 import 'package:dpk/commands/doctor_command.dart';
 import 'package:dpk/commands/exec_command.dart';
 import 'package:dpk/commands/get_command.dart';
@@ -27,14 +28,16 @@ import 'package:path/path.dart' as p;
 
 /// Runs dpk with [arguments] and returns the exit code.
 ///
-/// Tests pass a buffered [console], a fake [processRunner], and a
-/// [workingDirectory] to run dpk in-process.
+/// [dpkCommand] is the command line that starts this dpk. When given, `dpk`
+/// in scripts runs that same dpk. Tests pass a buffered [console], a fake
+/// [processRunner], and a [workingDirectory] to run dpk in-process.
 Future<int> runDpk(
   List<String> arguments, {
   Console? console,
   ProcessRunner? processRunner,
   String? workingDirectory,
   Map<String, String>? environment,
+  List<String>? dpkCommand,
 }) async {
   final Invocation invocation;
   try {
@@ -73,6 +76,7 @@ Future<int> runDpk(
       workingDirectory: cwd,
       environment: environment ?? Platform.environment,
       project: project,
+      dpkCommand: dpkCommand,
     );
     return await DpkCommandRunner(context).run(invocation.runnerArguments) ?? 0;
   } on UsageException catch (e) {
@@ -162,6 +166,7 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     addCommand(RunCommand(context));
     addCommand(ExecCommand(context));
     addCommand(ListCommand(context));
+    addCommand(CleanCommand(context));
     addCommand(CatalogCommand(context));
     addCommand(PatchCommand(context));
     addCommand(ReleaseCommand(context));

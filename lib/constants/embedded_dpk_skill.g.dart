@@ -62,12 +62,13 @@ scripts:
 ```
 
 - `dpk run <script> [args]` runs a script. Every argument after the name reaches the script, appended to the command and quoted.
-- Script keys: `command` (required in the mapping form), `description`, `env`, `env_file` (dotenv, relative to the workspace root, overridden by `env`), `run_in_packages`, `run_hooks_from`, `concurrency`, `fail_fast`, `dependency_order`.
+- Script keys: `command` (required in the mapping form), `description`, `env`, `env_file` (dotenv, relative to the workspace root, overridden by `env`), `depends_on`, `run_in_packages`, `run_hooks_from`, `concurrency`, `fail_fast`, `dependency_order`.
 - Scripts run in `/bin/sh` (`cmd.exe` on Windows), never the login shell. Write POSIX shell.
 - A script runs in the workspace package it is started from. From the root or a folder outside any package, it runs at the root.
 - Scripts get `DPK_ROOT`, `DPK_PACKAGE_NAME`, `DPK_PACKAGE_PATH`, and in project mode `PUB_CACHE`.
 - dpk prints `> name: command` to stderr before each script and hook. `-q` hides it. Stdout stays clean for piping.
-- To call one script from another, use `dpk run other` in the command.
+- `dpk` inside a script is the same dpk that started it: dpk puts a launcher first on the script's `PATH`. Calling `dpk run other` from a script is safe.
+- `depends_on: [build]` runs `build` first, once per dpk run, before the script's hooks. `depends_on: [^build]` runs `build` in the workspace packages the script's packages depend on, in dependency order. `build: {command: ..., depends_on: [^build]}` builds a package's workspace dependencies before it.
 
 ## Hooks
 
@@ -102,6 +103,10 @@ dpk exec --filter app 'dart analyze && dart test'
 ```
 
 Run options go between `run` and the script name. A `run_in_packages` or `--filter` that matches nothing is an error. The exit code is that of the first failed package.
+
+## Cleaning
+
+`dpk clean` removes `.dart_tool/` and `build/` in the root and every workspace package, and runs `flutter clean` in Flutter packages when `flutter` is on `PATH`. `--lockfile` also removes `pubspec.lock`, `--cache` removes the project cache, `--dry-run` lists the paths, and `--filter` narrows the packages.
 
 ## Catalog
 

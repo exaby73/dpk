@@ -107,6 +107,11 @@
               "type": "boolean",
               "description": "Start a package only after the workspace packages it depends on have finished."
             },
+            "depends_on": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Scripts to run first, once per dpk run. A name starting with ^ runs that script in the workspace packages this script's packages depend on, in dependency order."
+            },
             "runInPackages": {
               "type": "array",
               "items": { "type": "string" },

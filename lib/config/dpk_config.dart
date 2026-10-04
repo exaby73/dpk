@@ -165,6 +165,7 @@ final class Script {
     this.concurrency,
     this.failFast,
     this.dependencyOrder,
+    this.dependsOn = const [],
   });
 
   static const keys = [
@@ -179,6 +180,7 @@ final class Script {
     'concurrency',
     'fail_fast',
     'dependency_order',
+    'depends_on',
   ];
 
   static const legacyKeys = {
@@ -200,19 +202,74 @@ final class Script {
       }
       scripts[name] = Script._parse(name, valueNode, reader);
     }
+    return scripts;
+  }
+
+  /// Checks that every `run_hooks_from` and `depends_on` name refers to a
+  /// script in [scripts], and that `depends_on` has no cycles. Run after the
+  /// root and package scripts are merged, since either may refer to the
+  /// other.
+  static void checkReferences(
+    Map<String, Script> scripts, {
+    required String file,
+  }) {
+    ConfigException missing(Script script, String key, String name) {
+      final suggestion = closestMatch(name, scripts.keys);
+      return ConfigException(
+        'scripts.${script.name}.$key: no script named "$name".'
+        '${suggestion == null ? '' : ' Did you mean "$suggestion"?'}',
+        file: file,
+      );
+    }
 
     for (final script in scripts.values) {
       final from = script.runHooksFrom;
       if (from != null && !scripts.containsKey(from) && !_isKnownTarget(from)) {
-        final suggestion = closestMatch(from, scripts.keys);
-        throw ConfigException(
-          'scripts.${script.name}.run_hooks_from: no script named "$from".'
-          '${suggestion == null ? '' : ' Did you mean "$suggestion"?'}',
-          file: reader.file,
-        );
+        throw missing(script, 'run_hooks_from', from);
+      }
+      for (final dependency in script.dependsOn) {
+        final name = dependency.startsWith('^')
+            ? dependency.substring(1)
+            : dependency;
+        final target = scripts[name];
+        if (target == null) {
+          throw missing(script, 'depends_on', name);
+        }
+        if (target.isHook) {
+          throw ConfigException(
+            'scripts.${script.name}.depends_on: "$name" is a hook. Hooks run '
+            'around their target; depend on a script instead.',
+            file: file,
+          );
+        }
       }
     }
-    return scripts;
+
+    final visiting = <String>{};
+    final done = <String>{};
+    void visit(String name, List<String> path) {
+      if (done.contains(name)) {
+        return;
+      }
+      if (!visiting.add(name)) {
+        final cycle = [...path.sublist(path.indexOf(name)), name];
+        throw ConfigException(
+          'scripts: depends_on forms a cycle: ${cycle.join(' -> ')}.',
+          file: file,
+        );
+      }
+      for (final dependency in scripts[name]?.dependsOn ?? const <String>[]) {
+        if (!dependency.startsWith('^')) {
+          visit(dependency, [...path, name]);
+        }
+      }
+      visiting.remove(name);
+      done.add(name);
+    }
+
+    for (final name in scripts.keys) {
+      visit(name, const []);
+    }
   }
 
   /// Whether [name] is a built-in command that hooks can target.
@@ -233,6 +290,10 @@ final class Script {
     'login',
     'logout',
     'token',
+    'clean',
+    'exec',
+    'version',
+    'release',
   }.contains(name);
 
   factory Script._parse(String name, YamlNode node, ConfigReader parent) {
@@ -268,6 +329,13 @@ final class Script {
         );
       }
     }
+    if (isHookName(name) && reader.has('depends_on')) {
+      throw reader.error(
+        '"depends_on" does not apply to hooks. Hooks already run around '
+        'their target.',
+        key: 'depends_on',
+      );
+    }
     if (!reader.has('command')) {
       throw reader.error('${reader.keyPath('command')} is required.');
     }
@@ -288,6 +356,7 @@ final class Script {
       concurrency: reader.integer('concurrency'),
       failFast: reader.boolean('fail_fast'),
       dependencyOrder: reader.boolean('dependency_order'),
+      dependsOn: reader.stringList('depends_on') ?? const [],
     );
     parent.adoptWarnings(reader);
     return script;
@@ -316,6 +385,10 @@ final class Script {
   final int? concurrency;
   final bool? failFast;
   final bool? dependencyOrder;
+
+  /// Scripts to run before this one. A name starting with `^` runs that
+  /// script in the workspace packages this script's packages depend on.
+  final List<String> dependsOn;
 
   bool get isHook => isHookName(name);
 

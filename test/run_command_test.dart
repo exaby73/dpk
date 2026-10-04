@@ -220,6 +220,81 @@ scripts:
     );
   });
 
+  group('Given scripts that depend on other scripts', () {
+    setUp(() async {
+      final dpkEntry = p.join(Directory.current.path, 'bin', 'dpk.dart');
+      await d.dir('project', [
+        d.file('pubspec.yaml', pubspec('sample')),
+        d.file('dpk.yaml', '''
+version: $versionConstraint
+scripts:
+  build: echo build >> run.log
+  lint:
+    command: echo lint >> run.log
+    depends_on: [build]
+  test:
+    command: echo test >> run.log
+    depends_on: [build]
+  pre:test: echo pre-test >> run.log
+  check:
+    command: echo check >> run.log
+    depends_on: [lint, test]
+  nested:
+    command: dart $dpkEntry -q run test
+    depends_on: [build]
+  broken:
+    command: echo never >> run.log
+    depends_on: [fail]
+  fail: exit 9
+'''),
+      ]).create();
+    });
+
+    test(
+      'When running a script then its dependency runs before its hooks',
+      () async {
+        await dpk(['run', 'test'], directory: d.path('project'));
+
+        expect(_log('project/run.log'), equals(['build', 'pre-test', 'test']));
+      },
+    );
+
+    test('When two dependencies share one then it runs once', () async {
+      await dpk(['run', 'check'], directory: d.path('project'));
+
+      expect(
+        _log('project/run.log'),
+        equals(['build', 'lint', 'pre-test', 'test', 'check']),
+      );
+    });
+
+    test(
+      'When a script starts dpk again then the nested run skips dependencies that ran',
+      () async {
+        final result = await dpk([
+          'run',
+          'nested',
+        ], directory: d.path('project'));
+
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(_log('project/run.log'), equals(['build', 'pre-test', 'test']));
+      },
+    );
+
+    test('When a dependency fails then the script does not run', () async {
+      final result = await dpk(['run', 'broken'], directory: d.path('project'));
+
+      expect(result.exitCode, equals(9));
+      expect(File(d.path('project/run.log')).existsSync(), isFalse);
+    });
+
+    test('When listing scripts then dependencies are shown', () async {
+      final result = await dpk(['run'], directory: d.path('project'));
+
+      expect(result.stdout, contains('(depends on lint, test)'));
+    });
+  });
+
   group('Given a workspace with three packages', () {
     setUp(() async {
       await d.dir('repo', [
@@ -252,6 +327,13 @@ scripts:
   tail:
     command: printf 'no newline'
     run_in_packages: [packages/a, packages/b]
+  build:
+    command: echo "\$DPK_PACKAGE_NAME" >> "\$DPK_ROOT/build.log"
+    depends_on: [^build]
+  test_b:
+    command: echo "test \$DPK_PACKAGE_NAME" >> "\$DPK_ROOT/build.log"
+    run_in_packages: [b]
+    depends_on: [^build]
 '''),
         d.dir('packages', [
           d.dir('a', [
@@ -385,6 +467,16 @@ scripts:
     });
 
     test(
+      'When a script depends on ^build then its workspace dependencies build first',
+      () async {
+        final result = await dpk(['run', 'test_b'], directory: d.path('repo'));
+
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(_log('repo/build.log'), equals(['c', 'a', 'test b']));
+      },
+    );
+
+    test(
       'When dependency order is on then dependencies finish first',
       () async {
         await dpk(['run', 'ordered'], directory: d.path('repo'));
@@ -457,3 +549,5 @@ scripts:
 
 String _real(String path) =>
     p.normalize(Directory(path).resolveSymbolicLinksSync());
+
+List<String> _log(String path) => File(d.path(path)).readAsLinesSync();

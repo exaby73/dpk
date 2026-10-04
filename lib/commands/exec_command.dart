@@ -79,7 +79,10 @@ final class ExecCommand extends DpkCommand {
         ).execute(
           plan,
           command,
-          environment: {...project.pubEnvironment, ...stack.toEnvironment()},
+          environment: context.scriptEnvironment({
+            ...project.pubEnvironment,
+            ...stack.toEnvironment(),
+          }),
         );
       }),
     );

@@ -91,6 +91,8 @@ final class Project {
       warnings.addAll(package.warnings);
     }
 
+    Script.checkReferences(scripts, file: displayConfig);
+
     return Project(
       workspace: workspace,
       configPath: configPath,

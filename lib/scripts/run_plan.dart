@@ -95,20 +95,65 @@ RunPlan planRun({
     }
   }
 
+  return planPackages(
+    selected,
+    concurrency: concurrency,
+    failFast: failFast,
+    dependencyOrder: dependencyOrder,
+  );
+}
+
+/// A plan that runs in exactly [packages].
+///
+/// Throws a [RunPlanException] when [dependencyOrder] is on and the packages
+/// depend on each other in a cycle.
+RunPlan planPackages(
+  List<WorkspacePackage> packages, {
+  int? concurrency,
+  bool failFast = false,
+  bool dependencyOrder = false,
+}) {
   final dependencies = dependencyOrder
-      ? _dependenciesWithin(selected)
+      ? _dependenciesWithin(packages)
       : const <String, Set<String>>{};
   if (dependencyOrder) {
     _checkForCycles(dependencies);
   }
-
   return RunPlan(
-    packages: selected,
+    packages: packages,
     concurrency: concurrency,
     failFast: failFast,
     dependencyOrder: dependencyOrder,
     dependencies: dependencies,
   );
+}
+
+/// The workspace packages that [packages] depend on through `dependencies`,
+/// directly or through other workspace packages, in workspace order. A
+/// package in [packages] is included only when another package depends on
+/// it.
+List<WorkspacePackage> workspaceDependenciesOf(
+  Workspace workspace,
+  List<WorkspacePackage> packages,
+) {
+  final byName = {
+    for (final package in workspace.allPackages) package.name: package,
+  };
+  final found = <String>{};
+  void visit(WorkspacePackage package) {
+    for (final name in package.dependencies) {
+      final dependency = byName[name];
+      if (dependency != null && found.add(name)) {
+        visit(dependency);
+      }
+    }
+  }
+
+  packages.forEach(visit);
+  return [
+    for (final package in workspace.allPackages)
+      if (found.contains(package.name)) package,
+  ];
 }
 
 /// Packages in [candidates] that any of [patterns] match, by name or by path
