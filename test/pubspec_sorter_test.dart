@@ -22,7 +22,6 @@ version: 1.0.0
 
         final result = sortPubspec(input);
 
-        // Verify order: name, version, environment, dependencies
         final lines = result.split('\n');
         final nameIndex = lines.indexWhere((l) => l.startsWith('name:'));
         final versionIndex = lines.indexWhere((l) => l.startsWith('version:'));
@@ -50,7 +49,6 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // There should be blank lines between groups
         expect(result, contains('\n\nenvironment:'));
         expect(result, contains('\n\ndependencies:'));
       },
@@ -147,7 +145,6 @@ version: 1.0.0
         final result = sortPubspec(input);
         final lines = result.split('\n');
 
-        // custom_field should stay after name (its predecessor in original)
         final nameIndex = lines.indexWhere((l) => l.startsWith('name:'));
         final customIndex = lines.indexWhere(
           (l) => l.startsWith('custom_field:'),
@@ -172,7 +169,6 @@ flutter:
 
         final result = sortPubspec(input);
 
-        // flutter content should be preserved as-is
         expect(result, contains('flutter:'));
         expect(result, contains('uses-material-design: true'));
       },
@@ -189,8 +185,6 @@ version: 1.0.0
 
         final result = sortPubspec(input);
 
-        // The # inside quotes should not be treated as comments
-        // Note: yaml_edit may normalize quotes, so check for the content
         expect(result, contains('my # app'));
         expect(result, contains('test # value'));
       },
@@ -211,14 +205,12 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // bar should come before foo (alphabetical)
         final lines = result.split('\n');
         final barIndex = lines.indexWhere((l) => l.contains('bar:'));
         final fooIndex = lines.indexWhere((l) => l.contains('foo:'));
 
         expect(barIndex, lessThan(fooIndex));
 
-        // Git dependency should be preserved
         expect(result, contains('git:'));
         expect(result, contains('url: https://github.com/example/foo.git'));
       },
@@ -238,7 +230,6 @@ dependency_overrides:
         final result = sortPubspec(input);
         final lines = result.split('\n');
 
-        // alpha should come before zebra
         final alphaIndex = lines.indexWhere((l) => l.contains('alpha:'));
         final zebraIndex = lines.indexWhere((l) => l.contains('zebra:'));
 
@@ -256,7 +247,6 @@ environment:
 
       final result = sortPubspec(input);
 
-      // environment content should be preserved as-is (not sorted)
       expect(result, contains('environment:'));
       expect(result, contains('sdk: ^3.0.0'));
       expect(result, contains('flutter: ^3.0.0'));
@@ -298,7 +288,6 @@ name: my_app
         final result = sortPubspec(input);
         final lines = result.split('\n');
 
-        // Check overall order
         final nameIndex = lines.indexWhere((l) => l.startsWith('name:'));
         final descIndex = lines.indexWhere((l) => l.startsWith('description:'));
         final versionIndex = lines.indexWhere((l) => l.startsWith('version:'));
@@ -318,7 +307,6 @@ name: my_app
         expect(depsIndex, lessThan(devDepsIndex));
         expect(devDepsIndex, lessThan(flutterIndex));
 
-        // Check dependency sorting
         final barIndex = lines.indexWhere((l) => l.contains('  bar:'));
         final fooIndex = lines.indexWhere((l) => l.contains('  foo:'));
         expect(barIndex, lessThan(fooIndex));
@@ -343,7 +331,6 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // Comments should be preserved
         expect(result, contains('# This is zebra'));
         expect(result, contains('# This is alpha'));
       },
@@ -363,9 +350,7 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // The nested comment inside luthor's value should be preserved
         expect(result, contains('# A nested comment'));
-        // alpha should come before luthor (alphabetical)
         final lines = result.split('\n');
         final alphaIndex = lines.indexWhere((l) => l.contains('alpha:'));
         final luthorIndex = lines.indexWhere((l) => l.contains('luthor:'));
@@ -389,11 +374,9 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // The nested comment inside luthor's value should be preserved
         expect(result, contains('# A nested comment'));
         expect(result, contains('url: https://github.com/exaby73/luthor.git'));
         expect(result, contains('path: packages/luthor'));
-        // alpha should come before luthor (alphabetical)
         final lines = result.split('\n');
         final alphaIndex = lines.indexWhere((l) => l.contains('alpha:'));
         final luthorIndex = lines.indexWhere((l) => l.contains('luthor:'));
@@ -416,11 +399,9 @@ dependencies:
 
         final result = sortPubspec(input);
 
-        // Both comments should be preserved
         expect(result, contains('simple_dep: ^1.0.0 # Simple comment'));
         expect(result, contains('complex_dep: # Complex comment'));
 
-        // Complex comment should be on the key line, not nested lines
         final lines = result.split('\n');
         final complexDepLine = lines.firstWhere(
           (l) => l.trim().startsWith('complex_dep:'),

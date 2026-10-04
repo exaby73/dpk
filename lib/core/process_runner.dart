@@ -19,7 +19,8 @@ abstract interface class ProcessRunner {
   });
 
   /// Runs a process with its output going to the user, and returns its exit
-  /// code. In a terminal, the process inherits stdin, stdout, and stderr.
+  /// code. When the console is the real stdio, the process inherits stdin,
+  /// stdout, and stderr.
   Future<int> runInteractive(
     String executable,
     List<String> arguments, {

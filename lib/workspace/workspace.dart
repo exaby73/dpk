@@ -194,8 +194,9 @@ final class Workspace {
   }
 
   /// Directories under [root] that [pattern] matches, as canonical paths
-  /// sorted by path. A pattern without glob characters matches itself.
-  /// Hidden directories, `build`, and `pub_packages` are skipped.
+  /// sorted by path. A pattern without glob characters matches that
+  /// directory if it exists. Glob matches inside hidden directories, `build`,
+  /// and `pub_packages` are skipped.
   static List<String> expandPattern(String pattern, String root) {
     final cleaned = pattern.startsWith('./') ? pattern.substring(2) : pattern;
     if (!cleaned.contains(RegExp(r'[*?\[{]'))) {

@@ -35,7 +35,8 @@ void addPackageSelectionOptions(ArgParser parser) {
     );
 }
 
-/// The package selection options from [results].
+/// Reads the package selection options from [results]. Throws a
+/// [UsageException] when `--concurrency` is not a whole number of at least 1.
 ({
   List<String> filters,
   int? concurrency,

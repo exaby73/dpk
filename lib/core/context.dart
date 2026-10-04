@@ -85,7 +85,8 @@ final class DpkContext {
     if (invocation.color == false) '--no-color',
   ];
 
-  /// Runs [target] between its hooks.
+  /// Runs [action] for [target] between its hooks. Outside a project, runs
+  /// [action] without hooks.
   Future<int> withHooks(
     String target,
     Future<int> Function(HookStack stack) action, {
@@ -151,7 +152,8 @@ final class DpkContext {
     );
   }
 
-  /// The variables in [script]'s `env_file`.
+  /// Reads [script]'s `env_file`, resolved from [Project.rootPath]. Throws a
+  /// [DpkException] when the file is missing.
   Map<String, String> _envFile(Script script, Project project) {
     final name = script.envFile;
     if (name == null) {
@@ -168,9 +170,9 @@ final class DpkContext {
   }
 }
 
-/// Parses `KEY=value` lines. Blank lines and `#` comments are skipped, an
-/// `export ` prefix is allowed, and values may be wrapped in single or double
-/// quotes.
+/// Parses `KEY=value` lines. Blank lines, `#` comment lines, and a ` #`
+/// comment after an unquoted value are skipped. An `export ` prefix is
+/// allowed, and values may be wrapped in single or double quotes.
 Map<String, String> parseDotenv(String content) {
   final result = <String, String>{};
   for (final rawLine in const LineSplitter().convert(content)) {

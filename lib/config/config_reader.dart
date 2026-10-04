@@ -244,7 +244,8 @@ final class ConfigReader {
   void adoptWarnings(ConfigReader child) => warnings.addAll(child.warnings);
 }
 
-/// Loads [content] as a YAML mapping for config parsing.
+/// Loads [content] as a YAML mapping. Throws a [ConfigException] when it is
+/// invalid YAML, empty, or not a mapping.
 YamlMap loadConfigMap(String content, {required String file}) {
   final Object? document;
   try {
@@ -296,7 +297,8 @@ Object? toPlain(Object? value) => switch (value) {
   _ => value,
 };
 
-/// [path] relative to the current directory when that is shorter.
+/// [path] relative to the current directory when that is shorter and does
+/// not climb more than one level.
 String displayPath(String path) {
   final relative = p.relative(path);
   return relative.length < path.length && !relative.startsWith('../..')

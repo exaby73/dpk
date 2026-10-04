@@ -179,9 +179,9 @@ String applyCatalog(
   return result;
 }
 
-/// Adds [catalogMarker] to the entries of the dependency sections named in
-/// [managed], and removes it from the others. An existing inline comment on
-/// a managed entry is replaced by the marker.
+/// Adds [catalogMarker] to every block-style dependency entry whose package
+/// is in [managed], and removes it from the others. An existing inline
+/// comment on a managed entry is replaced by the marker.
 String markCatalogDependencies(String pubspec, Set<String> managed) {
   final YamlNode document;
   try {

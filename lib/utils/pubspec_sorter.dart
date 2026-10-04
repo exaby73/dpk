@@ -29,10 +29,8 @@ const List<List<String>> _keyGroups = [
   ['flutter'],
 ];
 
-/// Known top-level keys in sort order.
 final List<String> _keyOrder = [for (final group in _keyGroups) ...group];
 
-/// Group index of every known top-level key.
 final Map<String, int> _keyGroup = {
   for (final (index, group) in _keyGroups.indexed)
     for (final key in group) key: index,
@@ -134,13 +132,11 @@ class _Block {
   /// The key as written, unquoted.
   final String name;
 
-  /// The value node of the key.
   final YamlNode value;
 
   /// First line of the block, including comments directly above the key.
   final int start;
 
-  /// Line of the key itself.
   final int keyLine;
 
   /// Last non-blank line of the block, inclusive.
@@ -154,7 +150,7 @@ class _Block {
   /// Whether to write a blank line before this block when it follows a block
   /// of [previousGroup] in the sorted output. Known keys get one between
   /// groups and none inside a group; unknown keys keep the spacing they had.
-  bool blankLineAfter(int? previousGroup, int group) =>
+  bool needsBlankLineBefore(int? previousGroup, int group) =>
       isKnown ? group != previousGroup : blankBefore;
 }
 
@@ -179,7 +175,6 @@ String? _sortText(String text, YamlMap root, {required bool sortDependencies}) {
     keyLines.add(start.line);
   }
 
-  // Lines of block i end where the value and any indented lines after it end.
   final ends = <int>[];
   for (final (i, key) in keyNodes.indexed) {
     final limit = i + 1 < keyLines.length ? keyLines[i + 1] : lineCount;
@@ -230,7 +225,7 @@ String? _sortText(String text, YamlMap root, {required bool sortDependencies}) {
   for (final (index, entry) in _orderBlocks(blocks).indexed) {
     final (block, group) = entry;
     if (index > 0) {
-      if (block.blankLineAfter(previousGroup, group)) {
+      if (block.needsBlankLineBefore(previousGroup, group)) {
         output.add('');
       }
     }
