@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
+import 'package:dpk/commands/catalog_command.dart';
+import 'package:dpk/commands/doctor_command.dart';
 import 'package:dpk/commands/exec_command.dart';
 import 'package:dpk/commands/get_command.dart';
 import 'package:dpk/commands/init_command.dart';
 import 'package:dpk/commands/list_command.dart';
 import 'package:dpk/commands/patch_command.dart';
 import 'package:dpk/commands/pub_passthrough_command.dart';
+import 'package:dpk/commands/release_command.dart';
 import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/commands/skills_command.dart';
 import 'package:dpk/config/config_reader.dart';
@@ -159,8 +162,11 @@ final class DpkCommandRunner extends CompletionCommandRunner<int> {
     addCommand(RunCommand(context));
     addCommand(ExecCommand(context));
     addCommand(ListCommand(context));
+    addCommand(CatalogCommand(context));
     addCommand(PatchCommand(context));
+    addCommand(ReleaseCommand(context));
     addCommand(InitCommand(context));
+    addCommand(DoctorCommand(context));
     addCommand(SkillsCommand(context));
     for (final definition in pubPassthroughCommandDefinitions) {
       addCommand(PubPassthroughCommand(context, definition));

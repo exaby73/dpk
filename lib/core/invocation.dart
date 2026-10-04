@@ -3,6 +3,7 @@ import 'package:args/command_runner.dart';
 /// Commands that work outside a dpk project.
 const projectlessCommands = {
   'help',
+  'doctor',
   'init',
   'skills',
   'completion',

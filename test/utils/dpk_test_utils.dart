@@ -67,9 +67,12 @@ final class RecordedProcess {
 /// A [ProcessRunner] that records every process instead of starting it, and
 /// reports [exitCodes] for matching command lines (0 otherwise).
 final class RecordingProcessRunner implements ProcessRunner {
-  RecordingProcessRunner({this.exitCodes = const {}});
+  RecordingProcessRunner({this.exitCodes = const {}, this.outputs = const {}});
 
   final Map<Pattern, int> exitCodes;
+
+  /// Standard output returned by [run] for matching command lines.
+  final Map<Pattern, String> outputs;
   final List<RecordedProcess> processes = [];
 
   int _exitCodeFor(RecordedProcess process) {
@@ -95,7 +98,11 @@ final class RecordingProcessRunner implements ProcessRunner {
       environment,
     );
     processes.add(process);
-    return ProcessResult(0, _exitCodeFor(process), '', '');
+    final output = outputs.entries
+        .where((entry) => process.commandLine.contains(entry.key))
+        .map((entry) => entry.value)
+        .firstOrNull;
+    return ProcessResult(0, _exitCodeFor(process), output ?? '', '');
   }
 
   @override

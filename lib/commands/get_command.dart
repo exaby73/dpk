@@ -5,6 +5,8 @@ import 'package:dpk/catalog/pubspec_updates.dart';
 import 'package:dpk/commands/dpk_command.dart';
 import 'package:dpk/config/config_migration.dart';
 import 'package:dpk/config/config_reader.dart';
+import 'package:dpk/config/project.dart';
+import 'package:dpk/core/context.dart';
 import 'package:dpk/core/constants.dart';
 import 'package:dpk/patching/project_cache.dart';
 import 'package:dpk/scripts/hook_lifecycle.dart';
@@ -72,7 +74,7 @@ final class GetCommand extends DpkCommand {
     final stale = [
       for (final update in planPubspecUpdates(project))
         if (update.changed) update.path,
-      for (final config in _configFiles())
+      for (final config in configFiles(project))
         if (migrateConfig(File(config).readAsStringSync()) !=
             File(config).readAsStringSync())
           config,
@@ -94,55 +96,70 @@ final class GetCommand extends DpkCommand {
     List<String> arguments, {
     required bool dryRun,
     required HookStack stack,
-  }) async {
-    final project = context.requireProject;
-
-    for (final config in _configFiles()) {
-      final before = File(config).readAsStringSync();
-      final after = migrateConfig(before);
-      if (after != before) {
-        if (dryRun) {
-          console.step(
-            '> Would rename deprecated keys in ${displayPath(config)}',
-          );
-        } else {
-          File(config).writeAsStringSync(after);
-          console.step('> Renamed deprecated keys in ${displayPath(config)}');
-        }
-      }
-    }
-
-    final updates = planPubspecUpdates(
-      project,
-    ).where((update) => update.changed).toList();
-    if (updates.isNotEmpty) {
-      final verb = dryRun ? 'Would update' : 'Updated';
-      if (!dryRun) {
-        writePubspecUpdates(updates);
-      }
-      console.step(
-        '> $verb ${updates.map((u) => displayPath(u.path)).join(', ')}',
-      );
-    }
-
-    final exitCode = await context.runDart([
-      'pub',
-      ...context.pubFlags,
-      'get',
-      ...arguments,
-    ], environment: stack.toEnvironment());
-    if (exitCode != 0 || dryRun || !project.isProjectMode) {
-      return exitCode;
-    }
-    return ProjectCache.forProject(project, context).sync();
-  }
-
-  /// The root `dpk.yaml` and the current package's own `dpk.yaml`.
-  List<String> _configFiles() {
-    final project = context.requireProject;
-    return {
-      project.configPath,
-      p.join(project.workspace.current.path, kConfigFileName),
-    }.where((path) => File(path).existsSync()).toList();
-  }
+  }) => getDependencies(
+    context,
+    context.requireProject,
+    pubArguments: arguments,
+    dryRun: dryRun,
+    stack: stack,
+  );
 }
+
+/// What `dpk get` does between its hooks: rename deprecated config keys,
+/// apply the catalog and sorting to pubspecs, run `dart pub get`, and sync
+/// the project cache in project mode.
+///
+/// [project] is passed in, rather than read from [context], so a caller that
+/// just changed `dpk.yaml` can pass a freshly loaded project.
+Future<int> getDependencies(
+  DpkContext context,
+  Project project, {
+  List<String> pubArguments = const [],
+  bool dryRun = false,
+  HookStack stack = const HookStack(),
+}) async {
+  final console = context.console;
+  for (final config in configFiles(project)) {
+    final before = File(config).readAsStringSync();
+    final after = migrateConfig(before);
+    if (after != before) {
+      if (dryRun) {
+        console.step(
+          '> Would rename deprecated keys in ${displayPath(config)}',
+        );
+      } else {
+        File(config).writeAsStringSync(after);
+        console.step('> Renamed deprecated keys in ${displayPath(config)}');
+      }
+    }
+  }
+
+  final updates = planPubspecUpdates(
+    project,
+  ).where((update) => update.changed).toList();
+  if (updates.isNotEmpty) {
+    final verb = dryRun ? 'Would update' : 'Updated';
+    if (!dryRun) {
+      writePubspecUpdates(updates);
+    }
+    console.step(
+      '> $verb ${updates.map((u) => displayPath(u.path)).join(', ')}',
+    );
+  }
+
+  final exitCode = await context.runDart(
+    ['pub', ...context.pubFlags, 'get', ...pubArguments],
+    workingDirectory: project.workspace.current.path,
+    environment: {...project.pubEnvironment, ...stack.toEnvironment()},
+  );
+  if (exitCode != 0 || dryRun || !project.isProjectMode) {
+    return exitCode;
+  }
+  return ProjectCache.forProject(project, context).sync();
+}
+
+/// The root `dpk.yaml` and the current package's own `dpk.yaml`.
+List<String> configFiles(Project project) => {
+  project.configPath,
+  p.join(project.workspace.current.path, kConfigFileName),
+}.where((path) => File(path).existsSync()).toList();

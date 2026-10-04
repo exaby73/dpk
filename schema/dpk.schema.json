@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/exaby73/dpk/main/schema/dpk.schema.json",
+  "title": "dpk.yaml",
+  "description": "Configuration for dpk, a package manager for Dart that adds scripts, hooks, workspace catalogs, and dependency patches to dart pub.",
+  "type": "object",
+  "required": ["version"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "The dpk versions this project works with, as a version constraint such as ^1.0.0. dpk refuses to run when the installed version is outside it.",
+      "examples": ["^1.0.0"]
+    },
+    "mode": {
+      "enum": ["global", "project"],
+      "default": "global",
+      "description": "Where pub stores packages. \"global\" uses the global pub cache. \"project\" uses a project cache so dependencies can be patched; use it only when you patch dependencies."
+    },
+    "sort_pubspec": {
+      "type": "boolean",
+      "default": false,
+      "description": "Sort the keys and dependencies of every pubspec on dpk get."
+    },
+    "workspace": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Globs that select workspace packages. Matching directories whose pubspec has resolution: workspace are written to the root pubspec's workspace list on dpk get.",
+      "examples": [["packages/*", "apps/*"]]
+    },
+    "cache_dir": {
+      "type": "string",
+      "default": "pub_packages",
+      "description": "The project cache directory, relative to the workspace root. Only used in project mode."
+    },
+    "patch_dir": {
+      "type": "string",
+      "default": "patches",
+      "description": "The directory for patch files, relative to the workspace root."
+    },
+    "catalog": { "$ref": "#/definitions/catalog" },
+    "scripts": {
+      "type": "object",
+      "description": "Scripts run with dpk run <name>. Names starting with pre: or post:, and the names before and after, are hooks.",
+      "additionalProperties": { "$ref": "#/definitions/script" }
+    }
+  },
+  "definitions": {
+    "script": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "description": "The shell command to run."
+        },
+        {
+          "type": "object",
+          "required": ["command"],
+          "additionalProperties": false,
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The shell command to run. It runs in /bin/sh, or cmd.exe on Windows."
+            },
+            "description": {
+              "type": "string",
+              "description": "Shown by dpk run when it lists the scripts."
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": { "type": ["string", "number", "boolean"] },
+              "description": "Environment variables for the script."
+            },
+            "run_in_packages": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Workspace packages to run in, by name or by a glob over their paths. Use . for the workspace root."
+            },
+            "run_hooks_from": {
+              "type": "string",
+              "description": "Also run the hooks of this script or command."
+            },
+            "scripts": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "For the before and after hooks: the scripts and commands they run around."
+            },
+            "all": {
+              "type": "boolean",
+              "description": "For the before and after hooks: run around every script and command."
+            },
+            "concurrency": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The most workspace packages to run in at once."
+            },
+            "fail_fast": {
+              "type": "boolean",
+              "description": "Stop the remaining packages when one fails."
+            },
+            "dependency_order": {
+              "type": "boolean",
+              "description": "Start a package only after the workspace packages it depends on have finished."
+            },
+            "runInPackages": {
+              "type": "array",
+              "items": { "type": "string" },
+              "deprecated": true,
+              "description": "Deprecated. Use run_in_packages."
+            },
+            "runHooksFrom": {
+              "type": "string",
+              "deprecated": true,
+              "description": "Deprecated. Use run_hooks_from."
+            }
+          }
+        }
+      ]
+    },
+    "dependency": {
+      "description": "A version constraint, or a dependency mapping such as {git: {url: ...}}, written to pubspecs as given.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object" },
+        { "type": "null" }
+      ]
+    },
+    "catalog": {
+      "type": "object",
+      "description": "Shared settings that dpk get applies to the workspace root and workspace packages.",
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "SDK constraints, merged key by key into each pubspec's environment.",
+          "examples": [{ "sdk": "^3.11.0" }]
+        },
+        "version": { "type": "string", "description": "The version for every workspace package." },
+        "publish_to": { "type": "string", "description": "publish_to for every workspace package, such as none." },
+        "homepage": { "type": "string", "description": "Supports DPK_PACKAGE_NAME, DPK_PACKAGE_PATH, and DPK_PACKAGE_VERSION." },
+        "repository": { "type": "string", "description": "Supports DPK_PACKAGE_NAME, DPK_PACKAGE_PATH, and DPK_PACKAGE_VERSION." },
+        "issue_tracker": { "type": "string", "description": "Supports DPK_PACKAGE_NAME, DPK_PACKAGE_PATH, and DPK_PACKAGE_VERSION." },
+        "documentation": { "type": "string", "description": "Supports DPK_PACKAGE_NAME, DPK_PACKAGE_PATH, and DPK_PACKAGE_VERSION." },
+        "topics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Topics added to every workspace package. Existing topics are kept."
+        },
+        "funding": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Funding URLs. Support the DPK_PACKAGE_* variables."
+        },
+        "platforms": { "type": "object", "description": "The platforms map for every workspace package." },
+        "resolution": { "enum": ["workspace", "local", "external"] },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/dependency" },
+          "description": "Versions for dependencies and dev_dependencies that packages already have."
+        },
+        "dependency_overrides": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/dependency" },
+          "description": "Overrides written to the workspace root pubspec."
+        }
+      }
+    }
+  }
+}
