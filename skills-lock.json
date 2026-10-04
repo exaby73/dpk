@@ -34,7 +34,7 @@
     "dpk": {
       "source": "./skills/dpk",
       "sourceType": "local",
-      "computedHash": "1e3694527c5b7ec56e4143821bc9aad5e39c203258b533312bd5b708ce9eacad"
+      "computedHash": "61c57e30ed302ff6152a4b872ca8302ed7c62cbdfbdfd57c16f92e771667250f"
     },
     "git-committer": {
       "source": "hexsis-llc/skills",

@@ -150,7 +150,7 @@ For most commands, hooks run in this order:
 4. `post:<command>`
 5. `after`
 
-`dpk get` is different, because scripts such as code generation usually need packages to be fetched first. For `get`, a matching `before` hook runs after `dart pub get`:
+`dpk get` is different, because scripts such as code generation usually need the fetched packages. For `get`, a matching `before` hook runs after `dart pub get`:
 
 1. `pre:get`
 2. `dart pub get`
@@ -362,8 +362,10 @@ This ensures all team members use a compatible version of dpk.
 
 Specifies the operational mode for `dpk`.
 
-- **`global`** (default): Packages are installed using the standard `dart pub get` behavior (to the global pub cache).
-- **`project`**: Packages are installed to the local `pub_packages` directory for patching and local modifications.
+- **`global`** (default): `dart pub get` installs packages to the global pub cache.
+- **`project`**: dpk installs packages to the local `pub_packages` directory so that you can patch them.
+
+Use `global` unless you patch dependencies. The `pub_packages` directory exists only to support patches, which `dependency_overrides` cannot express.
 
 #### `sort_pubspec`
 

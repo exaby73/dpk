@@ -3,6 +3,7 @@
 - [BREAKING] Chore: Require Dart 3.11 or later and upgrade dependencies to their latest compatible versions
 - Fix: Stop `sort_pubspec` from adding a blank line after nested dependency values, such as `sdk: flutter`, on every `dpk get`
 - Docs: Document shared `before` and `after` hooks in the README
+- Docs: Recommend global mode unless you patch dependencies
 - Chore: Move the repository to `exaby73/dpk`
 
 ## 0.8.3

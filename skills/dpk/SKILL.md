@@ -39,8 +39,8 @@ Create a `dpk.yaml` beside the package `pubspec.yaml`:
 version: ^0.8.0
 ```
 
-Use project cache mode when dependencies should be stored in a local
-`pub_packages` directory:
+Use project mode only when you need to patch dependencies. It stores
+packages in a local `pub_packages` directory:
 
 ```yaml
 version: ^0.8.0
@@ -444,10 +444,12 @@ separate `dev_dependencies` catalog section.
 Use `sort_pubspec: true` to sort pubspec files during `dpk get`. If dpk finds
 old `sortPubspec`, `dpk get` migrates it to `sort_pubspec`.
 
-## Project Cache Mode
+## Project Mode
 
-Project cache mode stores pub packages in a local cache instead of the default
-global pub cache:
+Project mode stores pub packages in a project cache, the `pub_packages`
+directory, instead of the global pub cache. The project cache exists only to
+support patches, which `dependency_overrides` cannot express. If you do not
+patch dependencies, keep the default global mode:
 
 ```yaml
 version: ^0.8.0
@@ -459,7 +461,7 @@ scripted pub flows that need the project cache.
 
 ## Patches
 
-Patch commands require project cache mode:
+Patch commands require project mode:
 
 ```yaml
 version: ^0.8.0
