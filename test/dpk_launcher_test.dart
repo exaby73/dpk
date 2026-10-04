@@ -104,9 +104,13 @@ scripts:
             d.path('project/which.txt'),
           ).readAsStringSync().trim();
           expect(launcher, contains('dpk-launchers'));
+          final target = name == 'a compiled binary' ? aotBinary : dartEntry;
           expect(
             File(launcher).readAsStringSync(),
-            contains(name == 'a compiled binary' ? aotBinary : dartEntry),
+            anyOf(
+              contains(target),
+              contains(File(target).resolveSymbolicLinksSync()),
+            ),
           );
         });
       });

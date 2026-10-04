@@ -12,7 +12,8 @@ import 'package:path/path.dart' as p;
 List<String> currentDpkCommand({String? workingDirectory}) {
   final executable = Platform.resolvedExecutable;
   final script = Platform.script.toFilePath();
-  if (p.equals(executable, script)) {
+  if (const bool.fromEnvironment('dart.vm.product') ||
+      _samePath(executable, script)) {
     return [executable];
   }
 
@@ -82,4 +83,18 @@ String _hash(String text) {
     hash *= 0x100000001b3;
   }
   return hash.toUnsigned(64).toRadixString(16).padLeft(16, '0');
+}
+
+/// Whether [a] and [b] are the same file, after resolving symbolic links
+/// such as macOS's `/var` to `/private/var`.
+bool _samePath(String a, String b) {
+  String resolve(String path) {
+    try {
+      return File(path).resolveSymbolicLinksSync();
+    } on FileSystemException {
+      return p.normalize(path);
+    }
+  }
+
+  return p.equals(resolve(a), resolve(b));
 }
