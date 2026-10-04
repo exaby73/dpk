@@ -72,6 +72,10 @@
               "additionalProperties": { "type": ["string", "number", "boolean"] },
               "description": "Environment variables for the script."
             },
+            "env_file": {
+              "type": "string",
+              "description": "A dotenv file of KEY=value lines, relative to the workspace root. Values in env override it."
+            },
             "run_in_packages": {
               "type": "array",
               "items": { "type": "string" },

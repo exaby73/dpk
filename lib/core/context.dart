@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dpk/config/config_reader.dart';
 import 'package:dpk/config/dpk_config.dart';
 import 'package:dpk/config/project.dart';
 import 'package:dpk/core/console.dart';
@@ -140,9 +144,62 @@ final class DpkContext {
       command,
       environment: {
         ...project.pubEnvironment,
+        ..._envFile(script, project),
         ...script.env,
         ...stack.toEnvironment(),
       },
     );
   }
+
+  /// The variables in [script]'s `env_file`.
+  Map<String, String> _envFile(Script script, Project project) {
+    final name = script.envFile;
+    if (name == null) {
+      return const {};
+    }
+    final file = File(p.join(project.rootPath, name));
+    if (!file.existsSync()) {
+      throw DpkException(
+        'Script "${script.name}": env_file ${displayPath(file.path)} does not '
+        'exist.',
+      );
+    }
+    return parseDotenv(file.readAsStringSync());
+  }
+}
+
+/// Parses `KEY=value` lines. Blank lines and `#` comments are skipped, an
+/// `export ` prefix is allowed, and values may be wrapped in single or double
+/// quotes.
+Map<String, String> parseDotenv(String content) {
+  final result = <String, String>{};
+  for (final rawLine in const LineSplitter().convert(content)) {
+    var line = rawLine.trim();
+    if (line.isEmpty || line.startsWith('#')) {
+      continue;
+    }
+    if (line.startsWith('export ')) {
+      line = line.substring('export '.length).trimLeft();
+    }
+    final equals = line.indexOf('=');
+    if (equals <= 0) {
+      continue;
+    }
+    final key = line.substring(0, equals).trim();
+    var value = line.substring(equals + 1).trim();
+    final quoted =
+        value.length >= 2 &&
+        ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'")));
+    if (quoted) {
+      value = value.substring(1, value.length - 1);
+    } else {
+      final comment = value.indexOf(' #');
+      if (comment != -1) {
+        value = value.substring(0, comment).trimRight();
+      }
+    }
+    result[key] = value;
+  }
+  return result;
 }

@@ -157,6 +157,7 @@ final class Script {
     required this.command,
     this.description,
     this.env = const {},
+    this.envFile,
     this.runInPackages,
     this.runHooksFrom,
     this.hookTargets,
@@ -170,6 +171,7 @@ final class Script {
     'command',
     'description',
     'env',
+    'env_file',
     'run_in_packages',
     'run_hooks_from',
     'scripts',
@@ -275,6 +277,7 @@ final class Script {
       command: reader.requiredString('command'),
       description: reader.string('description'),
       env: reader.stringMap('env') ?? const {},
+      envFile: reader.string('env_file'),
       runInPackages:
           reader.stringList('run_in_packages') ??
           reader.stringList('runInPackages'),
@@ -294,6 +297,10 @@ final class Script {
   final String command;
   final String? description;
   final Map<String, String> env;
+
+  /// A dotenv file, relative to the workspace root. [env] overrides its
+  /// variables.
+  final String? envFile;
 
   /// Globs or package names that choose the workspace packages to run in.
   final List<String>? runInPackages;

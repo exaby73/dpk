@@ -22,6 +22,11 @@ scripts:
     command: printf '%s|%s|%s' "\$GREETING" "\$DPK_PACKAGE_NAME" "\$DPK_ROOT"
     env:
       GREETING: 42
+  dotenv:
+    command: printf '%s|%s' "\$FROM_FILE" "\$OVERRIDDEN"
+    env_file: .env.test
+    env:
+      OVERRIDDEN: env
   before:
     command: echo before >> hook.log
     scripts: [build]
@@ -101,6 +106,32 @@ scripts:
         );
       },
     );
+
+    test(
+      'When a script has an env_file then env overrides its values',
+      () async {
+        await d
+            .file(
+              'project/.env.test',
+              '# comment\nexport FROM_FILE="file value"\nOVERRIDDEN=file\n',
+            )
+            .create();
+
+        final result = await dpk([
+          'run',
+          'dotenv',
+        ], directory: d.path('project'));
+
+        expect(result.stdout, equals('file value|env'));
+      },
+    );
+
+    test('When the env_file is missing then dpk says so', () async {
+      final result = await dpk(['run', 'dotenv'], directory: d.path('project'));
+
+      expect(result.exitCode, equals(1));
+      expect(result.stderr, contains('env_file'));
+    });
 
     test('When running build then its hooks run in order', () async {
       await dpk(['run', 'build'], directory: d.path('project'));
