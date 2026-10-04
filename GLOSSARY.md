@@ -25,6 +25,13 @@ A pub command that dpk forwards to `dart pub` unchanged, adding only hooks, the 
 A named entry under `scripts` in `dpk.yaml` that runs a shell command.
 _Avoid_: task
 
+**Script dependency**:
+A script listed in another script's `depends_on`, run before it once per dpk run. `^name` runs the script in the workspace packages the dependent packages depend on.
+_Avoid_: prerequisite, task dependency
+
+**dpk launcher**:
+The small `dpk` script that dpk puts first on a script's `PATH`, so `dpk` inside a script runs the dpk that started it.
+
 **Hook**:
 A script that runs around a command or another script.
 _Avoid_: script hook, command hook

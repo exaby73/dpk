@@ -15,6 +15,9 @@
 ### Features
 
 - Feat: Find workspaces from pubspec files, without `dart pub workspace list` and without requiring the root package to be named `_`
+- Feat: Add `depends_on` to run other scripts first, including `^script` to run a script in a package's workspace dependencies
+- Feat: Run the same dpk when a script calls `dpk`, through a launcher first on the script's `PATH`, for installed binaries and `dart run`
+- Feat: Add `dpk clean`
 - Feat: Add `dpk exec` to run a shell command in every workspace package
 - Feat: Add `dpk list` with `--graph` and `--json`
 - Feat: Add `--filter`, `--concurrency`, `--fail-fast`, and `--dependency-order` to `dpk run` and `dpk exec`, and the `concurrency`, `fail_fast`, and `dependency_order` script keys

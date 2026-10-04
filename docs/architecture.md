@@ -44,6 +44,10 @@ The lifecycle also owns the `HookStack`. Every process dpk starts inherits `DPK_
 
 Scripts run in `/bin/sh`, or `cmd.exe` on Windows (`lib/core/shell.dart`). [ADR 0002](adr/0002-scripts-run-in-a-fixed-shell.md) explains why dpk does not use the user's shell.
 
+`DpkContext.runScriptTarget` runs a script's `depends_on` entries before its hook lifecycle. A plain name runs that script the same way. A `^name` entry plans the script for the workspace packages the dependent script's packages depend on (`workspaceDependenciesOf`), in dependency order. Started dependencies go on the hook stack as `dep:<name>`, so each runs once across nested dpk processes, and `build: depends_on [^build]` cannot recurse.
+
+`bin/dpk.dart` passes `currentDpkCommand()` (`lib/core/self_command.dart`) into `runDpk`: the binary itself, or the `dart` VM with its options and script. `DpkContext.scriptEnvironment` writes a `dpk` launcher for that command into the system temp directory and puts it first on every script's `PATH`, so `dpk` in a script is the dpk that started it. In-process tests pass no command and get no launcher.
+
 ## `dpk get` plans every file change before writing
 
 `planPubspecUpdates` (`lib/catalog/pubspec_updates.dart`) computes every pubspec change in memory: the root `workspace` list from the `dpk.yaml` globs, the catalog, and sorting. `dpk get --check` and `--dry-run` report the plan and write nothing. Otherwise, `writePubspecUpdates` writes each changed file to a temporary file and renames it into place.
