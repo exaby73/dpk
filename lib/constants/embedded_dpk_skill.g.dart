@@ -18,14 +18,14 @@ dpk wraps `dart pub`. Every pub command works through it (`dpk get`, `dpk add`, 
 
 ## Read the project first
 
-1. Find `dpk.yaml` at the package or workspace root. Its `version` is the dpk constraint; dpk refuses to run outside it.
+1. Find `dpk.yaml` at the package or workspace root. Its `version` is the dpk constraint, and dpk refuses to run outside it.
 2. Run `dpk run` to list the scripts, with descriptions and hooks.
 3. In a workspace, run `dpk list` to see the workspace packages, or `dpk list --graph` for their dependencies.
 4. Run `dpk doctor` when something looks wrong. It checks the config, the workspace, pubspec drift, and the project cache, and exits 1 on a problem.
 
 ## Command line rule
 
-dpk's own options go **before** the command; everything **after** the command belongs to it.
+dpk's own options go **before** the command. Everything **after** the command belongs to it.
 
 ```bash
 dpk -C packages/app run test --coverage=coverage   # -C is dpk's, --coverage is the script's
@@ -62,11 +62,11 @@ scripts:
 ```
 
 - `dpk run <script> [args]` runs a script. Every argument after the name reaches the script, appended to the command and quoted.
-- Script keys: `command` (required in the mapping form), `description`, `env`, `env_file` (dotenv, relative to the workspace root; `env` wins), `run_in_packages`, `run_hooks_from`, `concurrency`, `fail_fast`, `dependency_order`.
+- Script keys: `command` (required in the mapping form), `description`, `env`, `env_file` (dotenv, relative to the workspace root, overridden by `env`), `run_in_packages`, `run_hooks_from`, `concurrency`, `fail_fast`, `dependency_order`.
 - Scripts run in `/bin/sh` (`cmd.exe` on Windows), never the login shell. Write POSIX shell.
-- A script runs in the workspace package it is started from; from the root or a non-package folder, at the root.
+- A script runs in the workspace package it is started from. From the root or a folder outside any package, it runs at the root.
 - Scripts get `DPK_ROOT`, `DPK_PACKAGE_NAME`, `DPK_PACKAGE_PATH`, and in project mode `PUB_CACHE`.
-- dpk prints `> name: command` to stderr before each script and hook. `-q` hides it; stdout stays clean for piping.
+- dpk prints `> name: command` to stderr before each script and hook. `-q` hides it. Stdout stays clean for piping.
 - To call one script from another, use `dpk run other` in the command.
 
 ## Hooks
@@ -90,7 +90,7 @@ Run across packages:
 scripts:
   test:
     command: dart test
-    run_in_packages: [packages/*, app]   # names or path globs; "." is the root
+    run_in_packages: [packages/*, app]   # names or path globs, "." is the root
 ```
 
 ```bash
@@ -146,7 +146,7 @@ dpk validates `dpk.yaml` on every run and reports `file:line:column: key: proble
 
 - Use the project's scripts (`dpk run`) instead of retyping their commands, and read `dpk run` before inventing new ones.
 - After editing `dpk.yaml` or a catalog, run `dpk get`, then `dpk get --check` to confirm a clean state.
-- Never edit files in `pub_packages/` without generating patches afterwards; the next fresh clone loses unsaved edits.
+- Never edit files in `pub_packages/` without generating patches afterwards. A fresh clone loses unsaved edits.
 - Ask before `--force`, `release version`, and `release publish`.
 
 ''';

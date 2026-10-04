@@ -59,7 +59,7 @@ To check a project's setup at any time, run `dpk doctor`.
 dpk's own options go before the command. Everything after the command belongs to the command:
 
 ```bash
-dpk -C packages/app run test -v   # -C is dpk's; -v goes to the test script
+dpk -C packages/app run test -v   # -C is dpk's, -v goes to the test script
 dpk add http -C packages/app      # -C goes to dart pub add
 ```
 

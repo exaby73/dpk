@@ -6,7 +6,7 @@ dpk wraps `dart pub`. A run parses the command line, loads the project, and hand
 
 `bin/dpk.dart` calls `runDpk` in `lib/core/command_runner.dart`, which:
 
-1. Parses the arguments with `Invocation.parse` (`lib/core/invocation.dart`). dpk options only count before the command, and everything after the command name is kept for the command unchanged. This one rule is why `dpk run test -v` passes `-v` to the script; [ADR 0003](adr/0003-dpk-options-go-before-the-command.md) explains it.
+1. Parses the arguments with `Invocation.parse` (`lib/core/invocation.dart`). dpk options only count before the command, and everything after the command name is kept for the command unchanged. This one rule is why `dpk run test -v` passes `-v` to the script. [ADR 0003](adr/0003-dpk-options-go-before-the-command.md) explains it.
 2. Loads the project with `Project.load` (`lib/config/project.dart`) when the command needs one. Help, completion, and the pub commands that work anywhere (such as `global`) skip it.
 3. Builds a `DpkContext` (`lib/core/context.dart`) and runs `DpkCommandRunner`, a `CompletionCommandRunner` from `cli_completion` with auto-install turned off.
 4. Turns expected failures (`DpkException`, `ProjectException`, `ConfigException`, `RunPlanException`) into `error: <message>` and exit code 1, and usage errors into exit code 64. Anything else reaches `bin/dpk.dart`, which prints it as a bug.
