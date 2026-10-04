@@ -20,3 +20,10 @@ build.yaml
 .claude/
 skills-lock.json
 tool/
+
+# Contributor docs and tooling
+AGENTS.md
+CLAUDE.md
+GLOSSARY.md
+docs/
+.github/

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: Format and analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed bin lib test tool
+      - run: dart analyze --fatal-infos
+      - name: Generated files are up to date
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- lib
+
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+      - run: dart pub get
+      - run: dart test
+
+  test-windows:
+    name: Unit tests on Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+      - run: dart pub get
+      - run: >-
+          dart test
+          test/invocation_test.dart
+          test/run_plan_test.dart
+          test/hook_lifecycle_test.dart
+          test/catalog_application_test.dart
+          test/pubspec_sorter_test.dart
+          test/config_test.dart
