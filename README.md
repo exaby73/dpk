@@ -118,6 +118,54 @@ When you run `dpk run build`, it executes:
 
 **Note:** Hooks work for any script you define, as well as built-in dpk commands like `get`, `add`, `remove`, etc.
 
+### Shared Hooks (`before` and `after`)
+
+`before` and `after` are shared hooks that run around several commands at once. List the target scripts or commands under `scripts`:
+
+```yaml
+scripts:
+  before:
+    scripts:
+      - analyze
+      - get
+      - publish
+    command: dpk run build
+
+  build: dart run build_runner build -d
+  analyze: dart analyze
+  publish: dart pub publish
+```
+
+Or set `all: true` to run the hook around every hookable command:
+
+```yaml
+scripts:
+  before:
+    all: true
+    command: echo "Before everything"
+  after:
+    all: true
+    command: echo "After everything"
+```
+
+For most commands, hooks run in this order:
+
+1. `before`
+2. `pre:<command>`
+3. the command itself
+4. `post:<command>`
+5. `after`
+
+`dpk get` is different, because scripts such as code generation usually need packages to be fetched first. For `get`, a matching `before` hook runs after `dart pub get`:
+
+1. `pre:get`
+2. `dart pub get`
+3. `before`
+4. `post:get`
+5. `after`
+
+Hooks do not trigger themselves recursively. If a `before` or `after` hook runs a script that would trigger the same hook again, dpk skips the nested hook and prints a warning instead of looping forever.
+
 ### Environment Variables
 
 You can set environment variables for scripts using the `env` section:
@@ -386,7 +434,7 @@ scripts:
 - **`env`**: Environment variables to set before running the script
 - **`runInPackages`**: Glob patterns for workspace packages where the script should run
 - **`runHooksFrom`**: Name of another script to inherit hooks from
-- **`scripts`**: Hook target list for `before` and `after`
+- **`scripts`**: Hook target list for `before` and `after` (see [Shared Hooks](#shared-hooks-before-and-after))
 - **`all`**: When `true` on `before` or `after`, match every hookable command
 
 #### `catalog`
