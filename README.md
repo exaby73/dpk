@@ -13,16 +13,10 @@ An alternative package manager for Dart that enhances the standard `dart pub` co
 
 ## Installation
 
-Install `dpk` globally using the following command:
+`dpk` requires Dart 3.11 or later. Install it globally with:
 
 ```bash
 dart install dpk
-```
-
-For Dart versions before 3.10, use:
-
-```bash
-dart pub global activate dpk
 ```
 
 ## Setup
@@ -537,7 +531,7 @@ scripts:
 
 1. **"dpk.yaml not found"**: A `dpk.yaml` file is required in your project root (or workspace root for monorepos)
 2. **"'version' is required in dpk.yaml"**: Add a `version` field with a semver constraint (e.g., `version: ^X.Y.Z`)
-3. **"dpk version X.X.X does not satisfy required version constraint"**: Update dpk with `dart install dpk` (Dart 3.10+) or `dart pub global activate dpk`
+3. **"dpk version X.X.X does not satisfy required version constraint"**: Update dpk with `dart install dpk`
 4. **Patches not applying**: Ensure you've run `dpk patch init` first and that the patches directory exists
 5. **Workspace not detected**: Check that parent directories have a valid `pubspec.yaml` with a `workspace` field
 6. **Environment variables not substituting**: Verify the variable is exported in your shell environment

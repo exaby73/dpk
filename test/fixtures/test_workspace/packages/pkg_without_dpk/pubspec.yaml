@@ -3,4 +3,4 @@ name: pkg_without_dpk
 resolution: workspace
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.11.0

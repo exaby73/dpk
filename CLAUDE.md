@@ -41,11 +41,8 @@ dart format .
 
 ### Testing Locally
 ```bash
-# Install dpk locally for testing (Dart 3.10+)
+# Install dpk locally for testing (requires Dart 3.11+)
 dart install --source path .
-
-# For Dart versions before 3.10
-dart pub global activate --source path .
 
 # Then test commands
 dpk get

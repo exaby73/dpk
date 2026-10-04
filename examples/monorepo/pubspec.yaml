@@ -1,11 +1,11 @@
 name: _
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.11.0
 workspace:
   - packages/package_1
   - packages/package_2
   - packages/package_3
 
 dev_dependencies:
-  build_runner: 2.4.15 # Configured via catalog
+  build_runner: 2.15.1 # Configured via catalog

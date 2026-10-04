@@ -16,7 +16,7 @@ void main() {
         d.file('pubspec.yaml', '''
 name: sample
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.11.0
 '''),
         d.file('dpk.yaml', '''
 version: ^0.8.0

@@ -249,12 +249,12 @@ void main() {
         expect(result.exitCode, equals(0));
         expect(
           package1Content,
-          contains('meta: 1.15.0 # Configured via catalog'),
+          contains('meta: 1.19.0 # Configured via catalog'),
         );
         expect(package1Content, contains('luthor: # Configured via catalog'));
         expect(
           package2Content,
-          contains('meta: 1.15.0 # Configured via catalog'),
+          contains('meta: 1.19.0 # Configured via catalog'),
         );
       });
 

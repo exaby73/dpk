@@ -4,7 +4,7 @@ version: 1.0.0
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.11.0
 
 dependencies:
   luthor:
@@ -14,5 +14,5 @@ dependencies:
       path: ./packages/luthor
 
 dev_dependencies:
-  lints: ^5.0.0
-  test: ^1.24.0
+  lints: ^6.1.0
+  test: ^1.32.0
