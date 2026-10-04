@@ -1,6 +1,7 @@
 import 'package:dpk/config/config_migration.dart';
 import 'package:dpk/config/config_reader.dart';
 import 'package:dpk/config/project.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
@@ -251,7 +252,10 @@ void main() {
       });
 
       test('Then the project cache is resolved at the workspace root', () {
-        expect(project.cacheDirectory, endsWith('repo/pub_packages'));
+        expect(
+          project.cacheDirectory,
+          endsWith(p.join('repo', 'pub_packages')),
+        );
       });
     });
 
