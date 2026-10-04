@@ -1,0 +1,5 @@
+# Project mode exists only to support patches
+
+Users need to patch their dependencies, and `dependency_overrides` cannot express a patch. It replaces a whole package with another source, so a small fix means vendoring or forking the entire package. Project mode adds a project cache. dpk points `PUB_CACHE` at a directory inside the project, `pub_packages/` by default, so `dart pub` installs every package there. `dpk patch init` makes the project cache a git repository and commits its current state. `dpk patch generate` writes the git diff of each changed package to `patches/hosted/` or `patches/git/`, in a file named after the package's directory in the cache, such as `patches/hosted/http-1.2.0.patch`. `dpk patch apply` replays those patches with `git apply` after a fresh `dpk get`.
+
+The project cache has costs: one full copy of the dependency tree per project, a `git` dependency, and an analyzer exclusion for `pub_packages/`. A patch also targets one package version, so you must regenerate it when you upgrade that dependency. Global mode stays the default. Use it in every project that does not patch dependencies.

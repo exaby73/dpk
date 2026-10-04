@@ -1,8 +1,32 @@
 # AGENTS.md
 
-Follow these rules when working in this repository:
+dpk is a Dart CLI that wraps `dart pub`. Read `GLOSSARY.md` before you name a domain concept. Read `docs/architecture.md` before you change how commands, config, or workspaces fit together.
 
-1. Use `dpk add` for dependency additions. If a forwarded pub option is needed, prefer first-class `dpk` support and use `--` only as a temporary escape hatch.
-2. Keep CLI changes covered by tests. Prefer GWT-style `group`/`test` structure and use `test_descriptor` for temporary package/workspace fixtures.
-3. Do not run broad format commands over dependency caches such as `pub_packages`. Format targeted project paths, for example `dart format bin lib test`.
-4. When generating a commit message or PR title, use the Git Committer skill rules.
+## Rules
+
+- Add dependencies with `dpk add`. When you need a pub option that dpk lacks, add first-class support for it. Use `--` only as a stopgap.
+- Cover every CLI change with tests written with the `gwt-tester` skill. Build package and workspace fixtures with `test_descriptor`.
+- To read a dependency's source, use the `pub-package-explorer` skill.
+- Format project paths only: `dart format bin lib test tool`. `examples/monorepo` runs in project mode, so `dart format .` also reformats its project cache.
+- Write commit messages and PR titles with the `git-committer` skill.
+
+## Gotchas
+
+- After you change a Freezed or JSON class, `pubspec.yaml`, or `skills/dpk/SKILL.md`, run `dpk run build` and commit the generated files. `dpk get`, `dpk run analyze`, and `dpk run publish` run the build for you through the `before` hook.
+- `skills/dpk/SKILL.md` is the only source for the dpk skill. dpk embeds it in the binary, and `dpk get` reinstalls the copy in `.agents/skills/dpk`.
+- dpk refuses to run when its own version is outside `version` in `dpk.yaml`. When you move the package version out of that range, update `dpk.yaml` in the same change.
+- dpk recognizes a workspace only when the root package is named `_` (issue #7).
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for `exaby73/dpk`, managed with `gh`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
