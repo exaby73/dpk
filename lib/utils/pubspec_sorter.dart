@@ -198,6 +198,14 @@ List<KeyEntry> _extractKeyEntries(String content) {
                 }
               }
 
+              // Blank lines belong to the value only when a line of the value
+              // follows them. Hand trailing ones back to the outer loop, which
+              // skips them like any other blank line.
+              while (valueLines.length > 1 && valueLines.last.trim().isEmpty) {
+                valueLines.removeLast();
+                i--;
+              }
+
               rawValueBlock = valueLines.join('\n');
               // Don't increment i here as we've already moved past the value
             } else {

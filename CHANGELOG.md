@@ -1,3 +1,9 @@
+## 1.0.0 (WIP)
+
+- Fix: Stop `sort_pubspec` from adding a blank line after nested dependency values, such as `sdk: flutter`, on every `dpk get`
+- Docs: Document shared `before` and `after` hooks in the README
+- Chore: Move the repository to `exaby73/dpk`
+
 ## 0.8.3
 
 - Feat: Add catalog support for `homepage`, `version`, `funding`, and `platforms`

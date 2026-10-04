@@ -428,5 +428,95 @@ dependencies:
         expect(complexDepLine, contains('# Complex comment'));
       },
     );
+
+    test(
+      'When a section ends with a nested dependency then sorting twice is stable',
+      () {
+        const input = '''
+name: app
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+''';
+
+        final firstPass = sortPubspec(input);
+        final secondPass = sortPubspec(firstPass);
+
+        expect(secondPass, equals(firstPass));
+        expect(firstPass, isNot(contains('\n\n\n')));
+      },
+    );
+
+    test(
+      'When a nested dependency ends the file then sorting twice is stable',
+      () {
+        const input = '''
+name: app
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+''';
+
+        final firstPass = sortPubspec(input);
+        final secondPass = sortPubspec(firstPass);
+
+        expect(secondPass, equals(firstPass));
+        expect(firstPass, endsWith('sdk: flutter\n'));
+      },
+    );
+
+    test(
+      'When a blank line follows a nested dependency then sorting twice is stable',
+      () {
+        const input = '''
+name: app
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  dio: ^5.0.0
+''';
+
+        final firstPass = sortPubspec(input);
+        final secondPass = sortPubspec(firstPass);
+
+        expect(secondPass, equals(firstPass));
+        expect(firstPass, isNot(contains('\n\n\n')));
+        expect(firstPass, endsWith('sdk: flutter\n'));
+      },
+    );
+
+    test(
+      'When a nested dependency has inner blank lines then they are preserved',
+      () {
+        const input = '''
+name: app
+
+dependencies:
+  my_pkg:
+    git:
+      url: https://github.com/example/repo.git
+
+      path: packages/pkg
+''';
+
+        final result = sortPubspec(input);
+
+        expect(
+          result,
+          contains(
+            '      url: https://github.com/example/repo.git\n'
+            '\n'
+            '      path: packages/pkg\n',
+          ),
+        );
+      },
+    );
   });
 }
