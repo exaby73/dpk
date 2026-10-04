@@ -81,12 +81,14 @@ final class SystemProcessRunner implements ProcessRunner {
     Map<String, String>? environment,
   }) async {
     if (console.isStdio) {
-      final process = await Process.start(
-        executable,
-        arguments,
-        workingDirectory: workingDirectory,
-        environment: environment,
-        mode: ProcessStartMode.inheritStdio,
+      final process = await _guardStart(
+        () => Process.start(
+          executable,
+          arguments,
+          workingDirectory: workingDirectory,
+          environment: environment,
+          mode: ProcessStartMode.inheritStdio,
+        ),
       );
       return _track(process, process.exitCode);
     }
@@ -112,19 +114,37 @@ final class SystemProcessRunner implements ProcessRunner {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
-    final process = await Process.start(
-      executable,
-      arguments,
-      workingDirectory: workingDirectory,
-      environment: environment,
+    final process = await _guardStart(
+      () => Process.start(
+        executable,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+      ),
     );
     unawaited(_track(process, process.exitCode));
     return process;
   }
 
+  /// Watches signals before the child exists, so a signal that arrives
+  /// while it starts is never lost to Dart's default handler.
+  Future<Process> _guardStart(Future<Process> Function() start) async {
+    _watchSignals();
+    try {
+      return await start();
+    } on Object {
+      if (_children.isEmpty) {
+        await _unwatchSignals();
+      }
+      rethrow;
+    }
+  }
+
   Future<int> _track(Process process, Future<int> exitCode) async {
     _children.add(process);
-    _watchSignals();
+    if (_receivedSignal == ProcessSignal.sigterm) {
+      process.kill();
+    }
     try {
       return normalizeExitCode(await exitCode);
     } finally {
