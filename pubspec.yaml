@@ -2,7 +2,7 @@ name: dpk
 description: >-
   A package manager for Dart that adds scripts, hooks, workspace runs, a
   dependency catalog, patches, and releases to dart pub.
-version: 0.8.3
+version: 1.0.0
 repository: https://github.com/exaby73/dpk
 issue_tracker: https://github.com/exaby73/dpk/issues
 topics:

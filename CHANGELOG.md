@@ -1,4 +1,4 @@
-## 1.0.0 (WIP)
+## 1.0.0
 
 ### Breaking changes
 
