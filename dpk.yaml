@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/exaby73/dpk/main/schema/dpk.schema.json
 version: ^1.0.0
 
 scripts:
@@ -9,17 +10,21 @@ scripts:
     scripts:
       - analyze
       - get
-      - publish
+      - release
     command: dpk run build
 
   pre:build: echo "Cleaning build..." && dpk run clean
-  build: dart run build_runner build
+  build:
+    command: dart run build_runner build
+    description: Regenerate the embedded version and dpk skill.
 
   watch:
     run_hooks_from: build
     command: dart run build_runner watch
 
-  publish: dart pub publish
+  post:version:
+    command: dpk run build
+    description: Regenerate the embedded version before the release commit.
 
   post:get:
     description: Install the bundled dpk skill for local agents
