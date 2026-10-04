@@ -10,12 +10,16 @@ dpk is a package manager for Dart. It wraps `dart pub` and adds scripts, hooks, 
 A built-in dpk CLI command, such as `get`, `add`, or `run`.
 _Avoid_: built-in script
 
+**dpk option**:
+An option before the command name that dpk reads itself, such as `-C` or `-v`. Options after the command name belong to the command.
+_Avoid_: global option
+
 **Pub command**:
 A command that runs a `dart pub` command, such as `get`, `add`, or `upgrade`.
 _Avoid_: pub wrapper command
 
 **Passthrough command**:
-A pub command that dpk forwards to `dart pub` with no dpk-specific behavior beyond config discovery, hooks, and project cache setup.
+A pub command that dpk forwards to `dart pub` unchanged, adding only hooks, the project cache, and catalog versions for `dpk add`.
 
 **Script**:
 A named entry under `scripts` in `dpk.yaml` that runs a shell command.
@@ -40,6 +44,9 @@ _Avoid_: hookable command
 **Workspace root**:
 The directory whose `pubspec.yaml` lists the workspace and whose `dpk.yaml` holds the shared configuration.
 _Avoid_: monorepo root
+
+**Current package**:
+The workspace root or workspace package that contains the directory dpk runs in, or the `-C` directory.
 
 **Workspace package**:
 A package listed in the workspace, other than the workspace root.
@@ -66,6 +73,21 @@ _Avoid_: project cache mode
 The `pub_packages/` directory where project mode stores packages.
 _Avoid_: patch cache, local cache, pub_packages directory
 
+**Baseline**:
+The git commit of the project cache that dpk records after pub downloads packages. Edits are the differences from it.
+
 **Patch**:
 A file in `patches/` that records your changes to one package in the project cache.
 _Avoid_: diff
+
+**Stale patch**:
+A patch made for a package version that the lockfile no longer uses.
+
+### Releasing
+
+**Release**:
+A new version of a package, with its changelog entry and release tag.
+
+**Release tag**:
+The git tag that marks a release: `<package>-v<version>` in a workspace, or `v<version>` for a standalone package.
+_Avoid_: version tag

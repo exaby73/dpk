@@ -1,9 +1,84 @@
 ## 1.0.0 (WIP)
 
+### Breaking changes
+
 - [BREAKING] Chore: Require Dart 3.11 or later and upgrade dependencies to their latest compatible versions
+- [BREAKING] Feat: dpk options such as `-C` and `-v` count only before the command; every argument after a script name reaches the script, including `--help`, `--version`, and `-v`
+- [BREAKING] Feat: Remove `-d` as a short form of `--cache-dir`
+- [BREAKING] Feat: Run scripts in `/bin/sh`, or `cmd.exe` on Windows, instead of `$SHELL`
+- [BREAKING] Feat: Rename `runInPackages` and `runHooksFrom` to `run_in_packages` and `run_hooks_from`; the old names still work with a warning, and `dpk get` renames them
+- [BREAKING] Feat: Validate `dpk.yaml` on every run, with errors that name the file, line, and key, and suggestions for typos; remove the nested `dpk:` mapping
+- [BREAKING] Feat: Run a script in the workspace package it is started from, instead of the folder that holds `dpk.yaml`
+- [BREAKING] Feat: Fail when `run_in_packages` matches no workspace package, instead of running at the root
+- [BREAKING] Feat: `dpk run` without a script lists the scripts and exits with code 0
+
+### Features
+
+- Feat: Find workspaces from pubspec files, without `dart pub workspace list` and without requiring the root package to be named `_`
+- Feat: Add `dpk exec` to run a shell command in every workspace package
+- Feat: Add `dpk list` with `--graph` and `--json`
+- Feat: Add `--filter`, `--concurrency`, `--fail-fast`, and `--dependency-order` to `dpk run` and `dpk exec`, and the `concurrency`, `fail_fast`, and `dependency_order` script keys
+- Feat: Add the `env_file` script key, and the `DPK_PACKAGE_NAME` and `DPK_PACKAGE_PATH` variables; set `DPK_ROOT` for every script
+- Feat: Show script descriptions in `dpk run`, with hooks listed apart from scripts
+- Feat: Print each script and hook to stderr before it runs, with `-q` to hide them
+- Feat: Prefix each line of parallel output with its package name, and add colors only in a terminal
+- Feat: Add `dpk get --check` for CI, and make `dpk get --dry-run` write nothing
+- Feat: Add `catalog.dependency_overrides`, and use the catalog version in `dpk add <package>`
+- Feat: Add `dpk catalog outdated` and `dpk catalog upgrade`
+- Feat: Record the project cache baseline and apply patches on every `dpk get`, `add`, `remove`, `upgrade`, and `downgrade`
+- Feat: Add `dpk patch list` and `dpk patch remove`, and `dpk patch generate <package>`
+- Feat: Report stale patches whose package version the lockfile no longer uses
+- Feat: Add `dpk release version` and `dpk release publish` for Conventional Commits releases
+- Feat: Add `dpk doctor`
+- Feat: Add the `cache_dir` and `patch_dir` keys
+- Feat: Publish a JSON schema for `dpk.yaml`, and point to it from `dpk init`
+- Feat: Make `dpk init` add starter scripts, keep the project cache out of git and the analyzer in project mode, and print next steps
+- Feat: Group commands in `dpk --help`
+- Feat: Let `cache`, `global`, `unpack`, `login`, `logout`, `token`, `help`, and `doctor` run outside a project
+
+### Fixes
+
 - Fix: Stop `sort_pubspec` from adding a blank line after nested dependency values, such as `sdk: flutter`, on every `dpk get`
-- Docs: Document shared `before` and `after` hooks in the README
+- Fix: Rewrite the pubspec sorter to keep comments, block scalars, anchors, empty values, flow-style sections, 4-space indentation, and CRLF line endings
+- Fix: Never install shell completion without asking; run `dpk install-completion-files` to opt in
+- Fix: Forward stdin to `dart pub`, so `dpk publish` and `dpk token add` no longer hang
+- Fix: Run `dpk add` and other pub commands in the current workspace package instead of the workspace root
+- Fix: Make `-C` work with relative and symbolic-link paths
+- Fix: Stop rewriting the root pubspec on every command; only `dpk get` writes it
+- Fix: Only add packages with `resolution: workspace` from `workspace` globs
+- Fix: Check the `version` constraint before the rest of `dpk.yaml`
+- Fix: Merge the catalog `environment` key by key, so packages keep their `flutter` constraint
+- Fix: Write catalog dependency values as given, keep a package's private `hosted:` source, and stop crashing on `hosted:` catalog dependencies
+- Fix: Remove `# Configured via catalog` from dependencies that left the catalog, and keep `#` inside quoted values
+- Fix: Expand template variables in URL hosts and in the `${NAME}` form
+- Fix: Sort pubspecs outside workspaces when `sort_pubspec` is on
+- Fix: Write all pubspec changes together, after every change is computed
+- Fix: Never delete anything but `*.patch` files when generating patches
+- Fix: Include deleted, new, binary, and space-named files in patches
+- Fix: Record the project cache baseline without a git identity, signing, or hooks, and check every git exit code
+- Fix: Make `dpk patch apply` idempotent
+- Fix: Resolve the project cache at the workspace root from workspace packages
+- Fix: Keep `dpk global` on the global pub cache in project mode, and give scripts `PUB_CACHE` in project mode
+- Fix: Honor `--cache-dir` in every command
+- Fix: Run `run_hooks_from` scripts with their own shared, pre, and post hooks, and reject unknown `run_hooks_from` names
+- Fix: Key the hook recursion guard by workspace root, and run shared hooks once across nested dpk calls
+- Fix: Run a package matched by several globs once
+- Fix: Keep the last line of parallel output when it has no trailing newline
+- Fix: Close stdin for parallel package runs instead of hanging
+- Fix: Forward SIGTERM to scripts, and exit with `128 + signal` when a script is killed
+- Fix: Exit with the first failed package's exit code instead of 1
+- Fix: Restore the previous terminal title after a command
+- Fix: Write errors to stderr with an `error:` prefix and no stack trace
+- Fix: Name `dpk.yaml`, not `pubspec.yaml`, in the error for keys that belong at the workspace root
+
+### Docs and chores
+
+- Docs: Rewrite the README as the full reference, with an upgrade guide from 0.x
+- Docs: Rewrite the dpk skill for 1.0
+- Docs: Document shared `before` and `after` hooks
 - Docs: Recommend global mode unless you patch dependencies
+- Docs: Fix the license badge, which said MIT instead of Apache-2.0
+- Refactor: Rebuild the CLI around invocation, workspace, config, hook, run plan, catalog, project cache, and release modules, and remove `freezed`, `get_it`, and other unused dependencies
 - Chore: Move the repository to `exaby73/dpk`
 
 ## 0.8.3

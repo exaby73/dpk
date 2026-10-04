@@ -1,540 +1,353 @@
 # dpk
 
 [![pub version](https://img.shields.io/pub/v/dpk.svg)](https://pub.dev/packages/dpk)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-An alternative package manager for Dart that enhances the standard `dart pub` commands with extra features like script running and dependency patching. `dpk` acts as a wrapper around the standard Dart tooling, allowing you to use the commands you are already familiar with.
+dpk is a package manager for Dart. It wraps `dart pub`, so `dpk get`, `dpk add`, and every other pub command work as you know them, and it adds:
 
-## Features
+- **Scripts and hooks**: named commands in `dpk.yaml`, with hooks that run before and after any script or pub command.
+- **Workspace runs**: run a script or any shell command across the packages of a pub workspace, with filters, a concurrency limit, fail-fast, and dependency order.
+- **A catalog**: one place for SDK constraints, dependency versions, and package metadata that `dpk get` applies to every workspace package.
+- **Dependency patches**: edit a dependency's source, save the edit as a patch file, and have `dpk get` apply it for everyone.
+- **Releases**: version packages and write changelogs from Conventional Commits, then publish them in dependency order.
 
-- **Familiar Commands**: Implements `get`, `add`, `remove`, `upgrade`, and `downgrade` commands that mirror `dart pub`.
-- **Script Runner**: Define and run custom scripts from your `dpk.yaml` file using `dpk run`.
-- **Dependency Patching**: A powerful feature to manage and apply patches to your dependencies, ideal for monorepos or when you need to test a fix before a package is updated.
+## Install
 
-## Installation
-
-`dpk` requires Dart 3.11 or later. Install it globally with:
+dpk needs Dart 3.11 or later.
 
 ```bash
 dart install dpk
 ```
 
-## Setup
+## Quick start
 
-A minimal dpk project requires two files:
-
-**`pubspec.yaml`** - Standard Dart package file:
-
-```yaml
-name: my_package
-environment:
-  sdk: ^3.8.0
-```
-
-**`dpk.yaml`** - dpk configuration file:
-
-```yaml
-version: ^X.Y.Z
-```
-
-The `version` field is required and specifies which dpk version your project is compatible with. This ensures all team members use a compatible version.
-
-## Usage
-
-`dpk` is designed to be a drop-in replacement for many `dart pub` commands.
-
-### Managing Dependencies
-
-- **`dpk get`**: Gets the dependencies for the current package.
-- **`dpk add <package>`**: Adds a new dependency to your `pubspec.yaml`.
-
-  ```bash
-  # Add a dependency
-  dpk add http
-
-  # Add a dev dependency
-  dpk add dev:lints
-  ```
-
-- **`dpk remove <package>`**: Removes a dependency from your `pubspec.yaml`.
-- **`dpk upgrade`**: Upgrades the dependencies to their latest versions.
-- **`dpk update`**: Alias for `upgrade` - upgrades dependencies to their latest versions.
-- **`dpk downgrade`**: Downgrades dependencies to the oldest possible versions.
-
-### Running Scripts
-
-You can define custom scripts in a `dpk.yaml` file at the root of your project. **Note:** A `dpk.yaml` file is required to use dpk.
-
-**`dpk.yaml` example:**
-
-```yaml
-version: ^X.Y.Z # Required: dpk version constraint
-
-scripts:
-  analyze: dart analyze
-  test: dart test
-```
-
-Run a script using `dpk run`:
+Create a `dpk.yaml` in your package or workspace root:
 
 ```bash
-dpk run analyze
+dpk init
 ```
 
-### Script Hooks
+The file it writes looks like this:
 
-Scripts can have `pre` and `post` hooks that run before and after any script or built-in command. Hooks use the format `pre:<script>` and `post:<script>`:
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/exaby73/dpk/main/schema/dpk.schema.json
+version: ^1.0.0
 
-**Example with hooks:**
+scripts:
+  analyze:
+    command: dart analyze
+    description: Analyze the code.
+  test:
+    command: dart test
+    description: Run the tests.
+```
+
+Get dependencies, list the scripts, and run one:
+
+```bash
+dpk get
+dpk run
+dpk run test --coverage=coverage
+```
+
+Every argument after the script name goes to the script, so the last command runs `dart test --coverage=coverage`.
+
+To check a project's setup at any time, run `dpk doctor`.
+
+## How dpk reads a command line
+
+dpk's own options go before the command. Everything after the command belongs to the command:
+
+```bash
+dpk -C packages/app run test -v   # -C is dpk's; -v goes to the test script
+dpk add http -C packages/app      # -C goes to dart pub add
+```
+
+| Option | Meaning |
+| --- | --- |
+| `-C, --directory <dir>` | Run as if dpk was started in `<dir>`. |
+| `--cache-dir <dir>` | Use `<dir>` as the project cache in project mode. |
+| `-v, --verbose` | Print what dpk runs, and pass `--verbose` to pub. |
+| `-q, --quiet` | Do not print the scripts and hooks dpk runs. |
+| `--color`, `--no-color` | Turn colors on or off. By default, colors are on in a terminal unless `NO_COLOR` is set. |
+| `--version` | Print the dpk and Dart versions. |
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `dpk get [--check]` | Applies the catalog and sorting to pubspecs, runs `dart pub get`, and applies patches in project mode. |
+| `dpk run [options] <script> [args]` | Runs a script. `dpk run` alone lists the scripts. |
+| `dpk exec [options] -- <command>` | Runs a shell command in every workspace package. |
+| `dpk list [--graph] [--json]` | Lists the workspace packages. |
+| `dpk catalog outdated` | Shows catalog dependencies whose constraint excludes the latest version. |
+| `dpk catalog upgrade [--major-versions]` | Raises catalog constraints, then runs `dpk get`. |
+| `dpk patch <generate\|apply\|list\|remove\|init>` | Manages dependency patches. |
+| `dpk release version` | Raises versions and writes changelogs from Conventional Commits. |
+| `dpk release publish` | Publishes the packages whose version is not published yet. |
+| `dpk init` | Creates a `dpk.yaml`. |
+| `dpk doctor` | Checks the dpk setup and reports problems. |
+| `dpk skills` | Prints a dpk usage guide for AI agents. |
+
+These pub commands pass every argument to `dart pub` and run their hooks: `add`, `remove`, `upgrade` (alias `update`), `downgrade`, `outdated`, `deps`, `bump`, `publish`, `workspace`, `cache`, `global`, `unpack`, `login`, `logout`, and `token`. In project mode, pub uses the project cache. `global` is the exception: it always uses the global pub cache.
+
+`dpk add <package>` uses the catalog's version when the package is in the catalog and you give no version.
+
+## Scripts
+
+Define scripts under `scripts` in `dpk.yaml`. A script is a shell command, or a mapping with more options:
 
 ```yaml
 scripts:
-  # Get command hooks (works with built-in dpk get command)
-  pre:get: echo "Starting dependency resolution..."
-  post:get: echo "Dependencies resolved!"
-
-  # Build command hooks
-  pre:build: dart run build_runner clean
-  build: dart run build_runner build -d
-  post:build: echo "Build completed successfully"
-
-  # Watch command can inherit build hooks
-  watch:
-    runHooksFrom: build
-    command: dart run build_runner watch -d
-```
-
-When you run `dpk run build`, it executes:
-
-1. `pre:build` hook (if defined)
-2. `build` command
-3. `post:build` hook (if defined)
-
-**Note:** Hooks work for any script you define, as well as built-in dpk commands like `get`, `add`, `remove`, etc.
-
-### Shared Hooks (`before` and `after`)
-
-`before` and `after` are shared hooks that run around several commands at once. List the target scripts or commands under `scripts`:
-
-```yaml
-scripts:
-  before:
-    scripts:
-      - analyze
-      - get
-      - publish
-    command: dpk run build
-
-  build: dart run build_runner build -d
   analyze: dart analyze
-  publish: dart pub publish
-```
 
-Or set `all: true` to run the hook around every hookable command:
-
-```yaml
-scripts:
-  before:
-    all: true
-    command: echo "Before everything"
-  after:
-    all: true
-    command: echo "After everything"
-```
-
-For most commands, hooks run in this order:
-
-1. `before`
-2. `pre:<command>`
-3. the command itself
-4. `post:<command>`
-5. `after`
-
-`dpk get` is different, because scripts such as code generation usually need the fetched packages. For `get`, a matching `before` hook runs after `dart pub get`:
-
-1. `pre:get`
-2. `dart pub get`
-3. `before`
-4. `post:get`
-5. `after`
-
-Hooks do not trigger themselves recursively. If a `before` or `after` hook runs a script that would trigger the same hook again, dpk skips the nested hook and prints a warning instead of looping forever.
-
-### Environment Variables
-
-You can set environment variables for scripts using the `env` section:
-
-```yaml
-scripts:
-  build:
-    command: dart compile exe bin/main.dart -o build/app
+  test:
+    command: dart test
+    description: Run the tests.
     env:
-      DART_VM_OPTIONS: '-Denv=production'
       LOG_LEVEL: verbose
+    env_file: .env.test
 ```
 
-#### Injected Environment Variables
+| Key | Meaning |
+| --- | --- |
+| `command` | The shell command. Required in the mapping form. |
+| `description` | Shown by `dpk run` when it lists the scripts. |
+| `env` | Environment variables. Numbers and booleans become text. |
+| `env_file` | A dotenv file of `KEY=value` lines, relative to the workspace root. `env` overrides its values. |
+| `run_in_packages` | Workspace packages to run in. See [Run across workspace packages](#run-across-workspace-packages). |
+| `run_hooks_from` | Also run the hooks of this script or command. |
+| `concurrency`, `fail_fast`, `dependency_order` | Defaults for the `--concurrency`, `--fail-fast`, and `--dependency-order` options. |
 
-dpk automatically injects the following environment variables into scripts:
+Scripts run in `/bin/sh`, or `cmd.exe` on Windows, whatever your login shell is, so a script behaves the same for every teammate. dpk appends the arguments after the script name to the end of the command, each quoted for the shell.
 
-| Variable   | Description                                   | Available In                 |
-| ---------- | --------------------------------------------- | ---------------------------- |
-| `DPK_ROOT` | Absolute path to the workspace root directory | Scripts with `runInPackages` |
+dpk prints each script and hook it runs to stderr, such as `> test: dart test`. Use `-q` to hide these lines.
 
-**Example using `DPK_ROOT`:**
+Every script gets these environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `DPK_ROOT` | The workspace root. |
+| `DPK_PACKAGE_NAME` | The name of the package the script runs in. |
+| `DPK_PACKAGE_PATH` | The path of the package the script runs in. |
+| `PUB_CACHE` | The project cache, in project mode only. |
+
+A script runs in the workspace package you start it from. From the workspace root, or a folder that is not inside a workspace package, it runs at the root.
+
+## Hooks
+
+A hook is a script that runs around a script or a pub command. The hook target is the script or command it runs around.
+
+- `pre:<name>` and `post:<name>` run directly before and after the hook target `<name>`.
+- `before` and `after` are shared hooks. They run around every hook target listed under `scripts`, or around all of them with `all: true`.
 
 ```yaml
 scripts:
-  check-root:
-    command: echo "Workspace root is $DPK_ROOT"
-    runInPackages:
-      - 'packages/*'
+  before:
+    command: dpk run build
+    scripts: [analyze, publish]
+  pre:test: dart run tool/start_server.dart
+  post:test: dart run tool/stop_server.dart
+  build: dart run build_runner build -d
+  watch:
+    command: dart run build_runner watch -d
+    run_hooks_from: build
 ```
 
-### Patching Dependencies
+For most hook targets, the order is `before`, `pre:<name>`, the target, `post:<name>`, `after`. A failing step stops the rest.
 
-The `patch` command set allows you to create, apply, and manage patches for your dependencies. This is particularly useful when you need to make temporary changes to a package without forking it.
+`dpk get` runs `before` after `dart pub get`, because typical `before` work such as code generation needs the packages first. The order for `get` is `pre:get`, `dart pub get`, `before`, `post:get`, `after`.
 
-> **Note:** Patching requires `mode: project` in your `dpk.yaml` to install packages locally (see [mode](#mode) below).
+With `run_hooks_from`, a script also runs the hooks of the script it names. In the example above, `dpk run watch` runs `pre:build` and `post:build` around `pre:watch` and `post:watch`.
 
-#### 1. Initialize Patching
+Hooks never run twice in one tree of dpk processes. When a hook calls `dpk run`, or a script starts `dpk` again in each workspace package, the nested dpk skips the hooks that already ran.
 
-First, initialize the patching environment. This will create a `pub_packages` directory and set up a git repository to track changes.
+## Run across workspace packages
 
-```bash
-dpk patch init
-```
-
-This command must be run after fetching dependencies with `dpk get`. It creates a git repository in the `pub_packages` directory and commits the initial state of your dependencies.
-
-**Important:** Make sure to exclude the `pub_packages` directory from version control and analysis:
-
-1. Add to `.gitignore`:
-
-```text
-pub_packages/
-```
-
-1. Add to `analysis_options.yaml` to prevent analyzer performance issues:
+`run_in_packages` selects workspace packages by name, or by a glob over their paths relative to the workspace root. `.` selects the root.
 
 ```yaml
-analyzer:
-  exclude:
-    - pub_packages/**
+scripts:
+  test:
+    command: dart test
+    run_in_packages: [packages/*, app]
 ```
 
-Excluding `pub_packages` from analysis is crucial - without this, the Dart analyzer will consume excessive resources analyzing all dependency code, leading to slow performance and potential crashes.
+dpk runs the command in every selected package at once, prefixes each output line with the package name, and prints a summary. It exits with the exit code of the first package that failed. A `run_in_packages` that matches no package is an error, and dpk lists the workspace packages.
 
-#### 2. Modify Your Dependencies
+Options before the script name change how the packages run:
 
-Navigate into the `pub_packages` directory and make any required changes to the dependency source code.
-
-#### 3. Generate Patches
-
-Once you have made your changes, generate patch files:
+| Option | Meaning |
+| --- | --- |
+| `--filter <package>` | Run only in packages with this name or path glob. Repeat it to select more. Without `run_in_packages`, it selects from the whole workspace. |
+| `-j, --concurrency <count>` | Run in at most this many packages at once. |
+| `--fail-fast` | When one package fails, stop the others and skip the rest. |
+| `--dependency-order` | Start a package only after the workspace packages in its `dependencies` have finished. |
 
 ```bash
-dpk patch generate
+dpk run --filter packages/core --filter app test
+dpk run -j 2 --fail-fast test
 ```
 
-This command compares the modified dependency code against the initial state and creates `.patch` files in the `patches` directory.
-
-#### 4. Apply Patches
-
-To apply existing patches to your dependencies (e.g., after a fresh `dpk get`), use the `apply` command:
+`dpk exec` runs any command the same way, in every workspace package by default:
 
 ```bash
-dpk patch apply
+dpk exec -- dart format --set-exit-if-changed .
+dpk exec --filter 'packages/*' 'dart analyze && dart test'
 ```
 
-This command will apply all `.patch` files found in the `patches` directory to the corresponding packages in `pub_packages`. This is useful in a CI/CD environment or when another developer on your team needs to get your changes.
+One argument runs as a shell command line. Several arguments run as one command, each quoted.
 
-**Note:** If you haven't run `dpk patch init` yet, you'll need to run it first to set up the patching environment.
+## Workspaces
 
-## Configuration (`dpk.yaml`)
+dpk works with [pub workspaces](https://dart.dev/tools/pub/workspaces). It finds the workspace root by looking for a `pubspec.yaml` whose `workspace` list includes the current package, so you can run dpk from any folder inside the workspace. The root package can have any name.
 
-The `dpk.yaml` file allows for advanced configuration of scripts and workspace settings. Below is a complete reference of all available options:
-
-### Complete Configuration Example
+Instead of listing every package in the root `pubspec.yaml`, list globs in `dpk.yaml`:
 
 ```yaml
-# Required: dpk version constraint
-version: ^X.Y.Z
-
-# Operational mode
-mode: global # or 'project' - see mode section below
-
-# Sort pubspec.yaml keys on dpk get
-sort_pubspec: true
-
-# Workspace glob patterns (for monorepos)
 workspace:
   - packages/*
   - apps/*
+```
 
-# Script definitions
-scripts:
-  # Simple format
-  analyze: dart analyze
-  format: dart format .
+`dpk get` writes the matching packages to the root pubspec's `workspace` list. A glob only matches packages whose pubspec has `resolution: workspace`, and never hidden folders or `build/`.
 
-  # Advanced format with all options
-  test:
-    command: dart test
-    description: Run unit tests
-    env:
-      TEST_ENV: integration
-      API_URL: http://localhost:8080
-    runInPackages: # Run in specific workspace packages
-      - 'packages/*'
-      - 'apps/*'
-    runHooksFrom: build # Inherit hooks from another script
+A workspace package can have its own `dpk.yaml` with `version` and `scripts`. Its scripts add to the root's scripts and override those with the same name. Everything else belongs to the root `dpk.yaml`.
 
-  build:
-    command: dart compile exe bin/main.dart
+## Catalog
 
-  # Hook definitions
-  pre:build: echo "Starting build at $(date)"
-  post:build: |
-    echo "Build completed"
-    ls -la bin/
+The catalog is shared config in the root `dpk.yaml` that `dpk get` applies to the workspace root and every workspace package:
 
-  pre:test: dart analyze
-  post:test: dart format --set-exit-if-changed .
-
-# Catalog configuration (for monorepos/workspaces)
-# Note: Requires root pubspec.yaml to have name: '_'
+```yaml
 catalog:
-  # Environment constraints
   environment:
-    sdk: '>=3.0.0 <4.0.0'
-    flutter: '>=3.10.0' # Optional Flutter SDK constraint
-
-  # Package version applied to workspace packages
-  version: 1.2.3
-
-  # Package metadata (supports template variables - see below)
-  homepage: https://example.com/DPK_PACKAGE_NAME
-  repository: https://github.com/username/repo/tree/main/DPK_PACKAGE_PATH
-  issue_tracker: https://github.com/username/repo/issues
-  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
-  funding:
-    - https://github.com/sponsors/DPK_PACKAGE_NAME
-
-  # Publishing configuration
-  publish_to: none # or a custom pub server URL
-
-  # Package categorization for pub.dev
-  topics:
-    - dart
-    - cli
-    - package-manager
-
-  # Supported platforms for pub.dev
-  platforms:
-    linux:
-    macos:
-
-  # Dependency resolution type
-  resolution: workspace # or 'hosted' for standard resolution
-
-  # Shared dependencies across workspace (applies to both dependencies and dev_dependencies)
+    sdk: ^3.11.0
+  version: 1.2.0
+  repository: https://github.com/me/repo/tree/main/DPK_PACKAGE_PATH
+  topics: [cli]
   dependencies:
-    http: ^1.1.0
-    path: ^1.9.0
-    lints: ^3.0.0
-    test: ^1.24.0
+    http: ^1.2.0
+    luthor:
+      git:
+        url: https://github.com/exaby73/luthor.git
+        path: packages/luthor
+  dependency_overrides:
+    meta: 1.16.0
 ```
 
-### Configuration Properties
+| Key | Applied to | How |
+| --- | --- | --- |
+| `environment` | Root and packages | Merged key by key, so a package keeps its own `flutter` constraint. |
+| `dependencies` | Root and packages | Updates `dependencies` and `dev_dependencies` that a package already has. Values are written as given. A package's own `hosted:` source is kept, and only its version changes. Each managed dependency gets a `# Configured via catalog` comment. |
+| `dependency_overrides` | Root | Merged into the root pubspec's `dependency_overrides`. |
+| `version`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `funding`, `platforms`, `resolution` | Packages | Replaced. |
+| `topics` | Packages | Added to each package's topics. |
 
-#### `version` (Required)
+`homepage`, `repository`, `issue_tracker`, `documentation`, and `funding` can use these variables, written as `NAME`, `$NAME`, or `${NAME}`:
 
-Specifies the required dpk version constraint. dpk will refuse to run if the installed version doesn't satisfy this constraint.
+| Variable | Value |
+| --- | --- |
+| `DPK_PACKAGE_PATH` | The package path relative to the workspace root, such as `packages/core`. |
+| `DPK_PACKAGE_NAME` | The package name. |
+| `DPK_PACKAGE_VERSION` | The catalog `version`, or else the package's version. |
+
+`dpk catalog outdated` compares each catalog constraint with the latest version, and `dpk catalog upgrade` raises the constraints to the newest versions within them. Add `--major-versions` to allow new major versions. Exact versions stay exact.
+
+## Sorting pubspecs
+
+With `sort_pubspec: true`, `dpk get` sorts every pubspec it manages. Top-level keys follow the standard pubspec order, and dependencies are sorted by name. Comments, blank lines inside values, and every section other than the dependencies stay exactly as written.
+
+## Checking in CI
+
+`dpk get --check` exits with code 1 when `dpk get` would change a pubspec or `dpk.yaml`, without changing anything. `dpk get --dry-run` prints what would change, writes nothing, and runs `dart pub get --dry-run`.
+
+## Patching dependencies
+
+Use project mode only when you patch dependencies. Otherwise, keep the default global mode.
 
 ```yaml
-version: ^X.Y.Z
+mode: project
 ```
 
-This ensures all team members use a compatible version of dpk.
+In project mode, pub stores packages in the project cache, `pub_packages/` by default, instead of the global pub cache. `dpk init --mode project` adds the project cache to `.gitignore` and excludes it from the analyzer. Do both yourself when you switch an existing project, because the analyzer slows down badly when it reads every downloaded package.
 
-#### `mode`
+To patch a dependency:
 
-Specifies the operational mode for `dpk`.
+1. Run `dpk get`. It records a git baseline of the project cache.
+2. Edit the package's files in `pub_packages/hosted/pub.dev/<package>-<version>/`.
+3. Run `dpk patch generate`. It saves your edits as `patches/hosted/<package>-<version>.patch`, including deleted, new, and binary files.
+4. Commit the `patches/` folder.
 
-- **`global`** (default): `dart pub get` installs packages to the global pub cache.
-- **`project`**: dpk installs packages to the local `pub_packages` directory so that you can patch them.
+Every `dpk get`, `add`, `remove`, `upgrade`, or `downgrade` applies the patches. Applying is idempotent.
 
-Use `global` unless you patch dependencies. The `pub_packages` directory exists only to support patches, which `dependency_overrides` cannot express.
+A patch targets one package version. When you upgrade that package, `dpk get` fails and tells you to edit the new version and run `dpk patch generate` again, or to remove the patch.
 
-#### `sort_pubspec`
+| Command | What it does |
+| --- | --- |
+| `dpk patch generate [package...]` | Saves edits as patch files. Removes patches for packages that no longer have edits. |
+| `dpk patch apply [--force]` | Applies the patches. `--force` resets a package whose edits conflict with its patch. |
+| `dpk patch list` | Shows whether each patch is applied, stale, or conflicting. |
+| `dpk patch remove <package>` | Deletes a package's patch and undoes it in the project cache. |
+| `dpk patch init [--force]` | Records the baseline. `--force` discards every edit and records it again. |
 
-When set to `true`, dpk will sort `pubspec.yaml` files when running `dpk get`:
+`cache_dir` and `patch_dir` in `dpk.yaml` change the folders. Patching needs `git` on your `PATH`.
 
-- **Top-level keys** are sorted according to a standard order: `name`, `description`, `version`, `resolution`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `topics`, `screenshots`, `funding`, `platforms`, `false_secrets`, `ignored_advisories`, `environment`, `dependencies`, `dev_dependencies`, `dependency_overrides`, `executables`, `flutter`
-- **Unknown keys** not in the standard order are placed after their preceding key from the original file
-- **Package names** within `dependencies`, `dev_dependencies`, and `dependency_overrides` are sorted alphabetically
-- **Comments** (inline and standalone) are preserved
-- **Blank lines** are added between logical groups
+## Releasing
+
+`dpk release version` reads the Conventional Commits that touch each package since its last release tag, then:
+
+1. Raises the version in each package's pubspec. A `feat` commit raises the minor version. `fix`, `perf`, and `revert` commits raise the patch version. A breaking change, marked with `!` or a `BREAKING CHANGE:` footer, raises the major version. Below 1.0.0, a breaking change raises the minor version and a feature raises the patch version.
+2. Raises the constraint of every workspace package that no longer allows a new version, and gives it a patch release.
+3. Adds an entry to each package's `CHANGELOG.md`.
+4. Commits and tags each release, as `<package>-v<version>` in a workspace or `v<version>` for a standalone package.
+
+```bash
+dpk release version --dry-run     # show the plan and changelogs
+dpk release version               # ask, then release
+dpk release version --prerelease beta
+git push --follow-tags
+```
+
+When the catalog sets `version`, every package shares it and gets one new version.
+
+`dpk release publish` publishes every package whose version is not on its pub server yet, dependencies first. It skips `publish_to: none` packages.
+
+Both commands accept `--filter`, `--dry-run`, and `--yes`. `version` also takes `--bump`, `--prerelease`, `--graduate`, `--no-commit`, `--no-tag`, and `--allow-dirty`. Their hooks are `version` and `release`.
+
+## Editor support
+
+`dpk init` adds a comment that points editors with the YAML language server at the [dpk.yaml JSON schema](schema/dpk.schema.json), for completion and validation. Add it to an existing file:
 
 ```yaml
-sort_pubspec: true
+# yaml-language-server: $schema=https://raw.githubusercontent.com/exaby73/dpk/main/schema/dpk.schema.json
 ```
 
-If `dpk get` finds the old `sortPubspec` key, it rewrites it to
-`sort_pubspec`. During parsing, both keys are accepted so older config keeps
-working until migration runs.
+dpk itself validates `dpk.yaml` on every run. An unknown key or a wrong type is an error that names the file, the line, and the key, with a suggestion for typos.
 
-#### `workspace`
+## Shell completion
 
-Defines glob patterns for workspace packages. This is an alternative to defining the `workspace` field directly in `pubspec.yaml`.
+dpk never changes your shell config on its own. To install completion for commands, options, and script names, run:
 
-```yaml
-workspace:
-  - packages/*
-  - apps/**
+```bash
+dpk install-completion-files
 ```
 
-dpk will expand these patterns and write the resolved paths to the root `pubspec.yaml`.
+## Upgrading from 0.x
 
-#### `scripts`
+- `runInPackages` and `runHooksFrom` are now `run_in_packages` and `run_hooks_from`, and `sortPubspec` is `sort_pubspec`. The old names still work with a warning, and `dpk get` renames them.
+- dpk's own options go before the command. `dpk run test -v` now passes `-v` to the script.
+- `-d` is no longer short for `--cache-dir`.
+- Scripts run in `/bin/sh` instead of `$SHELL`.
+- A script runs in the workspace package you start it from, not always at the root.
+- `dpk.yaml` is validated, and the nested `dpk:` mapping is gone.
+- The workspace root package no longer has to be named `_`.
+- Patches are applied by `dpk get`. You no longer need `dpk patch init` and `dpk patch apply` after a fresh clone.
 
-Defines custom commands that can be executed with `dpk run <script_name>`.
-
-**Simple format:**
-
-```yaml
-scripts:
-  analyze: dart analyze
-```
-
-**Advanced format with options:**
-
-```yaml
-scripts:
-  test:
-    command: dart test # Required
-    description: Run unit tests # Optional help/documentation text
-    env: # Optional environment variables
-      CI: 'true'
-      LOG_LEVEL: 'verbose'
-    runInPackages: # For monorepos - glob patterns
-      - 'packages/*'
-    runHooksFrom: build # Inherit pre/post hooks
-```
-
-**Script Options:**
-
-- **`command`** (Required): The shell command to execute
-- **`description`**: Optional help text for documenting the script
-- **`env`**: Environment variables to set before running the script
-- **`runInPackages`**: Glob patterns for workspace packages where the script should run
-- **`runHooksFrom`**: Name of another script to inherit hooks from
-- **`scripts`**: Hook target list for `before` and `after` (see [Shared Hooks](#shared-hooks-before-and-after))
-- **`all`**: When `true` on `before` or `after`, match every hookable command
-
-#### `catalog`
-
-The `catalog` property is a powerful feature for managing monorepos. It allows you to define shared configurations across multiple packages, ensuring consistency for dependencies, metadata, and more.
-
-To enable the catalog, the `name` of your root `pubspec.yaml` must be `_`.
-
-`dpk get` applies catalog values to pubspec files. The workspace root package
-only receives `environment` and dependency updates. Workspace packages receive
-the full package metadata set.
-
-**Catalog Properties:**
-
-- **`environment`**: Replaces the `environment` section. Supports keys such as `sdk` and `flutter`.
-- **`version`**: Sets the workspace package `version`.
-- **`publish_to`**: Sets `publish_to`, for example `none` or a custom pub server URL.
-- **`homepage`**: Sets `homepage`. Supports template variables.
-- **`repository`**: Sets `repository`. Supports template variables.
-- **`issue_tracker`**: Sets `issue_tracker`. Supports template variables.
-- **`documentation`**: Sets `documentation`. Supports template variables.
-- **`topics`**: Ensures listed topics exist. Existing package topics are preserved and missing catalog topics are appended.
-- **`funding`**: Sets the `funding` URL list. Supports template variables.
-- **`platforms`**: Sets the `platforms` map, using standard pubspec platform keys such as `android`, `ios`, `linux`, `macos`, `web`, and `windows`.
-- **`resolution`**: Sets the pub workspace resolution, usually `workspace`.
-- **`dependencies`**: Updates matching existing entries in both `dependencies` and `dev_dependencies`. Missing dependencies are not added.
-
-Catalog does not currently manage `name`, `description`, `screenshots`,
-`false_secrets`, `ignored_advisories`, `executables`, `flutter`,
-`dependency_overrides`, or a separate `dev_dependencies` catalog section.
-
-**Template Variables:**
-
-The following template variables can be used in `homepage`, `repository`,
-`issue_tracker`, `documentation`, and `funding` fields:
-
-Template variables are expanded separately for each workspace package during
-`dpk get`:
-
-| Variable              | Expands to                                                                 |
-| --------------------- | -------------------------------------------------------------------------- |
-| `DPK_PACKAGE_PATH`    | The workspace package path relative to the workspace root, such as `packages/core` |
-| `DPK_PACKAGE_NAME`    | The package `name` from that package's `pubspec.yaml`, such as `core`      |
-| `DPK_PACKAGE_VERSION` | The catalog `version` when one is configured; otherwise the package's existing pubspec version |
-
-Variables can also be written with a shell-style `$` prefix, such as
-`$DPK_PACKAGE_NAME`.
-
-**Example with template variables:**
-
-```yaml
-catalog:
-  version: 1.2.3
-  homepage: https://example.com/DPK_PACKAGE_NAME
-  repository: https://github.com/user/repo/tree/main/DPK_PACKAGE_PATH
-  documentation: https://pub.dev/documentation/DPK_PACKAGE_NAME/DPK_PACKAGE_VERSION/
-```
-
-For a package at `packages/core` with `name: core`, this expands to:
-
-```yaml
-homepage: https://example.com/core
-repository: https://github.com/user/repo/tree/main/packages/core
-documentation: https://pub.dev/documentation/core/1.2.3/
-```
-
-When you run `dpk get` in a workspace with a catalog, dpk automatically updates each package's `pubspec.yaml` with the catalog configuration, replacing template variables with package-specific values.
-
-## Advanced Features
-
-### Workspace Support
-
-dpk automatically detects workspace configurations by looking for a `workspace` field in parent `pubspec.yaml` files. This enables:
-
-- Running scripts across multiple packages with `runInPackages`
-- Sharing dependencies and configuration via catalog
-- Consistent versioning across the workspace
-
-### Automatic Workspace Detection
-
-dpk searches up the directory tree to find workspace roots, allowing you to run commands from any subdirectory within a workspace.
-
-### Complex Script Chaining
-
-Scripts can be chained and share hooks using `runHooksFrom`:
-
-```yaml
-scripts:
-  ci:
-    command: echo "Running CI"
-    runHooksFrom: test # Inherits pre:test and post:test
-
-  pre:test: dart analyze
-  post:test: dart format --set-exit-if-changed .
-```
+See the [changelog](CHANGELOG.md) for every change.
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **"dpk.yaml not found"**: A `dpk.yaml` file is required in your project root (or workspace root for monorepos)
-2. **"'version' is required in dpk.yaml"**: Add a `version` field with a semver constraint (e.g., `version: ^X.Y.Z`)
-3. **"dpk version X.X.X does not satisfy required version constraint"**: Update dpk with `dart install dpk`
-4. **Patches not applying**: Ensure you've run `dpk patch init` first and that the patches directory exists
-5. **Workspace not detected**: Check that parent directories have a valid `pubspec.yaml` with a `workspace` field
-6. **Environment variables not substituting**: Verify the variable is exported in your shell environment
-7. **Scripts not found**: Ensure `dpk.yaml` is in the project root
+- **`dpk.yaml requires dpk ^X, but dpk Y is installed`**: update dpk with `dart install dpk`, or change `version` in `dpk.yaml`.
+- **`No dpk.yaml found`**: run `dpk init` in the package or workspace root.
+- **A script runs in the wrong folder**: run `dpk list` to see the workspace packages, and `dpk doctor` to check the workspace.
+- **A patch is stale**: the lockfile uses another version of the package. Edit the new version in the project cache and run `dpk patch generate`, or run `dpk patch remove <package>`.

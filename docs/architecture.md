@@ -1,69 +1,77 @@
 # How dpk fits together
 
-dpk wraps `dart pub`. Each command finds and loads the dpk configuration, does its own work around a `dart pub` call, and runs hooks before and after. For the words used here, see [`GLOSSARY.md`](../GLOSSARY.md).
+dpk wraps `dart pub`. A run parses the command line, loads the project, and hands both to a command, which does its work between its hooks. Most of that work lives in a few modules with small interfaces, and commands are thin. For the words used here, see [`GLOSSARY.md`](../GLOSSARY.md).
 
-## Startup loads configuration before any command runs
+## A run, from command line to exit code
 
-`bin/dpk.dart` calls `DpkCommandRunner.init` in `lib/core/command_runner.dart`. Before it registers commands, the runner works out where the project is:
+`bin/dpk.dart` calls `runDpk` in `lib/core/command_runner.dart`, which:
 
-1. It reads `-C` or `--directory` from the raw arguments, because the `args` parser has not run yet. Without the flag, it starts from the current directory.
-2. `findDpkYamlDirectory` in `lib/config/config.dart` walks up from that directory to the nearest `dpk.yaml`. It stops at the workspace root, so a package never picks up configuration from outside its workspace.
-3. `loadConfig` merges `pubspec.yaml` and `dpk.yaml` into one `ConfigData` and registers it with `get_it` (`lib/core/injection_container.dart`). Commands read it through `ConfigMixin`.
+1. Parses the arguments with `Invocation.parse` (`lib/core/invocation.dart`). dpk options only count before the command, and everything after the command name is kept for the command unchanged. This one rule is why `dpk run test -v` passes `-v` to the script; [ADR 0003](adr/0003-dpk-options-go-before-the-command.md) explains it.
+2. Loads the project with `Project.load` (`lib/config/project.dart`) when the command needs one. Help, completion, and the pub commands that work anywhere (such as `global`) skip it.
+3. Builds a `DpkContext` (`lib/core/context.dart`) and runs `DpkCommandRunner`, a `CompletionCommandRunner` from `cli_completion` with auto-install turned off.
+4. Turns expected failures (`DpkException`, `ProjectException`, `ConfigException`, `RunPlanException`) into `error: <message>` and exit code 1, and usage errors into exit code 64. Anything else reaches `bin/dpk.dart`, which prints it as a bug.
 
-Help requests and the `init` and `skills` commands skip this step, because they must work in a directory without a `dpk.yaml`. The runner registers `run` only when configuration loads.
+Commands extend `DpkCommand` (`lib/commands/dpk_command.dart`) and receive the context in their constructor. There is no global state, so tests call `runDpk` in-process with a buffered `Console` and a fake `ProcessRunner`.
 
-Before any command runs, the runner checks that the installed dpk version satisfies `version` in `dpk.yaml`, and stops with an error if it does not. This check keeps everyone on a team on a compatible dpk.
+## The context is the seam to the outside world
 
-## Commands fall into three groups
+`DpkContext` holds the parsed invocation, the project, a `Console` (`lib/core/console.dart`), and a `ProcessRunner` (`lib/core/process_runner.dart`).
 
-- **`get`** (`lib/commands/get_command.dart`) applies the catalog, sorts pubspecs, runs `dart pub get`, and runs hooks in its own order.
-- **Passthrough commands** (`lib/commands/pub_passthrough_command.dart`) cover every other pub command, from `add` and `upgrade` to `publish` and `workspace`. They come from one list of definitions, `pubPassthroughCommandDefinitions`. Each one forwards its arguments to `dart pub` and adds config discovery, hooks, and project cache setup. A new pub command needs only a new definition.
-- **dpk-only commands** have no pub equivalent: `run`, `init`, `skills`, and `patch` with its `init`, `generate`, and `apply` subcommands.
+- **`Console`** prints dpk's own messages: results to stdout, and errors, warnings, and `> script: command` progress lines to stderr. It decides colors once, from the terminal and `NO_COLOR`.
+- **`ProcessRunner`** starts every process dpk depends on: `dart`, `git`, and script shells. `SystemProcessRunner` is the production adapter. It gives interactive commands the terminal (`ProcessStartMode.inheritStdio`), so prompts such as `dart pub publish`'s confirmation work, and it pipes output into the console when the console is not the terminal. While children run, it forwards SIGTERM, waits for them, and exits with `128 + signal`. Tests use a recording fake.
 
-Commands share behavior through mixins in `lib/core/mixins/`: `ConfigMixin` for configuration, `HookRunnerMixin` for hooks, `ProcessHandlerMixin` for running `dart`, and `PubEnvMixin` for the project mode environment.
+`DpkContext.runDart`, `withHooks`, and `runScript` are the three operations most commands need.
 
-## Workspaces come from `dart pub workspace list`
+## Projects come from files, not from pub
 
-dpk does not parse workspace layouts itself. `getWorkspaceInfo` in `lib/utils/workspace.dart` runs `dart pub workspace list --json` and treats the first package as the workspace root. Today it also requires the root package's name to be `_`. Issue #7 tracks removing that rule, because Dart no longer needs it.
+`Workspace.discover` (`lib/workspace/workspace.dart`) reads pubspecs directly. It finds the current package (the nearest directory with a `pubspec.yaml`), then the nearest ancestor whose `pubspec.yaml` `workspace` list, or `dpk.yaml` `workspace` globs, include it. Reading files avoids a `dart pub workspace list` process on every run, works before the first `dart pub get`, and needs no particular root package name.
 
-Inside a workspace package, the workspace root's `dpk.yaml` is the base. A package's own `dpk.yaml` can only add or override scripts. `catalog`, `mode`, and `dependency_overrides` belong to the workspace root, and dpk rejects them in a package's `dpk.yaml`.
+`Project.load` adds the config. It reads the root `dpk.yaml`, checks the `version` constraint first so a newer config reports a version mismatch instead of unknown keys, then parses the rest with `DpkConfig.parse` (`lib/config/dpk_config.dart`). A workspace package's own `dpk.yaml` can add or override scripts and nothing else.
 
-`workspace` in `dpk.yaml` takes globs. When dpk loads the configuration, it expands them and writes the resulting paths to the `workspace` list in the root `pubspec.yaml`, because `dart pub` accepts only literal paths.
+Parsing goes through `ConfigReader` (`lib/config/config_reader.dart`). Every typed read reports problems with the file, line, column, and key path, and unknown keys get a did-you-mean suggestion. Deprecated camelCase keys parse with a warning, and `migrateConfig` (`lib/config/config_migration.dart`) renames them in place during `dpk get` by replacing only the key text, so comments survive.
 
-## `dpk get` rewrites pubspecs before it resolves
+## Hooks run through one module
 
-In a workspace root, `dpk get` edits pubspec files before it calls `dart pub get`:
+`HookLifecycle` (`lib/scripts/hook_lifecycle.dart`) runs a hook target between its hooks: `before`, `pre:<target>`, the target, `post:<target>`, `after`, or the `get` order, where `before` follows the target. It handles `run_hooks_from` and stops at the first failure.
 
-1. It applies the catalog. The root pubspec receives only `environment` and catalog dependencies. Each workspace package also receives the package metadata. dpk expands template variables such as `DPK_PACKAGE_NAME` for each package.
-2. It marks each catalog dependency with a `# Configured via catalog` comment.
-3. If `sort_pubspec` is on, it sorts each pubspec with `lib/utils/pubspec_sorter.dart`. The sorter works on lines rather than on a parsed YAML tree, so it can keep comments and blank lines.
+The lifecycle also owns the `HookStack`. Every process dpk starts inherits `DPK_HOOK_STACK`, the hooks of the current lifecycle keyed by workspace root. A nested `dpk` skips any hook already on the stack. That one rule stops a hook that calls `dpk run` from looping, and makes an `all: true` hook run once even when a script starts `dpk` in every workspace package.
 
-Edits go through `yaml_edit`, so the rest of each file keeps its formatting.
+## Scripts: plan first, then execute
 
-## Hooks wrap commands and scripts
+`planRun` (`lib/scripts/run_plan.dart`) is a pure function. From the workspace, `run_in_packages`, and `--filter`, it picks the packages: the current package by default, matches by name or path glob otherwise, never duplicates, and an error when nothing matches. For `--dependency-order`, it also records the dependencies between the chosen packages and rejects cycles.
 
-A command or script is a hook target. For most hook targets, dpk runs `before`, then `pre:<name>`, then the target, then `post:<name>`, then `after`.
+`ScriptExecutor` (`lib/scripts/script_executor.dart`) carries out a plan. One package runs with the terminal attached. Several packages run with piped output, each line prefixed with the package name, under the concurrency limit, with fail-fast and dependency order. It reads each output stream to the end before printing the summary, and returns the exit code of the first failed package.
 
-`dpk get` is the exception. A matching `before` hook runs after `dart pub get`, because typical `before` work, such as code generation, needs resolved packages. The `before` hook in dpk's own `dpk.yaml` depends on this order. It runs `dpk run build` for `get`, `analyze`, and `publish`.
+Scripts run in `/bin/sh`, or `cmd.exe` on Windows (`lib/core/shell.dart`). [ADR 0002](adr/0002-scripts-run-in-a-fixed-shell.md) explains why dpk does not use the user's shell.
 
-Hooks often call `dpk run`, which could trigger the same hook again. To stop the loop, dpk passes the hooks that are already running to child processes in the `DPK_HOOK_STACK` environment variable. dpk skips a hook that is already on the stack and prints a warning.
+## `dpk get` plans every file change before writing
 
-## Scripts run in the user's shell
+`planPubspecUpdates` (`lib/catalog/pubspec_updates.dart`) computes every pubspec change in memory: the root `workspace` list from the `dpk.yaml` globs, the catalog, and sorting. `dpk get --check` and `--dry-run` report the plan and write nothing. Otherwise, `writePubspecUpdates` writes each changed file to a temporary file and renames it into place.
 
-`DpkScriptRunner` in `lib/commands/run_command.dart` runs each script through the shell in `$SHELL`, or `/bin/sh` if `$SHELL` is not set, with `-c`. On Windows it uses `%COMSPEC%` with `/C` (see `lib/core/shell.dart`). dpk shell-quotes the arguments after the script name, so the script receives them as data.
+Two pure text-to-text functions do the editing:
 
-When `runInPackages` matches more than one package, dpk starts the script in all of them at once. It prints each chunk of output under a `[package]` header, indented, and prints a pass or fail summary at the end. The run fails if any package fails. These scripts get `DPK_ROOT`, the absolute path of the workspace root.
+- `applyCatalog` (`lib/catalog/catalog_application.dart`) applies the catalog to one pubspec through `yaml_edit`, so the rest of the file keeps its formatting. It skips writes that would not change a value, which keeps it idempotent, and marks catalog dependencies with `# Configured via catalog`.
+- `sortPubspec` (`lib/utils/pubspec_sorter.dart`) reorders whole blocks of source lines, found from YAML node spans, and never re-renders a value. It checks that the result parses to the same data and returns the input unchanged when it cannot sort safely.
 
-## Project mode moves the pub cache into the project
+## Project mode and patches
 
-In project mode, `PubEnvMixin.getCacheEnv` sets `PUB_CACHE` to the project cache, `pub_packages/` by default. Every pub command then reads and writes packages there. The `patch` commands use git on that directory to record and replay patches. [ADR 0001](adr/0001-project-mode-uses-a-project-cache.md) explains why patching works this way.
+In project mode, `Project.pubEnvironment` sets `PUB_CACHE` to the project cache for pub commands and scripts. `ProjectCache` (`lib/patching/project_cache.dart`) owns everything about it:
+
+- **Baseline**: a git repository over the cache's `hosted/` folder, committed by dpk with its own identity (`lib/patching/git.dart`). New package folders pub downloads are added to the baseline automatically.
+- **Generate**: stages everything under a package, diffs the staged changes against the baseline with `--binary`, and writes one patch per package. Only `*.patch` files under `hosted/` and `git/` in the patch directory are ever written or removed.
+- **Apply**: checks each patch against the lockfile version, skips patches that are already applied (`git apply --reverse --check`), and reports stale or conflicting patches with the command that fixes them.
+
+`dpk get` and the pub commands that change resolution call `ProjectCache.sync`, which updates the baseline and applies every patch. [ADR 0001](adr/0001-project-mode-uses-a-project-cache.md) explains why patching works this way.
+
+## Releases
+
+`ConventionalCommit` (`lib/release/conventional_commit.dart`) parses commit subjects and maps them to a version bump with Dart's pre-1.0 rules. `planRelease` (`lib/release/release_plan.dart`) is pure: from each package's commits and the workspace constraints, it picks new versions, raises constraints that no longer allow a new version, and renders changelog entries. `ReleaseCommand` (`lib/commands/release_command.dart`) does the I/O: git log and tags in the user's repository with the user's own git identity, file edits, and pub server queries for `release publish`.
 
 ## Generated code is committed
 
-`build_runner` generates three kinds of files, all committed:
+`build_runner` generates two committed files:
 
-- Freezed and `json_serializable` output (`*.freezed.dart` and `*.g.dart`) for configuration and option classes.
-- `lib/constants/pubspec.g.dart`, which holds the package version that the version check and `dpk --version` use.
-- `lib/constants/embedded_dpk_skill.g.dart`, which embeds `skills/dpk/SKILL.md`, so that `dpk skills` works from an installed binary.
+- `lib/constants/pubspec.g.dart` holds the package version that the version check and `dpk --version` use.
+- `lib/constants/embedded_dpk_skill.g.dart` embeds `skills/dpk/SKILL.md`, so `dpk skills` works from an installed binary.
 
-Because the version and the skill are compiled in, a stale build ships the wrong version or old skill text. The `before` hook in `dpk.yaml` rebuilds on `dpk get`, `dpk run analyze`, and `dpk run publish` to prevent that.
+Because both are compiled in, a stale build ships the wrong version or old skill text. The `before` hook in this repository's `dpk.yaml` rebuilds on `dpk get`, `dpk run analyze`, and `dpk run publish` to prevent that.
