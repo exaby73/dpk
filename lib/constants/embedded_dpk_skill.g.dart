@@ -139,8 +139,8 @@ Patching needs `mode: project`. Recommend global mode (the default) unless the u
 
 - `dpk release version --dry-run` shows new versions and changelog entries computed from Conventional Commits since each package's last tag (`<package>-v<version>`, or `v<version>` standalone).
 - `feat` raises minor, `fix`/`perf`/`revert` raise patch, `!` or `BREAKING CHANGE:` raises major. Below 1.0.0, breaking raises minor and `feat` raises patch.
-- `dpk release version` updates pubspecs, dependent constraints, and `CHANGELOG.md`, then commits and tags. It needs a clean tree and confirmation (`--yes` in scripts). The user pushes with `git push --follow-tags`.
-- `dpk release publish` publishes unpublished versions, dependencies first, skipping `publish_to: none`. Publishing is irreversible: always run `--dry-run` first and get the user's go-ahead.
+- `dpk release version` updates pubspecs, dependent constraints, and `CHANGELOG.md`, runs the `version` hooks, then commits and creates annotated tags. A `post:version` hook (for example `dpk run build` to regenerate version files) runs before the commit, and its changes are committed too. It needs a clean tree and confirmation (`--yes` in scripts). The user pushes with `git push --follow-tags`.
+- `dpk release publish` publishes unpublished versions, dependencies first, skipping `publish_to: none`, and creates a missing release tag for each published version (`--no-tag` skips it). Publishing is irreversible: always run `--dry-run` first and get the user's go-ahead.
 
 ## Config errors
 

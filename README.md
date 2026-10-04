@@ -393,7 +393,8 @@ A patch targets one package version. When you upgrade that package, `dpk get` fa
 1. Raises the version in each package's pubspec. A `feat` commit raises the minor version. `fix`, `perf`, and `revert` commits raise the patch version. A breaking change, marked with `!` or a `BREAKING CHANGE:` footer, raises the major version. Below 1.0.0, a breaking change raises the minor version and a feature raises the patch version.
 2. Raises the constraint of every workspace package that no longer allows a new version, and gives it a patch release.
 3. Adds an entry to each package's `CHANGELOG.md`.
-4. Commits and tags each release, as `<package>-v<version>` in a workspace or `v<version>` for a standalone package.
+4. Runs the `version` hooks. A `post:version` hook runs after the files change and before the commit, and the files it changes go into the release commit.
+5. Commits and tags each release with an annotated tag, as `<package>-v<version>` in a workspace or `v<version>` for a standalone package.
 
 ```bash
 dpk release version --dry-run     # show the plan and changelogs
@@ -404,9 +405,18 @@ git push --follow-tags
 
 When the catalog sets `version`, every package shares it and gets one new version.
 
-`dpk release publish` publishes every package whose version is not on its pub server yet, dependencies first. It skips `publish_to: none` packages.
+`dpk release publish` publishes every package whose version is not on its pub server yet, dependencies first. It skips `publish_to: none` packages. After each package publishes, it creates that version's release tag if the tag is missing, for example after you raised a version by hand, and refuses to tag from a working tree with uncommitted changes. Pass `--no-tag` to skip tagging.
 
 Both commands accept `--filter`, `--dry-run`, and `--yes`. `version` also takes `--bump`, `--prerelease`, `--graduate`, `--no-commit`, `--no-tag`, and `--allow-dirty`. Their hooks are `version` and `release`.
+
+A package with generated files that depend on its version can rebuild them in both steps:
+
+```yaml
+scripts:
+  build: dart run build_runner build -d
+  post:version: dpk run build   # the rebuilt files go into the release commit
+  pre:release: dpk run build    # publish fresh generated files
+```
 
 ## Editor support
 

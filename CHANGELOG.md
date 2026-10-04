@@ -31,7 +31,7 @@
 - Feat: Record the project cache baseline and apply patches on every `dpk get`, `add`, `remove`, `upgrade`, and `downgrade`
 - Feat: Add `dpk patch list` and `dpk patch remove`, and `dpk patch generate <package>`
 - Feat: Report stale patches whose package version the lockfile no longer uses
-- Feat: Add `dpk release version` and `dpk release publish` for Conventional Commits releases
+- Feat: Add `dpk release version` and `dpk release publish` for Conventional Commits releases, with annotated release tags, a `post:version` hook that runs before the release commit, and missing tags created on publish
 - Feat: Add `dpk doctor`
 - Feat: Add the `cache_dir` and `patch_dir` keys
 - Feat: Publish a JSON schema for `dpk.yaml`, and point to it from `dpk init`
