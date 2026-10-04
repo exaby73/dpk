@@ -109,6 +109,35 @@ abstract base class _ReleaseSubcommand extends DpkCommand {
     }
     return result.stdout as String;
   }
+
+  /// The release tag for [version] of [package]: `<package>-v<version>` in a
+  /// workspace, `v<version>` for a standalone package.
+  String releaseTag(
+    WorkspacePackage package,
+    String version,
+    Workspace workspace,
+  ) => workspace.isWorkspace ? '${package.name}-v$version' : 'v$version';
+
+  Future<bool> tagExists(String tag, {required String directory}) async =>
+      (await git(
+        ['rev-parse', '--quiet', '--verify', 'refs/tags/$tag'],
+        directory: directory,
+        check: false,
+      )).trim().isNotEmpty;
+
+  /// Creates an annotated tag at `HEAD`. Annotated tags are what
+  /// `git push --follow-tags` pushes.
+  Future<void> createTag(
+    String tag,
+    String message, {
+    required String directory,
+  }) => git([
+    'tag',
+    '--annotate',
+    tag,
+    '--message',
+    message,
+  ], directory: directory);
 }
 
 final class _ReleaseVersionCommand extends _ReleaseSubcommand {
@@ -216,37 +245,53 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
       return 1;
     }
 
-    return context.withHooks('version', (stack) async {
-      final changed = _apply(project, releases, sharedVersion != null);
-      if (!argResults!.flag('commit')) {
-        console.info('Updated ${changed.length} files. Nothing was committed.');
-        return 0;
-      }
-      await git(['add', '--', ...changed], directory: root);
-      final single = !workspace.isWorkspace;
-      final subject = single
-          ? 'chore: Release ${releases.single.to}'
-          : 'chore: Release packages';
-      final body = [
-        for (final release in releases)
-          '- ${release.package.name} ${release.to}',
-      ].join('\n');
-      await git([
-        'commit',
-        '-m',
-        subject,
-        if (!single) ...['-m', body],
-      ], directory: root);
-      if (argResults!.flag('tag')) {
-        for (final release in releases) {
-          final tag = _tag(release.package, release.to.toString(), workspace);
-          await git(['tag', tag], directory: root);
-          console.info('Tagged $tag');
-        }
-      }
-      console.info('Push the release with "git push --follow-tags".');
+    final changed = <String>[];
+    final hooksExitCode = await context.withHooks('version', (stack) async {
+      changed.addAll(_apply(project, releases, sharedVersion != null));
       return 0;
     });
+    if (hooksExitCode != 0) {
+      return hooksExitCode;
+    }
+    if (!argResults!.flag('commit')) {
+      console.info('Updated ${changed.length} files. Nothing was committed.');
+      return 0;
+    }
+
+    // The tree was clean before the release, so every tracked change since
+    // is part of it, including files that post:version hooks regenerate.
+    await git(['add', '--', ...changed], directory: root);
+    await git(['add', '--update'], directory: root);
+    final single = !workspace.isWorkspace;
+    final subject = single
+        ? 'chore: Release ${releases.single.to}'
+        : 'chore: Release packages';
+    final body = [
+      for (final release in releases) '- ${release.package.name} ${release.to}',
+    ].join('\n');
+    await git([
+      'commit',
+      '-m',
+      subject,
+      if (!single) ...['-m', body],
+    ], directory: root);
+    if (argResults!.flag('tag')) {
+      for (final release in releases) {
+        final tag = releaseTag(
+          release.package,
+          release.to.toString(),
+          workspace,
+        );
+        await createTag(
+          tag,
+          '${release.package.name} ${release.to}',
+          directory: root,
+        );
+        console.info('Tagged $tag');
+      }
+    }
+    console.info('Push the release with "git push --follow-tags".');
+    return 0;
   }
 
   /// The commits since the package's last release tag that touch its files.
@@ -255,12 +300,8 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
     Workspace workspace,
   ) async {
     final root = workspace.root.path;
-    final tag = _tag(package, package.version!, workspace);
-    final tagged = (await git(
-      ['rev-parse', '--quiet', '--verify', 'refs/tags/$tag'],
-      directory: root,
-      check: false,
-    )).trim().isNotEmpty;
+    final tag = releaseTag(package, package.version!, workspace);
+    final tagged = await tagExists(tag, directory: root);
     final pathspecs = [
       if (package.relativePath == '.') ...[
         '.',
@@ -364,13 +405,17 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
     }
     return changed;
   }
-
-  String _tag(WorkspacePackage package, String version, Workspace workspace) =>
-      workspace.isWorkspace ? '${package.name}-v$version' : 'v$version';
 }
 
 final class _ReleasePublishCommand extends _ReleaseSubcommand {
-  _ReleasePublishCommand(super.context);
+  _ReleasePublishCommand(super.context) {
+    argParser.addFlag(
+      'tag',
+      defaultsTo: true,
+      help:
+          'Create the release tag of each published version if it is missing.',
+    );
+  }
 
   @override
   String get name => 'publish';
@@ -416,7 +461,29 @@ final class _ReleasePublishCommand extends _ReleaseSubcommand {
       return 1;
     }
 
-    return context.withHooks('release', (stack) async {
+    final root = project.workspace.root.path;
+    final tagging =
+        !dryRun &&
+        argResults!.flag('tag') &&
+        (await git(
+              ['rev-parse', '--is-inside-work-tree'],
+              directory: root,
+              check: false,
+            )).trim() ==
+            'true';
+    final tagged = <String>[];
+
+    final exitCode = await context.withHooks('release', (stack) async {
+      if (tagging &&
+          (await git([
+            'status',
+            '--porcelain',
+          ], directory: root)).trim().isNotEmpty) {
+        throw DpkException(
+          'The git working tree has changes, so a release tag would not match '
+          'what gets published. Commit them first, or pass --no-tag.',
+        );
+      }
       for (final package in pending) {
         final exitCode = await context.runDart(
           ['pub', 'publish', if (dryRun) '--dry-run' else '--force'],
@@ -427,9 +494,25 @@ final class _ReleasePublishCommand extends _ReleaseSubcommand {
           console.error('Publishing ${package.name} failed. Stopped here.');
           return exitCode;
         }
+        if (tagging) {
+          final tag = releaseTag(package, package.version!, project.workspace);
+          if (!await tagExists(tag, directory: root)) {
+            await createTag(
+              tag,
+              '${package.name} ${package.version}',
+              directory: root,
+            );
+            tagged.add(tag);
+            console.info('Tagged $tag');
+          }
+        }
       }
       return 0;
     });
+    if (tagged.isNotEmpty) {
+      console.info('Push the tags with "git push origin ${tagged.join(' ')}".');
+    }
+    return exitCode;
   }
 
   /// Orders [packages] so each comes after the workspace packages it

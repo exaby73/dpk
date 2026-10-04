@@ -67,7 +67,15 @@ final class RecordedProcess {
 /// A [ProcessRunner] that records every process instead of starting it, and
 /// reports [exitCodes] for matching command lines (0 otherwise).
 final class RecordingProcessRunner implements ProcessRunner {
-  RecordingProcessRunner({this.exitCodes = const {}, this.outputs = const {}});
+  RecordingProcessRunner({
+    this.exitCodes = const {},
+    this.outputs = const {},
+    this.passThrough = const {},
+  });
+
+  /// Executables that run for real instead of being recorded, such as `git`.
+  final Set<String> passThrough;
+  final _system = SystemProcessRunner(Console.buffered());
 
   final Map<Pattern, int> exitCodes;
 
@@ -91,6 +99,14 @@ final class RecordingProcessRunner implements ProcessRunner {
     String? workingDirectory,
     Map<String, String>? environment,
   }) async {
+    if (passThrough.contains(executable)) {
+      return _system.run(
+        executable,
+        arguments,
+        workingDirectory: workingDirectory,
+        environment: environment,
+      );
+    }
     final process = RecordedProcess(
       executable,
       arguments,

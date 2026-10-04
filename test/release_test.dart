@@ -176,7 +176,12 @@ void main() {
             extra: 'workspace:\n  - packages/core\n  - packages/app\n',
           ),
         ),
-        d.file('dpk.yaml', 'version: $versionConstraint\n'),
+        d.file(
+          'dpk.yaml',
+          'version: $versionConstraint\nscripts:\n'
+              '  post:version: echo regenerated > generated.txt\n',
+        ),
+        d.file('generated.txt', 'stale\n'),
         d.dir('packages', [
           d.dir('core', [
             d.file(
@@ -261,6 +266,33 @@ void main() {
         expect(tags.split('\n'), containsAll(['core-v1.1.0', 'app-v2.0.1']));
         expect(log.trim(), equals('chore: Release packages'));
       });
+
+      test(
+        'Then the tags are annotated, so --follow-tags pushes them',
+        () async {
+          final type = await _git([
+            'cat-file',
+            '-t',
+            'core-v1.1.0',
+          ], d.path('repo'));
+          expect(type.trim(), equals('tag'));
+        },
+      );
+
+      test(
+        'Then files a post:version hook changes are in the release commit',
+        () async {
+          final files = await _git([
+            'show',
+            '--name-only',
+            '--format=',
+            'HEAD',
+          ], d.path('repo'));
+          final status = await _git(['status', '--porcelain'], d.path('repo'));
+          expect(files.split('\n'), contains('generated.txt'));
+          expect(status.trim(), isEmpty);
+        },
+      );
     });
 
     test(
@@ -356,7 +388,8 @@ void main() {
         expect(result.exitCode, equals(0), reason: '$result');
         expect([
           for (final process in runner.processes)
-            process.workingDirectory!.split('/').last,
+            if (process.executable == 'dart')
+              process.workingDirectory!.split('/').last,
         ], equals(['core', 'app']));
         expect(
           runner.dartCommands,
@@ -369,6 +402,109 @@ void main() {
       });
     });
   });
+
+  group('Given a git workspace whose versions are not on the pub server', () {
+    late HttpServer server;
+    late RecordingProcessRunner runner;
+
+    setUp(() async {
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((request) {
+        request.response.statusCode = 404;
+        request.response.close();
+      });
+      addTearDown(server.close);
+      runner = RecordingProcessRunner(passThrough: {'git'});
+    });
+
+    Future<DpkResult> publish(List<String> extra) => dpk(
+      ['release', 'publish', '--yes', ...extra],
+      directory: d.path('repo'),
+      processRunner: runner,
+      environment: {
+        ..._gitIdentity,
+        'PUB_HOSTED_URL': 'http://${server.address.host}:${server.port}',
+      },
+    );
+
+    group('When publishing', () {
+      late DpkResult result;
+
+      setUp(() async {
+        await _publishFixture(clean: true);
+        result = await publish(const []);
+      });
+
+      test(
+        'Then each published version without a tag gets an annotated tag',
+        () async {
+          expect(result.exitCode, equals(0), reason: '$result');
+          final type = await _git([
+            'cat-file',
+            '-t',
+            'core-v1.1.0',
+          ], d.path('repo'));
+          expect(type.trim(), equals('tag'));
+        },
+      );
+
+      test('Then dpk says how to push the new tags', () {
+        expect(result.stdout, contains('git push origin core-v1.1.0'));
+        expect(result.stdout, isNot(contains('Tagged app-v1.0.0')));
+      });
+    });
+
+    test('When publishing with --no-tag then no tag is created', () async {
+      await _publishFixture(clean: true);
+
+      await publish(['--no-tag']);
+
+      final tags = await _git(['tag', '--list'], d.path('repo'));
+      expect(tags.trim().split('\n'), equals(['app-v1.0.0']));
+    });
+
+    test('When the working tree has changes then dpk refuses to tag', () async {
+      await _publishFixture(clean: false);
+
+      final result = await publish(const []);
+
+      expect(result.exitCode, equals(1));
+      expect(result.stderr, contains('pass --no-tag'));
+      expect(runner.dartCommands, isEmpty);
+    });
+  });
+}
+
+Future<void> _publishFixture({required bool clean}) async {
+  await d.dir('repo', [
+    d.file(
+      'pubspec.yaml',
+      pubspec('_', extra: 'workspace:\n  - packages/core\n  - packages/app\n'),
+    ),
+    d.file('dpk.yaml', 'version: $versionConstraint\n'),
+    d.dir('packages', [
+      d.dir('app', [
+        d.file(
+          'pubspec.yaml',
+          'name: app\nversion: 1.0.0\nresolution: workspace\n',
+        ),
+      ]),
+      d.dir('core', [
+        d.file(
+          'pubspec.yaml',
+          'name: core\nversion: 1.1.0\nresolution: workspace\n',
+        ),
+      ]),
+    ]),
+  ]).create();
+  final root = d.path('repo');
+  await _git(['init', '-q'], root);
+  await _git(['add', '-A'], root);
+  await _git(['commit', '-qm', 'chore: Initial'], root);
+  await _git(['tag', '-a', 'app-v1.0.0', '-m', 'app 1.0.0'], root);
+  if (!clean) {
+    File(d.path('repo/dirty.txt')).writeAsStringSync('x');
+  }
 }
 
 WorkspacePackage _package(
