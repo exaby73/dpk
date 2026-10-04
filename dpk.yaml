@@ -16,7 +16,7 @@ scripts:
   build: dart run build_runner build
 
   watch:
-    runHooksFrom: build
+    run_hooks_from: build
     command: dart run build_runner watch
 
   publish: dart pub publish

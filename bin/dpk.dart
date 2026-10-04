@@ -1,32 +1,20 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:dpk/core/command_runner.dart';
-import 'package:dpk/utils/version_output.dart';
 
 Future<void> main(List<String> arguments) async {
   try {
-    if (arguments.contains('--version')) {
-      // ignore: avoid_print
-      print(renderVersionOutput());
-      exit(0);
-    }
-
-    final exitCode = await _init(arguments);
-    exit(exitCode ?? 0);
-  } on UsageException catch (error) {
-    stderr.writeln(error);
-    exit(64);
-  } on StateError catch (error) {
-    stderr.writeln('Error: ${error.message}');
-    exit(1);
-  } catch (error) {
-    stderr.writeln('Unexpected error: $error');
-    exit(1);
+    exitCode = await runDpk(arguments);
+  } catch (error, stackTrace) {
+    stderr
+      ..writeln('Unexpected error: $error')
+      ..writeln(stackTrace)
+      ..writeln(
+        'This is a bug in dpk. Please report it at '
+        'https://github.com/exaby73/dpk/issues',
+      );
+    exitCode = 70;
   }
-}
-
-Future<int?> _init(List<String> arguments) async {
-  final runner = await DpkCommandRunner.init(arguments);
-  return runner.runDpk();
+  await Future.wait([stdout.flush(), stderr.flush()]);
+  exit(exitCode);
 }

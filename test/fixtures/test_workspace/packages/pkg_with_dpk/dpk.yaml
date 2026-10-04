@@ -1,3 +1,0 @@
-scripts:
-  shared_script: echo "shared from package"
-  pkg_script: echo "package only"

@@ -1,485 +1,190 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dpk/config/data/config_data.dart';
-import 'package:dpk/config/data/scripts.dart';
-import 'package:dpk/core/mixins/config_mixin.dart';
-import 'package:dpk/core/shell.dart';
-import 'package:dpk/core/types.dart';
-import 'package:dpk/utils/globals/global_args.dart';
-import 'package:dpk/utils/terminal_log_util.dart';
+import 'package:dpk/commands/dpk_command.dart';
+import 'package:dpk/config/dpk_config.dart';
+import 'package:dpk/core/context.dart';
 import 'package:dpk/utils/terminal_title.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:glob/glob.dart';
-import 'package:path/path.dart' as path;
-import 'package:prompts/prompts.dart' as prompts;
 
-part 'run_command.freezed.dart';
+/// Adds the options that choose and schedule workspace packages.
+void addPackageSelectionOptions(ArgParser parser) {
+  parser
+    ..addMultiOption(
+      'filter',
+      valueHelp: 'package',
+      help:
+          'Only run in workspace packages with this name or a path matching '
+          'this glob. Repeat to select more.',
+    )
+    ..addOption(
+      'concurrency',
+      abbr: 'j',
+      valueHelp: 'count',
+      help: 'Run in at most this many packages at once. Default: all at once.',
+    )
+    ..addFlag(
+      'fail-fast',
+      negatable: false,
+      help: 'Stop the remaining packages when one fails.',
+    )
+    ..addFlag(
+      'dependency-order',
+      negatable: false,
+      help:
+          'Start a package only after the workspace packages it depends on '
+          'have finished.',
+    );
+}
 
-const _hookStackEnvKey = 'DPK_HOOK_STACK';
-const _hookStackSeparator = ',';
+/// The package selection options from [results].
+({
+  List<String> filters,
+  int? concurrency,
+  bool? failFast,
+  bool? dependencyOrder,
+})
+packageSelection(ArgResults results) {
+  final rawConcurrency = results.option('concurrency');
+  final concurrency = rawConcurrency == null
+      ? null
+      : int.tryParse(rawConcurrency);
+  if (rawConcurrency != null && (concurrency == null || concurrency < 1)) {
+    throw UsageException(
+      '--concurrency needs a whole number of at least 1, got '
+          '"$rawConcurrency".',
+      '',
+    );
+  }
+  return (
+    filters: results.multiOption('filter'),
+    concurrency: concurrency,
+    failFast: results.flag('fail-fast') ? true : null,
+    dependencyOrder: results.flag('dependency-order') ? true : null,
+  );
+}
 
-final class RunCommand extends Command<int> with ConfigMixin {
+final class RunCommand extends DpkCommand {
+  RunCommand(super.context) {
+    addPackageSelectionOptions(argParser);
+    for (final script in context.project?.scripts.values ?? <Script>[]) {
+      addSubcommand(ScriptCommand(context, script));
+    }
+  }
+
   @override
   String get name => 'run';
 
   @override
-  String get description => 'Run a script';
-
-  RunCommand() {
-    addGlobalArgs(argParser);
-    _registerScriptSubcommands();
-  }
-
-  void _registerScriptSubcommands() {
-    final scripts = config.scripts?.scriptsMap;
-    if (scripts != null) {
-      for (final scriptName in scripts.keys) {
-        addSubcommand(ScriptSubCommand(scriptName: scriptName, config: config));
-      }
-    }
-  }
+  String get description => 'Run a script from dpk.yaml.';
 
   @override
-  Future<int> run() async {
-    // If a sub-command was called, it will be handled by the ScriptSubCommand
-    // This method only handles the fallback case for backward compatibility
-    final options = RunOptions.fromArgResults(argResults!);
-    options.script ??= _promptForScript();
+  String get category => CommandCategory.workspace;
 
-    final runner = DpkScriptRunner(
-      config: config,
-      options: options,
-      arguments: argResults!.rest.skip(1).toList(),
+  @override
+  String get invocation => 'dpk run [options] <script> [arguments]';
+
+  @override
+  String get usageFooter =>
+      '\nEvery argument after the script name is passed to the script.';
+
+  @override
+  void printUsage() => console.info(listing());
+
+  /// The scripts and hooks in the project, followed by the run options.
+  String listing() {
+    final scripts = context.project?.scripts.values.toList() ?? const [];
+    final runnable = scripts.where((script) => !script.isHook).toList();
+    final hooks = scripts.where((script) => script.isHook).toList();
+    final width = scripts.fold(
+      0,
+      (w, s) => s.name.length > w ? s.name.length : w,
     );
 
-    return await runner.run();
-  }
-
-  String _promptForScript() {
-    final scriptNames = config.scripts?.scriptsMap.keys.toList();
-    if (scriptNames == null) {
-      throw StateError('No scripts found');
+    String line(Script script) {
+      final summary = script.description ?? console.dim(script.command);
+      final scope = script.runInPackages == null
+          ? ''
+          : console.dim(' (in ${script.runInPackages!.join(', ')})');
+      return '  ${console.bold(script.name.padRight(width))}  $summary$scope';
     }
 
-    final scriptName = prompts.choose(
-      'Which script do you want to run?',
-      scriptNames,
-      chevron: false,
-      interactive: false,
-    );
-
-    if (scriptName == null) {
-      throw StateError('Script name is required');
+    String hookLine(Script hook) {
+      final targets = hook.all
+          ? 'every command and script'
+          : (hook.hookTargets?.join(', ') ?? 'nothing');
+      final summary = isSharedHookName(hook.name)
+          ? 'runs ${hook.name} $targets'
+          : (hook.description ?? hook.command);
+      return '  ${console.bold(hook.name.padRight(width))}  ${console.dim(summary)}';
     }
 
-    return scriptName;
+    return [
+      'Usage: $invocation',
+      '',
+      if (runnable.isEmpty)
+        'No scripts are defined in dpk.yaml.'
+      else ...[
+        'Scripts:',
+        for (final script in runnable) line(script),
+      ],
+      if (hooks.isNotEmpty) ...[
+        '',
+        'Hooks:',
+        for (final hook in hooks) hookLine(hook),
+      ],
+      '',
+      argParser.usage,
+      usageFooter.trimLeft(),
+    ].join('\n');
   }
 }
 
-@unfreezed
-abstract class RunOptions with _$RunOptions {
-  factory RunOptions({
-    required GlobalOptions globalOptions,
-    required String? script,
-  }) = _RunOptions;
+/// Runs one script. Its parser accepts anything, so every argument after the
+/// script name reaches the script unchanged.
+final class ScriptCommand extends Command<int> {
+  ScriptCommand(this.context, this.script);
 
-  factory RunOptions.fromArgResults(ArgResults results) {
-    return RunOptions(
-      globalOptions: GlobalOptions.fromArgResults(results),
-      script: results.rest.firstOrNull,
-    );
-  }
-}
-
-final class ScriptSubCommand extends Command<int> {
-  final String scriptName;
-  final ConfigData config;
-
-  ScriptSubCommand({required this.scriptName, required this.config});
+  final DpkContext context;
+  final Script script;
 
   @override
-  String get name => scriptName;
+  final ArgParser argParser = ArgParser.allowAnything();
 
   @override
-  String get description {
-    final script = config.scripts?.scriptsMap[scriptName];
-    return script?.command ?? 'Run $scriptName script';
-  }
+  String get name => script.name;
 
   @override
-  Future<int> run() async {
-    final options = RunOptions(
-      globalOptions: GlobalOptions.fromArgResults(globalResults!),
-      script: scriptName,
-    );
+  String get description => script.description ?? script.command;
 
-    final runner = DpkScriptRunner(
-      config: config,
-      options: options,
-      arguments: argResults!.rest,
-    );
+  @override
+  bool get hidden => script.isHook;
 
-    return await runner.run();
-  }
-}
+  @override
+  bool get takesArguments => true;
 
-final class DpkScriptRunner {
-  final ConfigData config;
-  final RunOptions options;
-  final List<String> arguments;
-
-  DpkScriptRunner({
-    required this.config,
-    required this.options,
-    required this.arguments,
-  });
-
-  Future<int> run({
-    /// If true, the script will be skipped if it is not found in the config.
-    bool skipIfMissing = false,
-  }) async {
-    assert(options.script != null, 'Script name is required');
-
-    final scriptExists =
-        config.scripts?.scriptsMap.containsKey(options.script) == true;
-
-    if (!scriptExists && skipIfMissing) {
-      return 0;
+  @override
+  Future<int> run() {
+    final selection = packageSelection(parent!.argResults!);
+    var arguments = argResults!.rest;
+    if (arguments.firstOrNull == '--') {
+      arguments = arguments.sublist(1);
     }
 
-    final scriptName = options.script;
-    if (scriptName != null &&
-        _isHookScriptName(scriptName) &&
-        !_canRunHook(scriptName)) {
-      return 0;
-    }
-
-    final targetDirectory =
-        options.globalOptions.directory ?? config.workingDirectory;
-
-    var beforeHooks = <IntCallback>[];
-    var afterHooks = <IntCallback>[];
-
-    if (scriptExists) {
-      final hooks = _getHooks(
-        config: config,
-        options: options,
-        arguments: arguments,
-        targetDirectory: targetDirectory,
-      );
-      beforeHooks = hooks.before;
-      afterHooks = hooks.after;
-    }
-
-    for (final hook in beforeHooks) {
-      final hookExitCode = await hook();
-      if (hookExitCode != 0) {
-        return hookExitCode;
-      }
-    }
-
-    final exitCode = await _runScript(
-      config: config,
-      options: options,
-      arguments: arguments,
-      targetDirectory: targetDirectory,
-      skipIfMissing: skipIfMissing,
-    );
-    if (exitCode != 0) {
-      return exitCode;
-    }
-
-    for (final hook in afterHooks) {
-      final hookExitCode = await hook();
-      if (hookExitCode != 0) {
-        return hookExitCode;
-      }
-    }
-
-    return 0;
-  }
-
-  List<String> _wrapCommandForPty(String command) {
-    return getShellCommandArgs(command);
-  }
-
-  Future<int> _runScript({
-    required ConfigData config,
-    required RunOptions options,
-    required List<String> arguments,
-    required String targetDirectory,
-    bool skipIfMissing = false,
-  }) async {
-    final script = config.scripts?.scriptsMap[options.script];
-    final scriptExists = script != null;
-
-    if (scriptExists && options.script != null) {
-      setTerminalTitle('dpk run ${options.script}');
-    }
-
-    if (!scriptExists && skipIfMissing) {
-      return 0;
-    }
-
-    if (scriptExists) {
-      final packagesToRunInGlobs = script.runInPackages;
-      late final bool hasToRunMultiple;
-      final packagesToRunIn = <String>[];
-
-      final workspace = config.pubspec.workspace;
-      if (packagesToRunInGlobs != null && workspace == null) {
-        throw StateError(
-          'No workspace packages configured, '
-          'but you have runInPackages configured',
-        );
-      }
-
-      if (packagesToRunInGlobs == null) {
-        hasToRunMultiple = false;
-      } else if (packagesToRunInGlobs.isEmpty) {
-        hasToRunMultiple = false;
-      } else {
-        for (final pattern in packagesToRunInGlobs) {
-          final glob = Glob(pattern);
-          for (final package in workspace!) {
-            if (glob.matches(package)) {
-              packagesToRunIn.add(package);
-            }
-          }
-        }
-        hasToRunMultiple = packagesToRunIn.length > 1;
-      }
-
-      if (script.command.isEmpty) {
-        throw StateError('Script command is empty');
-      }
-
-      final command = script.command.trim();
-
-      final finalScript = [
-        command,
-        if (arguments.isNotEmpty) ...arguments.map(shellQuote),
-      ];
-      final finalScriptCommand = finalScript.join(' ');
-
-      // Resolve workspace root for DPK_ROOT env var and package paths
-      final workspaceRoot = config.workspaceRoot ?? config.workingDirectory;
-      final scriptEnvironment = _buildScriptEnvironment(
-        script,
-        scriptName: options.script,
-      );
-
-      if (hasToRunMultiple) {
-        final processExitCodesFutures =
-            <Future<({String package, int exitCode})>>[];
-        final terminalWidth = TerminalLogUtil.getTerminalWidth(stdout);
-        final maxLineWidth = terminalWidth - TerminalLogUtil.indentLength;
-        final indentBytes = '    '.codeUnits;
-
-        for (final package in packagesToRunIn) {
-          // Resolve package path relative to workspace root
-          final packagePath = path.join(workspaceRoot, package);
-
-          final process = await Process.start(
-            getShell(),
-            _wrapCommandForPty(finalScriptCommand),
-            runInShell: false,
-            workingDirectory: packagePath,
-            environment: {...?scriptEnvironment, 'DPK_ROOT': workspaceRoot},
-          );
-
-          TerminalLogUtil.setupStreamHandlers(
-            stream: process.stdout,
-            packageName: package,
-            outputSink: stdout,
-            maxLineWidth: maxLineWidth,
-            indentBytes: indentBytes,
-          );
-
-          TerminalLogUtil.setupStreamHandlers(
-            stream: process.stderr,
-            packageName: package,
-            outputSink: stderr,
-            maxLineWidth: maxLineWidth,
-            indentBytes: indentBytes,
-          );
-
-          processExitCodesFutures.add(
-            process.exitCode.then(
-              (exitCode) => (package: package, exitCode: exitCode),
-            ),
-          );
-        }
-
-        final results = await Future.wait(processExitCodesFutures);
-
-        stdout.writeln();
-        stdout.writeln('Summary:');
-        var hasFailure = false;
-        for (final result in results) {
-          final status = result.exitCode == 0 ? '✓' : '✗';
-          final statusColor = result.exitCode == 0 ? '\x1b[32m' : '\x1b[31m';
-          final resetColor = '\x1b[0m';
-          stdout.writeln(
-            '  $statusColor$status$resetColor ${result.package} (exit code: ${result.exitCode})',
-          );
-          if (result.exitCode != 0) {
-            hasFailure = true;
-          }
-        }
-
-        return hasFailure ? 1 : 0;
-      }
-
-      final process = await Process.start(
-        getShell(),
-        getShellCommandArgs(finalScriptCommand),
-        runInShell: false,
-        workingDirectory: packagesToRunIn.isNotEmpty
-            ? path.join(workspaceRoot, packagesToRunIn.first)
-            : targetDirectory,
-        environment: packagesToRunIn.isNotEmpty
-            ? {...?scriptEnvironment, 'DPK_ROOT': workspaceRoot}
-            : scriptEnvironment,
-        mode: ProcessStartMode.inheritStdio,
-      );
-
-      return process.exitCode;
-    }
-
-    // If we get here, the script doesn't exist in dpk.yaml
-    final availableScripts = config.scripts?.scriptsMap.keys.toList() ?? [];
-    throw StateError(
-      'Script "${options.script}" not found in dpk.yaml.\n'
-      'Available scripts: ${availableScripts.isEmpty ? 'none' : availableScripts.join(', ')}',
-    );
-  }
-
-  ({List<IntCallback> before, List<IntCallback> after}) _getHooks({
-    required ConfigData config,
-    required RunOptions options,
-    required List<String> arguments,
-    required String targetDirectory,
-  }) {
-    final script = config.scripts?.scriptsMap[options.script];
-    final commandName = script?.runHooksFrom ?? options.script;
-
-    if (commandName == null || _isHookScriptName(commandName)) {
-      return (before: [], after: []);
-    }
-
-    final scriptsMap = config.scripts?.scriptsMap;
-    final preHookName = 'pre:$commandName';
-    final postHookName = 'post:$commandName';
-    final beforeHooks = <IntCallback>[];
-    final afterHooks = <IntCallback>[];
-
-    final beforeHook = scriptsMap?['before'];
-    if (beforeHook != null &&
-        _hookAppliesTo(beforeHook, commandName) &&
-        _canRunHook('before')) {
-      beforeHooks.add(
-        () => _runScript(
-          config: config,
-          options: options.copyWith(script: 'before'),
-          arguments: [],
-          targetDirectory: targetDirectory,
+    return withTerminalTitle(
+      context.console,
+      'dpk run ${script.name}',
+      () => context.withHooks(
+        script.name,
+        hooksFrom: script.runHooksFrom,
+        (stack) => context.runScript(
+          script,
+          stack: stack,
+          arguments: arguments,
+          filters: selection.filters,
+          concurrency: selection.concurrency,
+          failFast: selection.failFast,
+          dependencyOrder: selection.dependencyOrder,
         ),
-      );
-    }
-
-    if (scriptsMap?.containsKey(preHookName) == true &&
-        _canRunHook(preHookName)) {
-      beforeHooks.add(
-        () => _runScript(
-          config: config,
-          options: options.copyWith(script: preHookName),
-          arguments: [],
-          targetDirectory: targetDirectory,
-        ),
-      );
-    }
-
-    if (scriptsMap?.containsKey(postHookName) == true &&
-        _canRunHook(postHookName)) {
-      afterHooks.add(
-        () => _runScript(
-          config: config,
-          options: options.copyWith(script: postHookName),
-          arguments: [],
-          targetDirectory: targetDirectory,
-        ),
-      );
-    }
-
-    final afterHook = scriptsMap?['after'];
-    if (afterHook != null &&
-        _hookAppliesTo(afterHook, commandName) &&
-        _canRunHook('after')) {
-      afterHooks.add(
-        () => _runScript(
-          config: config,
-          options: options.copyWith(script: 'after'),
-          arguments: [],
-          targetDirectory: targetDirectory,
-        ),
-      );
-    }
-
-    return (before: beforeHooks, after: afterHooks);
-  }
-
-  bool _canRunHook(String hookName) {
-    if (!_currentHookStack().contains(hookName)) {
-      return true;
-    }
-
-    stderr.writeln(
-      'Skipping recursive hook "$hookName" to avoid an infinite hook loop.',
+      ),
     );
-    return false;
-  }
-
-  bool _hookAppliesTo(Script hook, String scriptName) {
-    if (hook.all) {
-      return true;
-    }
-
-    return hook.scripts?.contains(scriptName) == true;
-  }
-
-  bool _isHookScriptName(String scriptName) {
-    return scriptName == 'before' ||
-        scriptName == 'after' ||
-        scriptName.startsWith('pre:') ||
-        scriptName.startsWith('post:');
-  }
-
-  Map<String, String>? _buildScriptEnvironment(
-    Script script, {
-    required String? scriptName,
-  }) {
-    final environment = {...?script.env};
-
-    if (scriptName != null && _isHookScriptName(scriptName)) {
-      environment[_hookStackEnvKey] = [
-        ..._currentHookStack(),
-        scriptName,
-      ].join(_hookStackSeparator);
-    }
-
-    return environment.isEmpty ? null : environment;
-  }
-
-  List<String> _currentHookStack() {
-    final encodedStack = Platform.environment[_hookStackEnvKey];
-    if (encodedStack == null || encodedStack.isEmpty) {
-      return const [];
-    }
-
-    return encodedStack.split(_hookStackSeparator);
   }
 }

@@ -42,32 +42,32 @@ scripts:
     command: pwd
   pubget:
     command: dart pub get
-    runInPackages:
+    run_in_packages:
       - "**/*"
   pwd:
     command: pwd
-    runInPackages:
+    run_in_packages:
       - "**/*"
   pwd_from_root:
     command: 'echo "ROOT: $DPK_ROOT" && cd $DPK_ROOT && pwd'
-    runInPackages:
+    run_in_packages:
       - "**/*"
 
   pre:build:
     command: dart run build_runner clean
-    runInPackages:
+    run_in_packages:
       - "**/*"
   build:
     command: dart run build_runner build -d
-    runInPackages:
+    run_in_packages:
       - "**/*"
   post:build: echo "Build completed successfully"
 
   pre:only_1:
     command: 'echo "Pre script: $(pwd)"'
-    runInPackages:
+    run_in_packages:
       - "packages/*"
   only_1:
     command: 'echo "Only script: $(pwd)"'
-    runInPackages:
+    run_in_packages:
       - "**/*"

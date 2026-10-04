@@ -1,6 +1,0 @@
-name: pkg_with_dpk
-
-resolution: workspace
-
-environment:
-  sdk: ^3.11.0

@@ -1,179 +1,198 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
+import 'package:dpk/commands/exec_command.dart';
 import 'package:dpk/commands/get_command.dart';
 import 'package:dpk/commands/init_command.dart';
-import 'package:dpk/commands/parent_commands/patch_command.dart';
+import 'package:dpk/commands/list_command.dart';
+import 'package:dpk/commands/patch_command.dart';
 import 'package:dpk/commands/pub_passthrough_command.dart';
 import 'package:dpk/commands/run_command.dart';
 import 'package:dpk/commands/skills_command.dart';
-import 'package:dpk/config/config.dart';
-import 'package:dpk/config/data/config_data.dart';
-import 'package:dpk/constants/pubspec.dart';
-import 'package:dpk/core/injection_container.dart';
-import 'package:dpk/utils/globals/global_args.dart';
-import 'package:dpk/utils/terminal_title.dart';
+import 'package:dpk/config/config_reader.dart';
+import 'package:dpk/config/project.dart';
+import 'package:dpk/core/console.dart';
+import 'package:dpk/core/context.dart';
+import 'package:dpk/core/errors.dart';
+import 'package:dpk/core/invocation.dart';
+import 'package:dpk/core/process_runner.dart';
+import 'package:dpk/scripts/run_plan.dart';
 import 'package:dpk/utils/version_output.dart';
-import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
-final class DpkCommandRunner extends CompletionCommandRunner<int> {
-  final ConfigData? config;
-  final List<String> args;
+/// Runs dpk with [arguments] and returns the exit code.
+///
+/// Tests pass a buffered [console], a fake [processRunner], and a
+/// [workingDirectory] to run dpk in-process.
+Future<int> runDpk(
+  List<String> arguments, {
+  Console? console,
+  ProcessRunner? processRunner,
+  String? workingDirectory,
+  Map<String, String>? environment,
+}) async {
+  final Invocation invocation;
+  try {
+    invocation = Invocation.parse(arguments);
+  } on UsageException catch (e) {
+    (console ?? Console.stdio()).err.writeln(e);
+    return 64;
+  }
 
-  DpkCommandRunner._({
-    required String executableName,
-    required String description,
-    required this.config,
-    required this.args,
-  }) : super(executableName, description) {
-    addGlobalArgs(argParser);
-    argParser.addFlag(
-      'version',
-      negatable: false,
-      help: 'Print the version and exit.',
+  final output = console ?? Console.stdio(color: invocation.color);
+  output
+    ..verbose = invocation.verbose
+    ..quiet = invocation.quiet;
+
+  if (invocation.version && invocation.command == null) {
+    output.info(renderVersionOutput());
+    return 0;
+  }
+
+  final cwd = workingDirectory ?? Directory.current.path;
+  try {
+    final start = invocation.directory == null
+        ? cwd
+        : _resolve(cwd, invocation.directory!);
+    final project = invocation.needsProject
+        ? Project.load(start, cacheDirectoryOverride: invocation.cacheDirectory)
+        : _tryLoad(start, invocation);
+    for (final warning in project?.warnings ?? const []) {
+      output.warning(warning.toString());
+    }
+
+    final context = DpkContext(
+      invocation: invocation,
+      console: output,
+      processRunner: processRunner ?? SystemProcessRunner(output),
+      workingDirectory: cwd,
+      environment: environment ?? Platform.environment,
+      project: project,
     );
-  }
-
-  static Future<DpkCommandRunner> _create({
-    required String executableName,
-    required String description,
-    required List<String> args,
-  }) async {
-    // Skip config loading for help requests
-    final isHelpRequest =
-        args.contains('--help') || args.contains('-h') || args.isEmpty;
-
-    ConfigData? config;
-    final topLevelCommand = _extractTopLevelCommand(args);
-    final isConfiglessRequest =
-        topLevelCommand == 'init' || topLevelCommand == 'skills';
-
-    if (!isHelpRequest && !isConfiglessRequest) {
-      final directoryArg = extractDirectoryArg(args);
-      final startDirectory = directoryArg != null
-          ? Directory(directoryArg)
-          : Directory.current;
-
-      final dpkYamlDir = await findDpkYamlDirectory(startDirectory);
-      final Directory workingDirectory = dpkYamlDir ?? startDirectory;
-
-      config = await loadConfig(workingDirectory);
-    }
-
-    return DpkCommandRunner._(
-      executableName: executableName,
-      description: description,
-      config: config,
-      args: args,
-    );
-  }
-
-  static Future<DpkCommandRunner> init(List<String> arguments) async {
-    Logger.root.onRecord.listen((record) {
-      final nameSubString = record.loggerName.isNotEmpty
-          ? ' [${record.loggerName}]'
-          : '';
-      // ignore: avoid_print
-      print('[${record.level.name}]$nameSubString : ${record.message}');
-    });
-
-    final runner = await DpkCommandRunner._create(
-      executableName: 'dpk',
-      description: 'An alternative package manager for Dart',
-      args: arguments,
-    );
-
-    if (runner.config != null) {
-      container.registerSingleton<ConfigData>(runner.config!);
-    }
-
-    runner
-      ..addCommand(InitCommand())
-      ..addCommand(SkillsCommand())
-      ..addCommand(GetCommand())
-      ..addCommand(PatchCommand());
-
-    for (final definition in pubPassthroughCommandDefinitions) {
-      runner.addCommand(PubPassthroughCommand.fromDefinition(definition));
-    }
-
-    // RunCommand accesses config in its constructor, so only add it when config is available
-    if (runner.config != null) {
-      runner.addCommand(RunCommand());
-    }
-
-    return runner;
-  }
-
-  @override
-  Future<int?> runCommand(ArgResults topLevelResults) async {
-    if (topLevelResults.flag('version')) {
-      // ignore: avoid_print
-      print(renderVersionOutput());
-      return 0;
-    }
-
-    if (topLevelResults.flag('help') == false && config != null) {
-      final requiredVersion = config!.dpkConfig.version;
-      if (!requiredVersion.allows(dpkVersion)) {
-        // ignore: avoid_print
-        print(
-          'Error: dpk version ${pubspec.version} does not satisfy '
-          'required version constraint "$requiredVersion" in dpk.yaml',
-        );
-        return 1;
-      }
-    }
-
-    final commandName = topLevelResults.command?.name;
-    if (commandName != null) {
-      setTerminalTitle('dpk $commandName');
-    } else {
-      setTerminalTitle('dpk');
-    }
-
-    try {
-      return await super.runCommand(topLevelResults);
-    } finally {
-      restoreTerminalTitle();
-    }
-  }
-
-  Future<int?> runDpk() {
-    return super.run(args);
+    return await DpkCommandRunner(context).run(invocation.runnerArguments) ?? 0;
+  } on UsageException catch (e) {
+    output.err.writeln(e);
+    return 64;
+  } on DpkException catch (e) {
+    output.error(e.message);
+    return e.exitCode;
+  } on ProjectException catch (e) {
+    output.error(e.message);
+    return 1;
+  } on ConfigException catch (e) {
+    output.error(e.toString());
+    return 1;
+  } on RunPlanException catch (e) {
+    output.error(e.message);
+    return 1;
   }
 }
 
-String? _extractTopLevelCommand(List<String> args) {
-  for (var i = 0; i < args.length; i++) {
-    final arg = args[i];
-    if (arg == '--') {
-      return null;
-    }
+String _resolve(String cwd, String path) => p.normalize(p.join(cwd, path));
 
-    if (arg == '--directory' ||
-        arg == '--cache-dir' ||
-        arg == '-C' ||
-        arg == '-d') {
-      i++;
-      continue;
-    }
+/// Loads the project for commands that work without one, such as help and
+/// shell completion, so they can list scripts. Problems are ignored.
+Project? _tryLoad(String start, Invocation invocation) {
+  final listsScripts =
+      invocation.command == null ||
+      invocation.help ||
+      const {'help', 'completion'}.contains(invocation.command);
+  if (!listsScripts) {
+    return null;
+  }
+  try {
+    return Project.load(
+      start,
+      cacheDirectoryOverride: invocation.cacheDirectory,
+    );
+  } on Exception {
+    return null;
+  }
+}
 
-    if (arg.startsWith('--directory=') || arg.startsWith('--cache-dir=')) {
-      continue;
-    }
+final class DpkCommandRunner extends CompletionCommandRunner<int> {
+  DpkCommandRunner(this.context)
+    : super(
+        'dpk',
+        'A package manager for Dart that adds scripts, hooks, workspace '
+            'catalogs, and dependency patches to dart pub.',
+      ) {
+    argParser
+      ..addOption(
+        'directory',
+        abbr: 'C',
+        valueHelp: 'dir',
+        help: 'Run as if dpk was started in <dir>.',
+      )
+      ..addOption(
+        'cache-dir',
+        valueHelp: 'dir',
+        help:
+            'Use <dir> as the project cache in project mode. Default: '
+            'pub_packages, or cache_dir in dpk.yaml.',
+      )
+      ..addFlag(
+        'verbose',
+        abbr: 'v',
+        negatable: false,
+        help: 'Print what dpk runs, and pass --verbose to pub.',
+      )
+      ..addFlag(
+        'quiet',
+        abbr: 'q',
+        negatable: false,
+        help: 'Do not print the scripts and hooks dpk runs.',
+      )
+      ..addFlag(
+        'color',
+        help: 'Use colors. Default: on in a terminal unless NO_COLOR is set.',
+      )
+      ..addFlag(
+        'version',
+        negatable: false,
+        help: 'Print the dpk and Dart versions.',
+      );
 
-    if ((arg.startsWith('-C') || arg.startsWith('-d')) && arg.length > 2) {
-      continue;
+    addCommand(GetCommand(context));
+    addCommand(RunCommand(context));
+    addCommand(ExecCommand(context));
+    addCommand(ListCommand(context));
+    addCommand(PatchCommand(context));
+    addCommand(InitCommand(context));
+    addCommand(SkillsCommand(context));
+    for (final definition in pubPassthroughCommandDefinitions) {
+      addCommand(PubPassthroughCommand(context, definition));
     }
-
-    if (arg.startsWith('-')) {
-      continue;
-    }
-
-    return arg;
   }
 
-  return null;
+  final DpkContext context;
+
+  @override
+  bool get enableAutoInstall => false;
+
+  @override
+  String get usageFooter =>
+      '\ndpk options go before the command. Everything after the command '
+      'belongs to it.\n'
+      'Shell completion: run "dpk install-completion-files".\n'
+      'Docs: https://github.com/exaby73/dpk';
+
+  @override
+  void printUsage() => context.console.info(usage);
+
+  @override
+  Future<int?> runCommand(ArgResults topLevelResults) async {
+    final command = topLevelResults.command;
+    final runCommand = commands['run'];
+    if (command?.name == 'run' &&
+        command!.command == null &&
+        command.rest.isEmpty &&
+        runCommand is RunCommand) {
+      runCommand.printUsage();
+      return 0;
+    }
+    return super.runCommand(topLevelResults);
+  }
 }

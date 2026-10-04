@@ -1,278 +1,428 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
-void main() {
-  group('Given a descriptor-scaffolded dpk project with scripts', () {
-    late String dpkExecutable;
-    late String projectPath;
+import 'utils/dpk_test_utils.dart';
 
+void main() {
+  group('Given a package with scripts and hooks', () {
     setUp(() async {
-      dpkExecutable = path.join(Directory.current.path, 'bin', 'dpk.dart');
       await d.dir('project', [
-        d.file('pubspec.yaml', '''
-name: sample
-environment:
-  sdk: ^3.8.0
-'''),
+        d.file('pubspec.yaml', pubspec('sample')),
         d.file('dpk.yaml', '''
-version: ^0.8.0
+version: $versionConstraint
 scripts:
-  cwd: dart tool/print_cwd.dart
-  echo_args: dart tool/echo_args.dart
+  args:
+    command: printf '<%s>' --fixed
+    description: Print the arguments.
+  where: pwd
+  env:
+    command: printf '%s|%s|%s' "\$GREETING" "\$DPK_PACKAGE_NAME" "\$DPK_ROOT"
+    env:
+      GREETING: 42
   before:
-    command: dart tool/append_hook.dart before
-    scripts:
-      - build
-  pre:build: dart tool/append_hook.dart pre
-  build: dart tool/append_hook.dart build
-  post:build: dart tool/append_hook.dart post
+    command: echo before >> hook.log
+    scripts: [build]
+  pre:build: echo pre >> hook.log
+  build: echo build >> hook.log
+  post:build: echo post >> hook.log
   after:
-    command: dart tool/append_hook.dart after
-    scripts:
-      - build
-  test: dart tool/append_hook.dart test
+    command: echo after >> hook.log
+    scripts: [build]
+  watch:
+    command: echo watch >> hook.log
+    run_hooks_from: build
+  fail: exit 3
+  pre:guarded: exit 4
+  guarded: echo guarded >> hook.log
 '''),
-        d.dir('tool', [
-          d.file('print_cwd.dart', '''
-import 'dart:io';
+      ]).create();
+    });
 
-void main() {
-  print(Directory.current.path);
-}
-'''),
-          d.file('echo_args.dart', '''
-import 'dart:convert';
-import 'dart:io';
+    group('When passing options after the script name', () {
+      late DpkResult result;
 
-void main(List<String> args) {
-  print(jsonEncode(args));
-  File('injected').writeAsStringSync('created by script');
-}
-'''),
-          d.file('append_hook.dart', '''
-import 'dart:io';
+      setUp(() async {
+        result = await dpk([
+          'run',
+          'args',
+          '--coverage',
+          '-v',
+          '--help',
+          '--version',
+          '-C',
+          'x',
+          'a b',
+        ], directory: d.path('project'));
+      });
 
-void main(List<String> args) {
-  File('hook.log').writeAsStringSync(
-    '\${args.single}\\n',
-    mode: FileMode.append,
-  );
-}
+      test('Then the script receives every argument unchanged', () {
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(
+          result.stdout,
+          equals('<--fixed><--coverage><-v><--help><--version><-C><x><a b>'),
+        );
+      });
+
+      test('Then dpk prints the command it runs on stderr', () {
+        expect(
+          result.stderr,
+          contains("> args: printf '<%s>' --fixed --coverage"),
+        );
+      });
+    });
+
+    test(
+      'When a leading -- separates the arguments then it is dropped',
+      () async {
+        final result = await dpk([
+          'run',
+          'args',
+          '--',
+          '--coverage',
+        ], directory: d.path('project'));
+
+        expect(result.stdout, equals('<--fixed><--coverage>'));
+      },
+    );
+
+    test(
+      'When running a script then env values and DPK variables are set',
+      () async {
+        final result = await dpk(['run', 'env'], directory: d.path('project'));
+
+        expect(
+          result.stdout,
+          equals(
+            '42|sample|${Directory(d.path('project')).resolveSymbolicLinksSync()}',
+          ),
+        );
+      },
+    );
+
+    test('When running build then its hooks run in order', () async {
+      await dpk(['run', 'build'], directory: d.path('project'));
+
+      expect(
+        File(d.path('project/hook.log')).readAsLinesSync(),
+        equals(['before', 'pre', 'build', 'post', 'after']),
+      );
+    });
+
+    test(
+      'When a script uses run_hooks_from then the shared hooks apply too',
+      () async {
+        await dpk(['run', 'watch'], directory: d.path('project'));
+
+        expect(
+          File(d.path('project/hook.log')).readAsLinesSync(),
+          equals(['before', 'pre', 'watch', 'post', 'after']),
+        );
+      },
+    );
+
+    test('When a script fails then dpk exits with its exit code', () async {
+      final result = await dpk(['run', 'fail'], directory: d.path('project'));
+
+      expect(result.exitCode, equals(3));
+    });
+
+    test('When a pre hook fails then the script does not run', () async {
+      final result = await dpk([
+        'run',
+        'guarded',
+      ], directory: d.path('project'));
+
+      expect(result.exitCode, equals(4));
+      expect(File(d.path('project/hook.log')).existsSync(), isFalse);
+    });
+
+    group('When running dpk run without a script', () {
+      late DpkResult result;
+
+      setUp(() async {
+        result = await dpk(['run'], directory: d.path('project'));
+      });
+
+      test('Then it succeeds', () {
+        expect(result.exitCode, equals(0));
+      });
+
+      test('Then scripts show their description, or else their command', () {
+        expect(result.stdout, contains('args'));
+        expect(result.stdout, contains('Print the arguments.'));
+        expect(result.stdout, matches(RegExp(r'where +pwd')));
+      });
+
+      test('Then hooks are listed apart from scripts', () {
+        final hooks = result.stdout.substring(result.stdout.indexOf('Hooks:'));
+        expect(hooks, contains('runs before build'));
+        expect(hooks, contains('pre:build'));
+      });
+    });
+
+    test(
+      'When running dpk run --help then it shows the same listing',
+      () async {
+        final result = await dpk([
+          'run',
+          '--help',
+        ], directory: d.path('project'));
+
+        expect(result.stdout, contains('Scripts:'));
+      },
+    );
+
+    test(
+      'When the script name is misspelled then dpk suggests the right one',
+      () async {
+        final result = await dpk([
+          'run',
+          'biuld',
+        ], directory: d.path('project'));
+
+        expect(result.exitCode, equals(64));
+        expect(result.stderr, contains('build'));
+      },
+    );
+  });
+
+  group('Given a workspace with three packages', () {
+    setUp(() async {
+      await d.dir('repo', [
+        d.file(
+          'pubspec.yaml',
+          pubspec(
+            'root',
+            extra:
+                'workspace:\n  - packages/a\n  - packages/b\n  - packages/c\n',
+          ),
+        ),
+        d.file('dpk.yaml', '''
+version: $versionConstraint
+scripts:
+  where: pwd
+  each:
+    command: printf 'in %s' "\$DPK_PACKAGE_NAME"
+    run_in_packages: [packages/*]
+  typo:
+    command: echo hi
+    run_in_packages: [pakages/*]
+  failing:
+    command: if [ "\$DPK_PACKAGE_NAME" = b ]; then exit 5; fi; echo ok
+    run_in_packages: [packages/*]
+  ordered:
+    command: echo "\$DPK_PACKAGE_NAME" >> "\$DPK_ROOT/order.log"
+    run_in_packages: [packages/*]
+    dependency_order: true
+    concurrency: 1
+  tail:
+    command: printf 'no newline'
+    run_in_packages: [packages/a, packages/b]
 '''),
+        d.dir('packages', [
+          d.dir('a', [
+            d.file(
+              'pubspec.yaml',
+              pubspec(
+                'a',
+                extra: 'resolution: workspace\ndependencies:\n  c: any\n',
+              ),
+            ),
+            d.dir('lib'),
+          ]),
+          d.dir('b', [
+            d.file(
+              'pubspec.yaml',
+              pubspec(
+                'b',
+                extra: 'resolution: workspace\ndependencies:\n  a: any\n',
+              ),
+            ),
+          ]),
+          d.dir('c', [
+            d.file(
+              'pubspec.yaml',
+              pubspec('c', extra: 'resolution: workspace\n'),
+            ),
+          ]),
         ]),
       ]).create();
-      projectPath = d.path('project');
     });
 
-    group('When running a script through -C from another directory', () {
-      late ProcessResult result;
-
-      setUp(() async {
-        result = await runDpk(dpkExecutable, ['-C', projectPath, 'run', 'cwd']);
-      });
-
-      test('Then the script runs in the target project directory', () {
-        expect(result.exitCode, equals(0));
-        expect(result.stdout.toString(), contains(projectPath));
-      });
-    });
-
-    group('When running a script through run -C from another directory', () {
-      late ProcessResult result;
-
-      setUp(() async {
-        result = await runDpk(dpkExecutable, ['run', '-C', projectPath, 'cwd']);
-      });
-
-      test('Then the script runs in the target project directory', () {
-        expect(result.exitCode, equals(0));
-        expect(result.stdout.toString(), contains(projectPath));
-      });
-    });
-
-    group('When forwarding a shell metacharacter argument to a script', () {
-      late ProcessResult result;
-      late File injectedByShell;
-
-      setUp(() async {
-        injectedByShell = File(path.join(projectPath, 'shell_injected'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
+    test(
+      'When running a script from a workspace package then it runs there',
+      () async {
+        final result = await dpk([
           'run',
-          'echo_args',
-          'value; touch shell_injected',
-        ]);
+          'where',
+        ], directory: d.path('repo/packages/a/lib'));
+
+        expect(result.stdout.trim(), equals(_real(d.path('repo/packages/a'))));
+      },
+    );
+
+    test(
+      'When running a script with -C then it runs in that package',
+      () async {
+        final result = await dpk([
+          '-C',
+          'packages/b',
+          'run',
+          'where',
+        ], directory: d.path('repo'));
+
+        expect(result.stdout.trim(), equals(_real(d.path('repo/packages/b'))));
+      },
+    );
+
+    group('When running a script in several packages', () {
+      late DpkResult result;
+
+      setUp(() async {
+        result = await dpk(['run', 'each'], directory: d.path('repo'));
       });
 
-      test('Then the argument is delivered as data', () {
-        final outputLines = const LineSplitter()
-            .convert(result.stdout.toString())
-            .where((line) => line.trim().startsWith('['))
-            .toList();
+      test('Then each line is prefixed with its package', () {
+        expect(result.stdout, contains('a | in a'));
+        expect(result.stdout, contains('b | in b'));
+        expect(result.stdout, contains('c | in c'));
+      });
 
-        expect(result.exitCode, equals(0));
+      test('Then a summary lists every package', () {
+        expect(result.stderr, contains('✓ a'));
+        expect(result.stderr, contains('✓ c'));
+      });
+
+      test('Then no color codes are written to a non-terminal', () {
+        expect(result.stdout + result.stderr, isNot(contains('\x1b[')));
+      });
+    });
+
+    test('When the last line has no newline then it still appears', () async {
+      final result = await dpk(['run', 'tail'], directory: d.path('repo'));
+
+      expect(result.stdout, contains('a | no newline'));
+      expect(result.stdout, contains('b | no newline'));
+    });
+
+    test(
+      'When run_in_packages matches nothing then dpk fails and lists packages',
+      () async {
+        final result = await dpk(['run', 'typo'], directory: d.path('repo'));
+
+        expect(result.exitCode, equals(1));
+        expect(result.stderr, contains('matches no workspace packages'));
+        expect(result.stderr, contains('a (packages/a)'));
+      },
+    );
+
+    test('When one package fails then dpk exits with that exit code', () async {
+      final result = await dpk(['run', 'failing'], directory: d.path('repo'));
+
+      expect(result.exitCode, equals(5));
+      expect(result.stderr, contains('✗ b (exit code 5)'));
+    });
+
+    test(
+      'When --fail-fast is set and a package fails then later ones are skipped',
+      () async {
+        final result = await dpk([
+          'run',
+          '-j',
+          '1',
+          '--fail-fast',
+          'failing',
+        ], directory: d.path('repo'));
+
+        expect(result.exitCode, equals(5));
+        expect(result.stderr, contains('- c (stopped by --fail-fast)'));
+      },
+    );
+
+    test('When --filter selects a package then only it runs', () async {
+      final result = await dpk([
+        'run',
+        '--filter',
+        'b',
+        'each',
+      ], directory: d.path('repo'));
+
+      expect(result.stdout.trim(), equals('in b'));
+    });
+
+    test(
+      'When dependency order is on then dependencies finish first',
+      () async {
+        await dpk(['run', 'ordered'], directory: d.path('repo'));
+
         expect(
-          jsonDecode(outputLines.single),
-          equals(['value; touch shell_injected']),
+          File(d.path('repo/order.log')).readAsLinesSync(),
+          equals(['c', 'a', 'b']),
         );
+      },
+    );
+
+    group('When running dpk exec', () {
+      late DpkResult result;
+
+      setUp(() async {
+        result = await dpk([
+          'exec',
+          '--filter',
+          'packages/a',
+          '--filter',
+          'c',
+          '--',
+          'printf',
+          '%s-%s',
+          r'$DPK_PACKAGE_NAME',
+          'x',
+        ], directory: d.path('repo'));
       });
 
-      test('Then the shell does not execute the argument', () {
-        expect(injectedByShell.existsSync(), isFalse);
+      test('Then the command runs in the selected packages', () {
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(result.stdout, contains(r'a | $DPK_PACKAGE_NAME-x'));
+        expect(result.stdout, contains(r'c | $DPK_PACKAGE_NAME-x'));
+        expect(result.stdout, isNot(contains('b |')));
       });
     });
 
-    group('When running a script with targeted before and after hooks', () {
-      late ProcessResult result;
-      late File hookLog;
+    test(
+      'When dpk exec gets one argument then it runs as a shell command line',
+      () async {
+        final result = await dpk([
+          'exec',
+          '--filter',
+          'a',
+          r'echo "$DPK_PACKAGE_NAME" && echo done',
+        ], directory: d.path('repo'));
+
+        expect(result.stdout.trim().split('\n'), equals(['a', 'done']));
+      },
+    );
+
+    group('When running dpk list', () {
+      late DpkResult result;
 
       setUp(() async {
-        hookLog = File(path.join(projectPath, 'hook.log'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
-          'run',
-          'build',
-        ]);
+        result = await dpk(['list', '--graph'], directory: d.path('repo'));
       });
 
-      test('Then the targeted hooks wrap the exact hooks', () {
-        expect(result.exitCode, equals(0));
-        expect(
-          hookLog.readAsLinesSync(),
-          equals(['before', 'pre', 'build', 'post', 'after']),
-        );
-      });
-    });
-
-    group('When running a script outside a targeted before and after list', () {
-      late ProcessResult result;
-      late File hookLog;
-
-      setUp(() async {
-        hookLog = File(path.join(projectPath, 'hook.log'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
-          'run',
-          'test',
-        ]);
+      test('Then every package is listed with its path', () {
+        expect(result.stdout, contains('packages/a'));
+        expect(result.stdout, contains('packages/c'));
       });
 
-      test('Then the targeted hooks are skipped', () {
-        expect(result.exitCode, equals(0));
-        expect(hookLog.readAsLinesSync(), equals(['test']));
-      });
-    });
-
-    group('When all is true on a hook script', () {
-      late ProcessResult result;
-      late File hookLog;
-
-      setUp(() async {
-        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
-        dpkYaml.writeAsStringSync('''
-version: ^0.8.0
-scripts:
-  before:
-    command: dart tool/append_hook.dart before_all
-    scripts:
-      - ignored
-    all: true
-  after:
-    command: dart tool/append_hook.dart after_all
-    scripts:
-      - ignored
-    all: true
-  test: dart tool/append_hook.dart test
-''');
-        hookLog = File(path.join(projectPath, 'hook.log'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
-          'run',
-          'test',
-        ]);
-      });
-
-      test('Then scripts is ignored and the hook applies', () {
-        expect(result.exitCode, equals(0));
-        expect(
-          hookLog.readAsLinesSync(),
-          equals(['before_all', 'test', 'after_all']),
-        );
-      });
-    });
-
-    group('When a before hook recursively invokes a matching script', () {
-      late ProcessResult result;
-      late File hookLog;
-
-      setUp(() async {
-        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
-        dpkYaml.writeAsStringSync('''
-version: ^0.8.0
-scripts:
-  before:
-    command: dart $dpkExecutable run build
-    all: true
-  build: dart tool/append_hook.dart build
-  test: dart tool/append_hook.dart test
-''');
-        hookLog = File(path.join(projectPath, 'hook.log'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
-          'run',
-          'test',
-        ]);
-      });
-
-      test('Then the recursive before hook is skipped', () {
-        expect(result.exitCode, equals(0));
-        expect(hookLog.readAsLinesSync(), equals(['build', 'test']));
-        expect(result.stderr.toString(), contains('recursive hook "before"'));
-      });
-    });
-
-    group('When an after hook recursively invokes a matching script', () {
-      late ProcessResult result;
-      late File hookLog;
-
-      setUp(() async {
-        final dpkYaml = File(path.join(projectPath, 'dpk.yaml'));
-        dpkYaml.writeAsStringSync('''
-version: ^0.8.0
-scripts:
-  after:
-    command: dart $dpkExecutable run report
-    all: true
-  report: dart tool/append_hook.dart report
-  test: dart tool/append_hook.dart test
-''');
-        hookLog = File(path.join(projectPath, 'hook.log'));
-        result = await runDpk(dpkExecutable, [
-          '-C',
-          projectPath,
-          'run',
-          'test',
-        ]);
-      });
-
-      test('Then the recursive after hook is skipped', () {
-        expect(result.exitCode, equals(0));
-        expect(hookLog.readAsLinesSync(), equals(['test', 'report']));
-        expect(result.stderr.toString(), contains('recursive hook "after"'));
+      test('Then the graph shows workspace dependencies', () {
+        expect(result.stdout, contains('└─ c'));
       });
     });
   });
 }
 
-Future<ProcessResult> runDpk(String executable, List<String> arguments) {
-  return Process.run('dart', [executable, ...arguments]);
-}
+String _real(String path) =>
+    p.normalize(Directory(path).resolveSymbolicLinksSync());

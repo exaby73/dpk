@@ -1,9 +1,0 @@
-name: _
-
-environment:
-  sdk: ^3.11.0
-
-workspace:
-  - packages/pkg_with_dpk
-  - packages/pkg_without_dpk
-  - packages/pkg_with_forbidden_fields

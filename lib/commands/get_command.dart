@@ -1,366 +1,148 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
-import 'package:dpk/config/data/catalog.dart';
-import 'package:dpk/config/data/dpk_workspace_environment.dart';
+import 'package:dpk/catalog/pubspec_updates.dart';
+import 'package:dpk/commands/dpk_command.dart';
+import 'package:dpk/config/config_migration.dart';
+import 'package:dpk/config/config_reader.dart';
 import 'package:dpk/core/constants.dart';
-import 'package:dpk/core/mixins/config_mixin.dart';
-import 'package:dpk/core/mixins/hook_runner_mixin.dart';
-import 'package:dpk/core/mixins/process_handler_mixin.dart';
-import 'package:dpk/core/mixins/pub_env_mixin.dart';
-import 'package:dpk/utils/catalog_comment_utils.dart';
-import 'package:dpk/utils/catalog_utils.dart';
-import 'package:dpk/utils/pubspec_sorter.dart';
-import 'package:dpk/utils/globals/global_pub_args.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:logging/logging.dart';
-import 'package:path/path.dart';
-import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
-import 'package:yaml/yaml.dart';
-import 'package:yaml_edit/yaml_edit.dart';
+import 'package:dpk/patching/project_cache.dart';
+import 'package:dpk/scripts/hook_lifecycle.dart';
+import 'package:dpk/utils/terminal_title.dart';
+import 'package:path/path.dart' as p;
 
-part 'get_command.freezed.dart';
-
-final class GetCommand extends Command<int>
-    with ConfigMixin, PubEnvMixin, ProcessHandlerMixin, HookRunnerMixin {
-  @override
-  String name = 'get';
+final class GetCommand extends DpkCommand {
+  GetCommand(super.context);
 
   @override
-  String get description => 'Get dependencies';
+  final ArgParser argParser = ArgParser.allowAnything();
 
-  final logger = Logger('pub.get');
+  @override
+  String get name => 'get';
 
-  GetCommand() {
-    addGlobalPubArgs(argParser);
-    argParser.addFlag(
-      'offline',
-      help: 'Use cached packages instead of accessing the network',
-    );
-    argParser.addFlag(
-      'dry-run',
-      abbr: 'n',
-      help: "Report what dependencies would change but don't change any",
-    );
-    argParser.addFlag(
-      'enforce-lockfile',
-      help:
-          'Enforce pubspec.lock. Fail `pub get` if the current `pubspec.lock` '
-          'does not exactly specify a valid resolution of `pubspec.yaml` '
-          'or if any content hash of a hosted package has changed. '
-          'Useful for CI or deploying to production',
-      negatable: false,
-    );
-    argParser.addFlag(
-      'precompile',
-      help: 'Build executables in immediate dependencies',
-    );
-  }
+  @override
+  String get description =>
+      'Apply the catalog and sort pubspecs, then get dependencies.';
+
+  @override
+  String get category => CommandCategory.dependencies;
+
+  @override
+  bool get takesArguments => true;
+
+  @override
+  String get invocation => 'dpk get [--check] [pub get options]';
+
+  @override
+  void printUsage() => console.info(
+    '$description\n\n'
+    'Usage: $invocation\n\n'
+    '--check    Exit with code 1 if the catalog or sorting would change a '
+    'pubspec,\n'
+    '           without changing anything or getting dependencies. For CI.\n\n'
+    'Every other option is passed to "dart pub get". Run "dart pub get '
+    '--help" to see them.',
+  );
 
   @override
   Future<int> run() async {
-    final options = PubGetOptions.fromArgResults(argResults!);
+    final arguments = [...argResults!.rest];
+    if (arguments.contains('--help') || arguments.contains('-h')) {
+      printUsage();
+      return 0;
+    }
+    final check = arguments.remove('--check');
+    final dryRun = arguments.contains('--dry-run') || arguments.contains('-n');
 
-    final targetDirectory =
-        options.globalPubOptions.globalOptions.directory ??
-        config.workingDirectory;
+    return withTerminalTitle(
+      console,
+      'dpk get',
+      () => check
+          ? Future.value(_check())
+          : context.withHooks(
+              'get',
+              (stack) => _get(arguments, dryRun: dryRun, stack: stack),
+              order: HookOrder.beforeAfterTarget,
+            ),
+    );
+  }
 
-    final arguments = [
-      'pub',
-      ...buildGlobalArgs(options.globalPubOptions),
-      'get',
-      if (options.offline) '--offline',
-      if (options.dryRun) '--dry-run',
-      if (options.enforceLockfile) '--enforce-lockfile',
-      if (options.precompile) '--precompile',
-      ...argResults!.rest,
+  int _check() {
+    final project = context.requireProject;
+    final stale = [
+      for (final update in planPubspecUpdates(project))
+        if (update.changed) update.path,
+      for (final config in _configFiles())
+        if (migrateConfig(File(config).readAsStringSync()) !=
+            File(config).readAsStringSync())
+          config,
     ];
-
-    final preHookExitCode = await runPreHook(
-      commandName: 'get',
-      globalOptions: options.globalPubOptions.globalOptions,
+    if (stale.isEmpty) {
+      console.info('Every pubspec and dpk.yaml is up to date.');
+      return 0;
+    }
+    console.error(
+      'dpk get would change ${stale.length} file'
+      '${stale.length == 1 ? '' : 's'}:\n'
+      '${stale.map((path) => '  ${displayPath(path)}').join('\n')}\n'
+      'Run "dpk get" and commit the result.',
     );
-    if (preHookExitCode != 0) {
-      return preHookExitCode;
+    return 1;
+  }
+
+  Future<int> _get(
+    List<String> arguments, {
+    required bool dryRun,
+    required HookStack stack,
+  }) async {
+    final project = context.requireProject;
+
+    for (final config in _configFiles()) {
+      final before = File(config).readAsStringSync();
+      final after = migrateConfig(before);
+      if (after != before) {
+        if (dryRun) {
+          console.step(
+            '> Would rename deprecated keys in ${displayPath(config)}',
+          );
+        } else {
+          File(config).writeAsStringSync(after);
+          console.step('> Renamed deprecated keys in ${displayPath(config)}');
+        }
+      }
     }
 
-    if (options.globalPubOptions.globalOptions.isVerbose) {
-      logger.info('Running: dart ${arguments.join(' ')}');
+    final updates = planPubspecUpdates(
+      project,
+    ).where((update) => update.changed).toList();
+    if (updates.isNotEmpty) {
+      final verb = dryRun ? 'Would update' : 'Updated';
+      if (!dryRun) {
+        writePubspecUpdates(updates);
+      }
+      console.step(
+        '> $verb ${updates.map((u) => displayPath(u.path)).join(', ')}',
+      );
     }
 
-    _migrateSortPubspecKey(targetDirectory);
-
-    if (config.pubspec.name == '_') {
-      await _generateDependencyOverrides(targetDirectory);
-    }
-
-    final exitCode = await runDartProcess(
-      arguments: arguments,
-      workingDirectory: targetDirectory,
-      environment: getCacheEnv(options.globalPubOptions.cacheDir),
-    );
-
-    if (exitCode != 0) {
+    final exitCode = await context.runDart([
+      'pub',
+      ...context.pubFlags,
+      'get',
+      ...arguments,
+    ], environment: stack.toEnvironment());
+    if (exitCode != 0 || dryRun || !project.isProjectMode) {
       return exitCode;
     }
-
-    final promotedBeforeHookExitCode = await runBeforeHook(
-      commandName: 'get',
-      globalOptions: options.globalPubOptions.globalOptions,
-    );
-    if (promotedBeforeHookExitCode != 0) {
-      return promotedBeforeHookExitCode;
-    }
-
-    final postHookExitCode = await runPostHook(
-      commandName: 'get',
-      globalOptions: options.globalPubOptions.globalOptions,
-    );
-    if (postHookExitCode != 0) {
-      return postHookExitCode;
-    }
-
-    final afterHookExitCode = await runAfterHook(
-      commandName: 'get',
-      globalOptions: options.globalPubOptions.globalOptions,
-    );
-    return afterHookExitCode;
+    return ProjectCache.forProject(project, context).sync();
   }
 
-  Future<void> _generateDependencyOverrides(String targetDirectory) async {
-    final catalog = config.dpkConfig.catalog;
-    final workspaces = config.pubspec.workspace;
-
-    final originalPubspecFile = File(join(targetDirectory, 'pubspec.yaml'));
-    final originalPubspecYamlString = originalPubspecFile.readAsStringSync();
-    final originalPubspec = pubspec_parse.Pubspec.parse(
-      originalPubspecYamlString,
-    );
-    final editor = YamlEditor(originalPubspecYamlString);
-
-    if (workspaces != null && workspaces.isNotEmpty) {
-      editor.update(['workspace'], workspaces);
-    }
-
-    if (catalog != null) {
-      _applyRootCatalog(editor, originalPubspec, catalog);
-
-      for (final workspace in workspaces ?? <String>[]) {
-        _editPubspecOfWorkspace(targetDirectory, workspace, catalog);
-      }
-    }
-
-    final pubspecYamlString = editor.toString();
-    originalPubspecFile.writeAsStringSync(pubspecYamlString);
-    _sortPubspecIfEnabled(
-      originalPubspecFile,
-      catalog?.dependencies?.keys.toSet(),
-    );
-  }
-
-  void _applyRootCatalog(
-    YamlEditor editor,
-    pubspec_parse.Pubspec pubspec,
-    Catalog catalog,
-  ) {
-    if (catalog.environment != null) {
-      editor.update(
-        ['environment'],
-        catalog.environment!.map(
-          (key, value) => MapEntry(key, value?.toString()),
-        ),
-      );
-    }
-
-    updateExistingDependencies(editor, pubspec, catalog);
-  }
-
-  void _editPubspecOfWorkspace(
-    String targetDirectory,
-    String workspace,
-    Catalog catalog,
-  ) {
-    final pubspecFile = File(join(targetDirectory, workspace, 'pubspec.yaml'));
-    if (!pubspecFile.existsSync()) {
-      throw StateError('pubspec.yaml not found in $workspace');
-    }
-
-    final originalPubspec = pubspec_parse.Pubspec.parse(
-      pubspecFile.readAsStringSync(),
-    );
-    final env = _createDpkEnv(
-      originalPubspec,
-      workspace,
-      catalogVersion: catalog.version?.toString(),
-    );
-    final editor = YamlEditor(pubspecFile.readAsStringSync());
-
-    if (catalog.environment != null) {
-      editor.update(
-        ['environment'],
-        catalog.environment!.map(
-          (key, value) => MapEntry(key, value?.toString()),
-        ),
-      );
-    }
-
-    if (catalog.publishTo != null) {
-      editor.update(['publish_to'], catalog.publishTo);
-    }
-
-    if (catalog.version != null) {
-      editor.update(['version'], catalog.version.toString());
-    }
-
-    if (catalog.homepage != null) {
-      editor.update(['homepage'], env.replace(catalog.homepage!.toString()));
-    }
-
-    if (catalog.repository != null) {
-      editor.update([
-        'repository',
-      ], env.replace(catalog.repository!.toString()));
-    }
-
-    if (catalog.issueTracker != null) {
-      editor.update([
-        'issue_tracker',
-      ], env.replace(catalog.issueTracker!.toString()));
-    }
-
-    if (catalog.topics != null) {
-      if (originalPubspec.topics != null) {
-        final currentTopics = originalPubspec.topics!;
-        final topicsToEnsureExists = catalog.topics!;
-        for (final topic in topicsToEnsureExists) {
-          if (!currentTopics.contains(topic)) {
-            currentTopics.add(topic);
-          }
-        }
-        editor.update(['topics'], currentTopics);
-      } else {
-        editor.update(['topics'], catalog.topics);
-      }
-    }
-
-    if (catalog.documentation != null) {
-      editor.update(['documentation'], env.replace(catalog.documentation!));
-    }
-
-    if (catalog.funding != null) {
-      editor.update(['funding'], catalog.funding!.map(env.replace).toList());
-    }
-
-    if (catalog.platforms != null) {
-      editor.update(['platforms'], catalog.platforms);
-    }
-
-    if (catalog.resolution != null) {
-      editor.update(['resolution'], catalog.resolution);
-    }
-
-    updateExistingDependencies(editor, originalPubspec, catalog);
-
-    final yamlContent = editor.toString();
-    pubspecFile.writeAsStringSync(yamlContent);
-    _sortPubspecIfEnabled(pubspecFile, catalog.dependencies?.keys.toSet());
-  }
-
-  DpkWorkspaceEnvironment _createDpkEnv(
-    pubspec_parse.Pubspec pubspec,
-    String workspacePath, {
-    String? catalogVersion,
-  }) {
-    final packagePath = workspacePath;
-    final packageName = pubspec.name;
-    final packageVersion = pubspec.version;
-
-    return DpkWorkspaceEnvironment(
-      dpkPackagePath: packagePath,
-      dpkPackageName: packageName,
-      dpkPackageVersion: catalogVersion ?? packageVersion?.toString(),
-    );
-  }
-
-  void _sortPubspecIfEnabled(
-    File pubspecFile, [
-    Set<String>? catalogDependencyNames,
-  ]) {
-    var content = pubspecFile.readAsStringSync();
-
-    // Add catalog comments first (before sorting)
-    if (catalogDependencyNames != null && catalogDependencyNames.isNotEmpty) {
-      content = addCatalogCommentsToDependencies(
-        content,
-        catalogDependencyNames,
-      );
-    }
-
-    // Then sort if enabled (sorting now properly preserves comments on complex deps)
-    if (config.dpkConfig.sortPubspec) {
-      content = sortPubspec(content);
-    }
-
-    pubspecFile.writeAsStringSync(content);
-  }
-
-  void _migrateSortPubspecKey(String targetDirectory) {
-    final configFile = File(join(targetDirectory, kConfigFileName));
-    if (!configFile.existsSync()) {
-      return;
-    }
-
-    final content = configFile.readAsStringSync();
-    final yaml = loadYaml(content);
-    if (yaml is! YamlMap) {
-      return;
-    }
-
-    final editor = YamlEditor(content);
-    var changed = false;
-
-    void migrateAt(YamlMap map, List<Object> path) {
-      if (!map.containsKey('sortPubspec')) {
-        return;
-      }
-
-      if (!map.containsKey('sort_pubspec')) {
-        editor.update([...path, 'sort_pubspec'], map['sortPubspec']);
-      }
-      editor.remove([...path, 'sortPubspec']);
-      changed = true;
-    }
-
-    migrateAt(yaml, const []);
-    final nestedDpk = yaml['dpk'];
-    if (nestedDpk is YamlMap) {
-      migrateAt(nestedDpk, const ['dpk']);
-    }
-
-    if (changed) {
-      configFile.writeAsStringSync(editor.toString());
-    }
-  }
-}
-
-@freezed
-abstract class PubGetOptions with _$PubGetOptions {
-  const factory PubGetOptions({
-    required GlobalPubOptions globalPubOptions,
-    required bool offline,
-    required bool dryRun,
-    required bool enforceLockfile,
-    required bool precompile,
-  }) = _PubGetOptions;
-
-  factory PubGetOptions.fromArgResults(ArgResults results) {
-    return PubGetOptions(
-      globalPubOptions: GlobalPubOptions.fromArgResults(results),
-      offline: results.flag('offline'),
-      dryRun: results.flag('dry-run'),
-      enforceLockfile: results.flag('enforce-lockfile'),
-      precompile: results.flag('precompile'),
-    );
+  /// The root `dpk.yaml` and the current package's own `dpk.yaml`.
+  List<String> _configFiles() {
+    final project = context.requireProject;
+    return {
+      project.configPath,
+      p.join(project.workspace.current.path, kConfigFileName),
+    }.where((path) => File(path).existsSync()).toList();
   }
 }

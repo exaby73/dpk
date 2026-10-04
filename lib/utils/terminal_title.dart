@@ -1,62 +1,31 @@
 import 'dart:io';
 
-String? _originalTitle;
-bool _isSupported = true;
+import 'package:dpk/core/console.dart';
 
-void setTerminalTitle(String title) {
-  if (!_isSupported || !_isTerminalCapable()) {
-    return;
+/// Shows [title] in the terminal while [body] runs, then restores the
+/// previous title.
+///
+/// Uses the xterm title stack (`CSI 22;0t` saves, `CSI 23;0t` restores), so
+/// the user's own title comes back instead of a guess. Does nothing when the
+/// console is not an interactive terminal.
+Future<T> withTerminalTitle<T>(
+  Console console,
+  String title,
+  Future<T> Function() body,
+) async {
+  final enabled =
+      console.isStdio &&
+      console.hasTerminal &&
+      Platform.environment['TERM'] != 'dumb' &&
+      !Platform.isWindows;
+  if (!enabled) {
+    return body();
   }
 
+  stdout.write('\x1b[22;0t\x1b]0;$title\x07');
   try {
-    if (_originalTitle == null) {
-      _captureOriginalTitle();
-    }
-
-    stdout.write('\x1b]2;$title\x07');
-    stdout.write('\x1b]0;$title\x07');
-  } catch (e) {
-    _isSupported = false;
+    return await body();
+  } finally {
+    stdout.write('\x1b[23;0t');
   }
-}
-
-void restoreTerminalTitle() {
-  if (!_isSupported || _originalTitle == null || !_isTerminalCapable()) {
-    return;
-  }
-
-  try {
-    stdout.write('\x1b]2;$_originalTitle\x07');
-    stdout.write('\x1b]0;$_originalTitle\x07');
-  } catch (e) {
-    _isSupported = false;
-  }
-}
-
-void _captureOriginalTitle() {
-  final terminalProgram = Platform.environment['TERM_PROGRAM'];
-  final term = Platform.environment['TERM'];
-
-  if (terminalProgram != null || term != null) {
-    _originalTitle = Platform.environment['PWD']?.split('/').last ?? 'Terminal';
-  }
-}
-
-bool _isTerminalCapable() {
-  if (!stdout.hasTerminal) {
-    return false;
-  }
-
-  final term = Platform.environment['TERM'];
-
-  if (term == 'dumb') {
-    return false;
-  }
-
-  return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
-}
-
-void resetTerminalTitle() {
-  _originalTitle = null;
-  _isSupported = true;
 }
