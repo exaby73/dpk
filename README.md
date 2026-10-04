@@ -41,7 +41,7 @@ dpk is a package manager for Dart. It wraps `dart pub`, so `dpk get`, `dpk add`,
 - **Workspace runs with control.** `--filter`, `--concurrency`, `--fail-fast`, and `--dependency-order`, plus `dpk exec` for any shell command and `dpk list` for the workspace packages. See [Run across workspace packages](#run-across-workspace-packages).
 - **The same dpk inside scripts.** `dpk` in a script runs the dpk that started it, whether that is an installed binary or `dart run bin/dpk.dart`. See [Scripts](#scripts).
 - **Any workspace root name.** dpk finds pub workspaces from their pubspecs, so the root package no longer has to be named `_`. See [Workspaces](#workspaces).
-- **A safer catalog.** Environment keys merge, dependency values are written as given, and `catalog.dependency_overrides` is new. `dpk catalog outdated` and `upgrade` keep it current. See [Catalog](#catalog).
+- **A safer catalog.** Environment keys merge, dependency values are written as given, and a package's own `hosted:` source is kept. `dpk catalog outdated` and `upgrade` keep it current. See [Catalog](#catalog).
 - **CI checks.** `dpk get --check` fails when the catalog or sorting would change a file. See [Checking in CI](#checking-in-ci).
 - **Automatic patches.** `dpk get` applies patches, reports stale ones, and `dpk patch list` and `remove` manage them. See [Patching dependencies](#patching-dependencies).
 - **Releases.** `dpk release version` and `dpk release publish` work from Conventional Commits. See [Releasing](#releasing).
@@ -52,7 +52,7 @@ Upgrading from 0.x? See [Upgrading to 1.0](#upgrading-to-10).
 
 ## Install
 
-dpk needs Dart 3.11 or later.
+dpk needs Dart 3.11 or later. It supports macOS and Linux. Windows support is best effort.
 
 ```bash
 dart install dpk
@@ -313,19 +313,16 @@ catalog:
       git:
         url: https://github.com/exaby73/luthor.git
         path: packages/luthor
-  dependency_overrides:
-    meta: 1.16.0
 ```
 
 | Key | Applied to | How |
 | --- | --- | --- |
 | `environment` | Root and packages | Merged key by key, so a package keeps its own `flutter` constraint. |
 | `dependencies` | Root and packages | Updates `dependencies` and `dev_dependencies` that a package already has. Values are written as given. A package's own `hosted:` source is kept, and only its version changes. Each managed dependency gets a `# Configured via catalog` comment. |
-| `dependency_overrides` | Root | Merged into the root pubspec's `dependency_overrides`. |
 | `version`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `funding`, `platforms`, `resolution` | Packages | Replaced. |
 | `topics` | Packages | Added to each package's topics. |
 
-A pub workspace resolves one version of each package for every workspace package, so the catalog gives every package the same constraint.
+A pub workspace resolves one version of each package for every workspace package, so the catalog gives every package the same constraint. For `dependency_overrides`, edit the root `pubspec.yaml`: pub applies them to the whole workspace.
 
 `homepage`, `repository`, `issue_tracker`, `documentation`, and `funding` can use these variables, written as `NAME`, `$NAME`, or `${NAME}`:
 

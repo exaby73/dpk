@@ -168,11 +168,6 @@
           "type": "object",
           "additionalProperties": { "$ref": "#/definitions/dependency" },
           "description": "Versions for dependencies and dev_dependencies that packages already have."
-        },
-        "dependency_overrides": {
-          "type": "object",
-          "additionalProperties": { "$ref": "#/definitions/dependency" },
-          "description": "Overrides written to the workspace root pubspec."
         }
       }
     }

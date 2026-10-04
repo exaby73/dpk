@@ -26,7 +26,7 @@
 - Feat: Print each script and hook to stderr before it runs, with `-q` to hide them
 - Feat: Prefix each line of parallel output with its package name, and add colors only in a terminal
 - Feat: Add `dpk get --check` for CI, and make `dpk get --dry-run` write nothing
-- Feat: Add `catalog.dependency_overrides`, and use the catalog version in `dpk add <package>`
+- Feat: Use the catalog version in `dpk add <package>`
 - Feat: Add `dpk catalog outdated` and `dpk catalog upgrade`
 - Feat: Record the project cache baseline and apply patches on every `dpk get`, `add`, `remove`, `upgrade`, and `downgrade`
 - Feat: Add `dpk patch list` and `dpk patch remove`, and `dpk patch generate <package>`

@@ -192,44 +192,30 @@ dependencies:
     });
   });
 
-  group('Given catalog overrides and package metadata', () {
+  group('Given catalog package metadata', () {
     const pubspec = 'name: _\ndependencies:\n  http: ^1.0.0\n';
-    const catalog = Catalog(
-      version: '2.0.0',
-      dependencyOverrides: {'http': '1.2.0'},
-    );
+    const catalog = Catalog(version: '2.0.0');
 
-    test(
-      'When applying to the root then overrides apply and metadata does not',
-      () {
-        final result = applyCatalog(
-          pubspec,
-          catalog: catalog,
-          role: PubspecRole.root,
-          values: values,
-        );
+    test('When applying to the root then metadata does not apply', () {
+      final result = applyCatalog(
+        pubspec,
+        catalog: catalog,
+        role: PubspecRole.root,
+        values: values,
+      );
 
-        expect(
-          result,
-          contains('dependency_overrides:\n  http: 1.2.0 $catalogMarker'),
-        );
-        expect(result, isNot(contains('version: 2.0.0')));
-      },
-    );
+      expect(result, isNot(contains('version: 2.0.0')));
+    });
 
-    test(
-      'When applying to a workspace package then overrides do not apply',
-      () {
-        final result = applyCatalog(
-          pubspec,
-          catalog: catalog,
-          role: PubspecRole.package,
-          values: values,
-        );
+    test('When applying to a workspace package then metadata applies', () {
+      final result = applyCatalog(
+        pubspec,
+        catalog: catalog,
+        role: PubspecRole.package,
+        values: values,
+      );
 
-        expect(result, isNot(contains('dependency_overrides')));
-        expect(result, contains('version: 2.0.0'));
-      },
-    );
+      expect(result, contains('version: 2.0.0'));
+    });
   });
 }

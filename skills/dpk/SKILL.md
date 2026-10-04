@@ -105,7 +105,6 @@ The root `dpk.yaml` `catalog` is applied by `dpk get`:
 
 - `environment`: merged key by key into every pubspec.
 - `dependencies`: rewrites dependencies and dev dependencies that packages already have; never adds new ones. Values are written as given (constraints or `git:`/`path:`/`sdk:` maps). Managed entries get `# Configured via catalog`.
-- `dependency_overrides`: merged into the root pubspec.
 - `version`, `publish_to`, `homepage`, `repository`, `issue_tracker`, `documentation`, `funding`, `platforms`, `resolution`: set on workspace packages. `topics` are added.
 - Metadata URLs expand `DPK_PACKAGE_PATH`, `DPK_PACKAGE_NAME`, and `DPK_PACKAGE_VERSION` (also as `$NAME` or `${NAME}`).
 

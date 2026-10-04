@@ -66,6 +66,10 @@ void main() {
         'dpk:\n  mode: project\n',
         'The nested "dpk:" mapping is no longer supported.',
       ),
+      'catalog dependency_overrides': (
+        'catalog:\n  dependency_overrides:\n    meta: 1.0.0\n',
+        'Unknown key "dependency_overrides" in catalog.',
+      ),
       'an invalid catalog resolution': (
         'catalog:\n  resolution: hosted\n',
         'catalog.resolution: "hosted" is not a resolution.',

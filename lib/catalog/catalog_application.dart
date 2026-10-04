@@ -8,8 +8,7 @@ const catalogMarker = '# Configured via catalog';
 
 /// Which pubspec the catalog is applied to.
 enum PubspecRole {
-  /// The workspace root: receives `environment`, catalog dependencies, and
-  /// `dependency_overrides`.
+  /// The workspace root: receives `environment` and catalog dependencies.
   root,
 
   /// A workspace package: receives `environment`, catalog dependencies, and
@@ -151,28 +150,10 @@ String applyCatalog(
     }
   }
 
-  final overrides = catalog.dependencyOverrides;
-  if (role == PubspecRole.root && overrides != null && overrides.isNotEmpty) {
-    if (document['dependency_overrides'] is YamlMap) {
-      for (final MapEntry(:key, :value) in overrides.entries) {
-        set(['dependency_overrides', key], value ?? 'any');
-      }
-    } else {
-      set(
-        ['dependency_overrides'],
-        {
-          for (final MapEntry(:key, :value) in overrides.entries)
-            key: value ?? 'any',
-        },
-      );
-    }
-  }
-
-  final managed = {
-    ...dependencies.keys,
-    if (role == PubspecRole.root) ...?overrides?.keys,
-  };
-  var result = markCatalogDependencies(editor.toString(), managed);
+  var result = markCatalogDependencies(
+    editor.toString(),
+    dependencies.keys.toSet(),
+  );
   if (usesCrlf) {
     result = result.replaceAll('\n', '\r\n');
   }

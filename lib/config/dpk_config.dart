@@ -419,7 +419,6 @@ final class Catalog {
     this.platforms,
     this.resolution,
     this.dependencies,
-    this.dependencyOverrides,
   });
 
   static const keys = [
@@ -435,7 +434,6 @@ final class Catalog {
     'platforms',
     'resolution',
     'dependencies',
-    'dependency_overrides',
   ];
 
   factory Catalog.parse(ConfigReader reader) {
@@ -501,7 +499,6 @@ final class Catalog {
           : toPlain(platforms) as Map<Object?, Object?>,
       resolution: resolution,
       dependencies: _dependencies(reader, 'dependencies'),
-      dependencyOverrides: _dependencies(reader, 'dependency_overrides'),
     );
   }
 
@@ -537,8 +534,6 @@ final class Catalog {
   /// `{git: {url: ...}}`, written to pubspecs as they appear in `dpk.yaml`.
   final Map<String, Object?>? dependencies;
 
-  /// Overrides written to the workspace root pubspec.
-  final Map<String, Object?>? dependencyOverrides;
   final Map<String, String>? environment;
   final String? version;
   final String? publishTo;
