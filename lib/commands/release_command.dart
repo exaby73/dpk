@@ -366,24 +366,53 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
     List<PackageRelease> releases,
     bool shared,
   ) {
+    // A raised constraint on a catalog dependency goes into the catalog too,
+    // or the next `dpk get` writes the old constraint back. Like the catalog,
+    // it then applies to every pubspec that has the dependency, including
+    // packages that are not released.
+    final catalogDependencies =
+        project.config.catalog?.dependencies ?? const {};
+    final catalogUpdates = {
+      for (final release in releases)
+        for (final MapEntry(key: name, value: constraint)
+            in release.constraintUpdates.entries)
+          if (catalogDependencies[name] is String) name: constraint,
+    };
+    final releaseOf = {
+      for (final release in releases) release.package.name: release,
+    };
+
     final changed = <String>[];
-    for (final release in releases) {
-      final pubspecFile = File(p.join(release.package.path, 'pubspec.yaml'));
-      final editor = YamlEditor(pubspecFile.readAsStringSync())
-        ..update(['version'], release.to.toString());
-      final sections = _sections(release.package);
-      for (final MapEntry(key: name, value: constraint)
-          in release.constraintUpdates.entries) {
-        for (final MapEntry(key: section, value: entries) in sections.entries) {
-          if (entries.containsKey(name)) {
+    for (final package in project.workspace.allPackages) {
+      final release = releaseOf[package.name];
+      final updates = {...catalogUpdates, ...?release?.constraintUpdates};
+      final pubspecFile = File(p.join(package.path, 'pubspec.yaml'));
+      final editor = YamlEditor(pubspecFile.readAsStringSync());
+      if (release != null) {
+        editor.update(['version'], release.to.toString());
+      }
+      var edited = release != null;
+      for (final MapEntry(key: section, value: entries) in _sections(
+        package,
+      ).entries) {
+        for (final MapEntry(key: name, value: constraint) in updates.entries) {
+          if (entries[name] case final String current
+              when current != constraint) {
             editor.update([section, name], constraint);
+            edited = true;
           }
         }
+      }
+      if (!edited) {
+        continue;
       }
       pubspecFile.writeAsStringSync(editor.toString());
       changed.add(pubspecFile.path);
 
-      final changelog = File(p.join(release.package.path, 'CHANGELOG.md'));
+      if (release == null) {
+        continue;
+      }
+      final changelog = File(p.join(package.path, 'CHANGELOG.md'));
       changelog.writeAsStringSync(
         prependChangelog(
           changelog.existsSync() ? changelog.readAsStringSync() : null,
@@ -393,16 +422,6 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
       changed.add(changelog.path);
     }
 
-    // A raised constraint on a catalog dependency goes into the catalog too,
-    // or the next `dpk get` writes the old constraint back.
-    final catalogDependencies =
-        project.config.catalog?.dependencies ?? const {};
-    final catalogUpdates = {
-      for (final release in releases)
-        for (final MapEntry(key: name, value: constraint)
-            in release.constraintUpdates.entries)
-          if (catalogDependencies[name] is String) name: constraint,
-    };
     if (shared || catalogUpdates.isNotEmpty) {
       final config = File(project.configPath);
       final editor = YamlEditor(config.readAsStringSync());

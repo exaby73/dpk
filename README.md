@@ -391,8 +391,8 @@ A patch targets one package version. When you upgrade that package, `dpk get` fa
 `dpk release version` reads the Conventional Commits that touch each package since its last release tag, then:
 
 1. Raises the version in each package's pubspec. A `feat` commit raises the minor version. `fix`, `perf`, and `revert` commits raise the patch version. A breaking change, marked with `!` or a `BREAKING CHANGE:` footer, raises the major version. Below 1.0.0, a breaking change raises the minor version and a feature raises the patch version.
-2. Raises the constraint of every workspace package that no longer allows a new version, and gives it a patch release. When the catalog manages that dependency, dpk raises the catalog entry too, so `dpk get` keeps the new constraint.
-3. Adds an entry to the top of each package's `CHANGELOG.md`, below a title such as `# Changelog`. The entry uses the same heading level as the newest release, so a changelog that starts with `# 1.0.0` gets `# 1.1.0` above it.
+2. Raises the constraint of every workspace package that no longer allows a new version, and gives it a patch release. When the catalog manages that dependency, dpk raises the catalog entry too, and the dependency in every other pubspec that has it, so `dpk get` keeps the new constraint.
+3. Adds an entry to the top of each package's `CHANGELOG.md`, below a title such as `# Changelog`. When the changelog starts with a version heading such as `# 1.0.0`, the entry goes above it at the same level, as `# 1.1.0`.
 4. Runs the `version` hooks. A `post:version` hook runs after the files change and before the commit, and the files it changes go into the release commit.
 5. Commits and tags each release with an annotated tag, as `<package>-v<version>` in a workspace or `v<version>` for a standalone package.
 

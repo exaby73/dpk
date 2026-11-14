@@ -173,6 +173,8 @@ void main() {
           '# 1.1.0\n\n- Fix: B\n\n# v1.0.0\n\n- Feat: A\n',
       '## 1.0.0\n\n- Feat: A\n':
           '## 1.1.0\n\n- Fix: B\n\n## 1.0.0\n\n- Feat: A\n',
+      '# [1.0.0] - 2024-01-01\n\n- Feat: A\n':
+          '# 1.1.0\n\n- Fix: B\n\n# [1.0.0] - 2024-01-01\n\n- Feat: A\n',
     };
 
     for (final MapEntry(key: existing, value: expected) in cases.entries) {
@@ -188,7 +190,7 @@ void main() {
 
   group('Given a git workspace whose catalog manages a sibling dependency', () {
     setUp(() async {
-      await _catalogFixture();
+      await _catalogFixture(sharedVersion: true);
     });
 
     group('When releasing a breaking change to the dependency', () {
@@ -215,6 +217,50 @@ void main() {
         expect(
           File(d.path('repo/dpk.yaml')).readAsStringSync(),
           allOf(contains('version: 2.0.0'), contains('a: ^2.0.0')),
+        );
+      });
+
+      test('Then dpk get --check passes', () async {
+        final check = await dpk(
+          ['get', '--check'],
+          directory: d.path('repo'),
+          processRunner: RecordingProcessRunner(),
+        );
+        expect(check.exitCode, equals(0), reason: '$check');
+      });
+    });
+  });
+
+  group('Given a git workspace whose catalog manages a dependency of an '
+      'unversioned package', () {
+    setUp(() async {
+      await _catalogFixture(sharedVersion: false);
+    });
+
+    group('When releasing a breaking change to the dependency', () {
+      late DpkResult result;
+
+      setUp(() async {
+        result = await dpk([
+          'release',
+          'version',
+          '--no-commit',
+          '--yes',
+        ], directory: d.path('repo'));
+      });
+
+      test('Then the catalog gets the raised constraint', () {
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(
+          File(d.path('repo/dpk.yaml')).readAsStringSync(),
+          contains('a: ^2.0.0'),
+        );
+      });
+
+      test('Then the unversioned package gets it too', () {
+        expect(
+          File(d.path('repo/packages/app/pubspec.yaml')).readAsStringSync(),
+          contains('a: ^2.0.0 # Configured via catalog'),
         );
       });
 
@@ -571,26 +617,46 @@ Future<void> _publishFixture({required bool clean}) async {
 }
 
 /// A workspace where `b` depends on `a` through the catalog, both released
-/// at 1.0.0, with a breaking commit to `a` since.
-Future<void> _catalogFixture() async {
+/// at 1.0.0, with a breaking commit to `a` since. With [sharedVersion], the
+/// catalog sets their version. Without it, an unversioned `app` depends on
+/// `a` through the catalog too.
+Future<void> _catalogFixture({required bool sharedVersion}) async {
+  final version = sharedVersion ? '' : 'version: 1.0.0\n';
   await d.dir('repo', [
     d.file(
       'pubspec.yaml',
-      pubspec('_', extra: 'workspace:\n  - packages/a\n  - packages/b\n'),
+      pubspec(
+        '_',
+        extra:
+            'workspace:\n  - packages/a\n  - packages/b\n'
+            '${sharedVersion ? '' : '  - packages/app\n'}',
+      ),
     ),
     d.file(
       'dpk.yaml',
-      'version: $versionConstraint\ncatalog:\n  version: 1.0.0\n'
+      'version: $versionConstraint\ncatalog:\n'
+          '${sharedVersion ? '  version: 1.0.0\n' : ''}'
           '  dependencies:\n    a: ^1.0.0\n',
     ),
     d.dir('packages', [
-      d.dir('a', [d.file('pubspec.yaml', 'name: a\nresolution: workspace\n')]),
+      d.dir('a', [
+        d.file('pubspec.yaml', 'name: a\n${version}resolution: workspace\n'),
+      ]),
       d.dir('b', [
         d.file(
           'pubspec.yaml',
-          'name: b\nresolution: workspace\ndependencies:\n  a: ^1.0.0\n',
+          'name: b\n${version}resolution: workspace\n'
+              'dependencies:\n  a: ^1.0.0\n',
         ),
       ]),
+      if (!sharedVersion)
+        d.dir('app', [
+          d.file(
+            'pubspec.yaml',
+            'name: app\npublish_to: none\nresolution: workspace\n'
+                'dependencies:\n  a: ^1.0.0\n',
+          ),
+        ]),
     ]),
   ]).create();
   final root = d.path('repo');
