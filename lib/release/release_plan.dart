@@ -186,16 +186,26 @@ bool _excludes(String constraint, Version version) {
   }
 }
 
-/// [existing] changelog text with [entry] added as the newest release. The
-/// entry goes after a leading `# ...` title when there is one.
+/// [existing] changelog text with [entry] added as the newest release.
+///
+/// When [existing] starts with a version heading such as `# 1.0.0`, the entry
+/// goes above it with the same heading level. Otherwise the entry goes after
+/// a leading `# ...` title when there is one.
 String prependChangelog(String? existing, String entry) {
   if (existing == null || existing.trim().isEmpty) {
     return entry;
   }
   final lines = existing.split('\n');
+  if (_versionHeading.firstMatch(lines.first) case final match?) {
+    return '${entry.replaceFirst(RegExp('^#+'), match[1]!)}\n$existing';
+  }
   if (lines.first.startsWith('# ')) {
     final rest = lines.skip(1).join('\n').trimLeft();
     return '${lines.first}\n\n$entry\n$rest';
   }
   return '$entry\n$existing';
 }
+
+/// A heading for a release, such as `# 1.0.0`, `## v1.0.0`, or
+/// `## [1.0.0] - 2024-01-01`.
+final _versionHeading = RegExp(r'^(#+)\s+\[?v?\d+\.\d+\.\d+');
