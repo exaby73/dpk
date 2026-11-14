@@ -665,7 +665,9 @@ Future<void> _catalogFixture({required bool sharedVersion}) async {
     directory: root,
     processRunner: RecordingProcessRunner(),
   );
-  expect(get.exitCode, equals(0), reason: '$get');
+  if (get.exitCode != 0) {
+    throw StateError('dpk get failed in the fixture:\n$get');
+  }
   await _git(['init', '-q'], root);
   await _git(['add', '-A'], root);
   await _git(['commit', '-qm', 'chore: Initial'], root);
