@@ -166,6 +166,69 @@ void main() {
     });
   });
 
+  group('Given an existing changelog that starts with a version heading', () {
+    final cases = {
+      '# 1.0.0\n\n- Feat: A\n': '# 1.1.0\n\n- Fix: B\n\n# 1.0.0\n\n- Feat: A\n',
+      '# v1.0.0\n\n- Feat: A\n':
+          '# 1.1.0\n\n- Fix: B\n\n# v1.0.0\n\n- Feat: A\n',
+      '## 1.0.0\n\n- Feat: A\n':
+          '## 1.1.0\n\n- Fix: B\n\n## 1.0.0\n\n- Feat: A\n',
+    };
+
+    for (final MapEntry(key: existing, value: expected) in cases.entries) {
+      test('When prepending to "${existing.split('\n').first}" then the entry '
+          'goes on top at the same heading level', () {
+        expect(
+          prependChangelog(existing, '## 1.1.0\n\n- Fix: B\n'),
+          equals(expected),
+        );
+      });
+    }
+  });
+
+  group('Given a git workspace whose catalog manages a sibling dependency', () {
+    setUp(() async {
+      await _catalogFixture();
+    });
+
+    group('When releasing a breaking change to the dependency', () {
+      late DpkResult result;
+
+      setUp(() async {
+        result = await dpk([
+          'release',
+          'version',
+          '--no-commit',
+          '--yes',
+        ], directory: d.path('repo'));
+      });
+
+      test('Then the dependent pubspec gets the raised constraint', () {
+        expect(result.exitCode, equals(0), reason: '$result');
+        expect(
+          File(d.path('repo/packages/b/pubspec.yaml')).readAsStringSync(),
+          contains('a: ^2.0.0 # Configured via catalog'),
+        );
+      });
+
+      test('Then the catalog gets the raised constraint', () {
+        expect(
+          File(d.path('repo/dpk.yaml')).readAsStringSync(),
+          allOf(contains('version: 2.0.0'), contains('a: ^2.0.0')),
+        );
+      });
+
+      test('Then dpk get --check passes', () async {
+        final check = await dpk(
+          ['get', '--check'],
+          directory: d.path('repo'),
+          processRunner: RecordingProcessRunner(),
+        );
+        expect(check.exitCode, equals(0), reason: '$check');
+      });
+    });
+  });
+
   group('Given a git workspace with releases tagged and new commits', () {
     setUp(() async {
       await d.dir('repo', [
@@ -505,6 +568,46 @@ Future<void> _publishFixture({required bool clean}) async {
   if (!clean) {
     File(d.path('repo/dirty.txt')).writeAsStringSync('x');
   }
+}
+
+/// A workspace where `b` depends on `a` through the catalog, both released
+/// at 1.0.0, with a breaking commit to `a` since.
+Future<void> _catalogFixture() async {
+  await d.dir('repo', [
+    d.file(
+      'pubspec.yaml',
+      pubspec('_', extra: 'workspace:\n  - packages/a\n  - packages/b\n'),
+    ),
+    d.file(
+      'dpk.yaml',
+      'version: $versionConstraint\ncatalog:\n  version: 1.0.0\n'
+          '  dependencies:\n    a: ^1.0.0\n',
+    ),
+    d.dir('packages', [
+      d.dir('a', [d.file('pubspec.yaml', 'name: a\nresolution: workspace\n')]),
+      d.dir('b', [
+        d.file(
+          'pubspec.yaml',
+          'name: b\nresolution: workspace\ndependencies:\n  a: ^1.0.0\n',
+        ),
+      ]),
+    ]),
+  ]).create();
+  final root = d.path('repo');
+  final get = await dpk(
+    ['get'],
+    directory: root,
+    processRunner: RecordingProcessRunner(),
+  );
+  expect(get.exitCode, equals(0), reason: '$get');
+  await _git(['init', '-q'], root);
+  await _git(['add', '-A'], root);
+  await _git(['commit', '-qm', 'chore: Initial'], root);
+  await _git(['tag', 'a-v1.0.0'], root);
+  await _git(['tag', 'b-v1.0.0'], root);
+  File(d.path('repo/packages/a/lib.dart')).writeAsStringSync('// new');
+  await _git(['add', '-A'], root);
+  await _git(['commit', '-qm', 'feat!: Drop the old API'], root);
 }
 
 WorkspacePackage _package(

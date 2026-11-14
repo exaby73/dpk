@@ -393,10 +393,26 @@ final class _ReleaseVersionCommand extends _ReleaseSubcommand {
       changed.add(changelog.path);
     }
 
-    if (shared) {
+    // A raised constraint on a catalog dependency goes into the catalog too,
+    // or the next `dpk get` writes the old constraint back.
+    final catalogDependencies =
+        project.config.catalog?.dependencies ?? const {};
+    final catalogUpdates = {
+      for (final release in releases)
+        for (final MapEntry(key: name, value: constraint)
+            in release.constraintUpdates.entries)
+          if (catalogDependencies[name] is String) name: constraint,
+    };
+    if (shared || catalogUpdates.isNotEmpty) {
       final config = File(project.configPath);
-      final editor = YamlEditor(config.readAsStringSync())
-        ..update(['catalog', 'version'], releases.first.to.toString());
+      final editor = YamlEditor(config.readAsStringSync());
+      if (shared) {
+        editor.update(['catalog', 'version'], releases.first.to.toString());
+      }
+      for (final MapEntry(key: name, value: constraint)
+          in catalogUpdates.entries) {
+        editor.update(['catalog', 'dependencies', name], constraint);
+      }
       config.writeAsStringSync(editor.toString());
       changed.add(config.path);
     }
