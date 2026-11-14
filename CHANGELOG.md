@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Fix: Keep raised release constraints in the catalog, and add changelog entries above a leading version heading (#8)
+
 ## 1.0.0
 
 ### Breaking changes
